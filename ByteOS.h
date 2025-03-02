@@ -43,7 +43,19 @@ typedef signed char INT8;
 #define INT8_MAX 0x7f
 #define INT8_MIN 0x80
 
-typedef int INT;
+typedef unsigned char BYTE;
+#define BYTE_MAX 0xff
+#define BYTE_MIN 0x00
+
+typedef signed char SBYTE;
+#define SBYTE_MAX 0x7f
+#define SBYTE_MIN 0x80
+
+typedef unsigned int UINT;
+typedef signed int INT;
+
+typedef unsigned int* UINTPTR;
+typedef signed int* INTPTR;
 
 #define FALSE 0
 #define TRUE 1
@@ -68,7 +80,7 @@ typedef unsigned short CHAR16;
 typedef unsigned char CHAR8;
 typedef char CHAR;
 
-CHAR8* ByteAPI Concat8(CHAR8* b1, CHAR8* b2){
+CHAR8* ByteAPI ConcatChar8(CHAR8* b1, CHAR8* b2){
     static CHAR8 buffer[256];
     UINTN i = 0;
 
@@ -82,7 +94,7 @@ CHAR8* ByteAPI Concat8(CHAR8* b1, CHAR8* b2){
     buffer[i] = '\0';
     return buffer;  
 }
-CHAR16* ByteAPI Concat16(CHAR16* b1, CHAR16* b2){
+CHAR16* ByteAPI ConcatChar16(CHAR16* b1, CHAR16* b2){
     static CHAR16 buffer[256];
     UINTN i = 0;
 
@@ -96,7 +108,7 @@ CHAR16* ByteAPI Concat16(CHAR16* b1, CHAR16* b2){
     buffer[i] = '\0';
     return buffer;  
 }
-CHAR32* ByteAPI Concat32(CHAR32* b1, CHAR32* b2){
+CHAR32* ByteAPI ConcatChar32(CHAR32* b1, CHAR32* b2){
     static CHAR32 buffer[256];
     UINTN i = 0;
 
@@ -111,23 +123,42 @@ CHAR32* ByteAPI Concat32(CHAR32* b1, CHAR32* b2){
     return buffer;  
 }
 
-CHAR16* ByteAPI Char8ToChar16(CHAR8* value){
+// ==================================== |
+//                KERNEL                |
+// ==================================== |
 
-}
-CHAR32* ByteAPI Char8ToChar32(CHAR8* value){
-    
-}
+#define KERNEL_BASE_PATH L"\\KERNEL\\ByteOS.bin"
+#define KERNEL_BASE_SIZE 1024
 
-CHAR8* ByteAPI Char16ToChar8(CHAR16* value){
+typedef VOID (*KERNEL_ENTRY_POINT)(VOID);
 
-}
-CHAR32* ByteAPI Char16ToChar32(CHAR16* value){
-    
-}
+// ==================================== |
+//                ERRORS                |
+// ==================================== |
 
-CHAR8* ByteAPI Char32ToChar8(CHAR32* value){
-    
-}
-CHAR16* ByteAPI Char32ToChar16(CHAR32* value){
-    
+typedef UINTN KERNEL_LOAD_STATUS;
+#define KERNEL_LOAD_SUCCESS 0
+#define KERNEL_LOAD_ERROR_FILE 1
+#define KERNEL_LOAD_ERROR_ALLOC 2
+#define KERNEL_LOAD_ERROR_HANDLE_BUFFER 3
+#define KERNEL_LOAD_ERROR_HANDLE_PROTOCOL 4
+#define KERNEL_LOAD_ERROR_VOLUME 5
+
+CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {
+    switch (status) {
+        case KERNEL_LOAD_SUCCESS:
+        return L"Kernel loaded successfully.";
+        case KERNEL_LOAD_ERROR_FILE:
+            return L"Failed to open kernel file.";
+        case KERNEL_LOAD_ERROR_ALLOC:
+            return L"Memory allocation failed.";
+        case KERNEL_LOAD_ERROR_HANDLE_BUFFER:
+            return L"Failed to retrieve handle buffer.";
+        case KERNEL_LOAD_ERROR_HANDLE_PROTOCOL:
+            return L"Failed to handle protocol.";
+        case KERNEL_LOAD_ERROR_VOLUME:
+            return L"Failed to open file system volume.";
+        default:
+            return L"Unknown error.";
+    }
 }

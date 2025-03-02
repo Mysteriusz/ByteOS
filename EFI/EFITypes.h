@@ -39,7 +39,7 @@ typedef VOID* EFI_HANDLE;
 typedef VOID* EFI_EVENT;
 
 typedef UINTN EFI_STATUS;
-#define EFI_ERROR (status) (((UINTN)(status)) > 0)
+#define EFI_ERROR(status) (((UINTN)(status)) > 0)
 
 typedef UINTN EFI_PHYSICAL_ADDRESS;
 
@@ -262,7 +262,7 @@ typedef struct EFI_FILE_PROTOCOL{
 
 #pragma region EFI_BASE
 
-typedef enum {
+typedef enum EFI_MEMORY_TYPE {
     EfiReservedMemoryType,
     EfiLoaderCode,
     EfiLoaderData,

@@ -1,46 +1,72 @@
 #include "../EFI/EFITypes.h"
 
-EFI_STATUS EFIAPI efi_main(EFI_HANDLE imgHandle, EFI_SYSTEM_TABLE *sysTable){
-    (VOID)imgHandle;
+static EFI_SYSTEM_TABLE *sysTable;
 
-    EFI_STATUS status = sysTable->conOut->clearScreen(sysTable->conOut);
+KERNEL_LOAD_STATUS EFIAPI LoadKernel(CHAR16 *kernelPath, KERNEL_ENTRY_POINT* kernelEntry);
+
+EFI_STATUS EFIAPI efi_main(EFI_HANDLE imgHandle, EFI_SYSTEM_TABLE *systemTable){
+    (VOID)imgHandle;
     
-    EFI_Print(sysTable->conOut, Concat16(L"sysTable->conOut->clearScreen: ", EFI_GetStatus(status)));
+    sysTable = systemTable;
+
+    KERNEL_ENTRY_POINT entry = NULL;
+    KERNEL_LOAD_STATUS kernelLoadStatus = LoadKernel(KERNEL_BASE_PATH, &entry);
+
+    EFI_Print(sysTable->conOut, ConcatChar16(L"KERNEL LOAD: ", GetKernelLoadStatus(kernelLoadStatus)));
+
+    if (entry){
+        entry();
+    }
+
+    while (1) {};
+    return 0;
+}
+
+KERNEL_LOAD_STATUS EFIAPI LoadKernel(CHAR16 *kernelPath, KERNEL_ENTRY_POINT* kernelEntry){
+    EFI_STATUS status = sysTable->conOut->clearScreen(sysTable->conOut);
     
     EFI_HANDLE* fsHandle;
     UINTN handleCount = 0;
     status = sysTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, NULL, &handleCount, &fsHandle);
     
-    EFI_Print(sysTable->conOut, Concat16(L"\r\nsysTable->bootServices->locateHandleBuffer: ", EFI_GetStatus(status)));
+    if (EFI_ERROR(status)){
+        return KERNEL_LOAD_ERROR_HANDLE_BUFFER;
+    }
 
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* sfsp;
     status = sysTable->bootServices->handleProtocol(fsHandle[0], &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (VOID**)&sfsp);
     
-    EFI_Print(sysTable->conOut, Concat16(L"\r\nsysTable->bootServices->handleProtocol: ", EFI_GetStatus(status)));
-    
+    if (EFI_ERROR(status)){
+        return KERNEL_LOAD_ERROR_HANDLE_PROTOCOL;
+    }
+
     EFI_FILE_PROTOCOL* root;
     status = sfsp->openVolume(sfsp, &root);
     
-    EFI_Print(sysTable->conOut, Concat16(L"\r\nsfsp->openVolume: ", EFI_GetStatus(status)));
-    
-    EFI_FILE_PROTOCOL* testFile;
-    status = root->open(root, &testFile, L"\\EFI\\BOOT\\test.txt", (UINT64*)EFI_FILE_MODE_READ, 0);
+    if (EFI_ERROR(status)){
+        return KERNEL_LOAD_ERROR_VOLUME;
+    }
 
-    EFI_Print(sysTable->conOut, Concat16(L"\r\nroot->open: ", EFI_GetStatus(status)));
-
-    UINTN bufferSize = 1024;
-    CHAR16* buffer = NULL;
-
-    EFI_Alloc(sysTable->bootServices->allocatePool, EfiBootServicesData, bufferSize, (VOID**)&buffer);
+    EFI_FILE_PROTOCOL* kernelFile;
+    status = root->open(root, &kernelFile, kernelPath, (UINT64*)EFI_FILE_MODE_READ, 0);
     
-    status = testFile->read(testFile, &bufferSize, buffer);
-    EFI_Print(sysTable->conOut, Concat16(L"\r\ntestFile->read: ", EFI_GetStatus(status)));
-    EFI_Print(sysTable->conOut, Concat16(L"\r\nDATA: ", buffer));
-    
+    if (EFI_ERROR(status)){
+        return KERNEL_LOAD_ERROR_FILE;
+    }
+
+    UINTN bufferSize = KERNEL_BASE_SIZE;
+    BYTE* buffer = NULL;
+
+    status = EFI_Alloc(sysTable->bootServices->allocatePool, EfiBootServicesData, bufferSize, (VOID**)&buffer);
+
+    if (EFI_ERROR(status)){
+        return KERNEL_LOAD_ERROR_ALLOC;
+    }
+
+    UINT64 address = (UINT64)buffer;
+    *kernelEntry = (KERNEL_ENTRY_POINT)address;
+
     status = EFI_DeAlloc(sysTable->bootServices->freePool, buffer);
 
-    EFI_Print(sysTable->conOut, Concat16(L"\r\nEFI_DeAlloc: ", EFI_GetStatus(status)));
-
-    while (1) {};
-    return 0;
+    return status;
 }
