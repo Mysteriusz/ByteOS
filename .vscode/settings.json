@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "math.h": "c",
+        "efiheader": "cpp",
+        "uint64": "cpp",
+        "EFIHeader.C": "cpp",
+        "efitypes.h": "c",
+        "byteos.h": "c",
+        "stdlib.h": "c"
+    }
+}
