@@ -6,6 +6,7 @@
         "EFIHeader.C": "cpp",
         "efitypes.h": "c",
         "byteos.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "byteosgraphics.h": "c"
     }
 }
