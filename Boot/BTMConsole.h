@@ -28,7 +28,6 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
                 BTM_TOKENS tokens;
 
                 BTM_Tokenize(sysTable, cmd, cmdLen, &tokens);
-                EFI_Print(sysTable, UInt32ToChar16(tokens.tokenCount));
                 BTM_Execute(sysTable, &tokens);
 
                 BTM_PrintDefaultString(sysTable, (CHAR16*)L"\r\nBOOTMANAGER>");
@@ -97,8 +96,9 @@ EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32
     return EFI_SUCCESS;
 }
 EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
-    for (UINT32 i = 0; i < btmTokens->tokenCount; i++) {
-        EFI_Print(sysTable, btmTokens->tokens[i]);
-    }   
+    if (StringCompare16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){
+        EFI_Print(sysTable, (CHAR16*)L"\r\nLOADING\r\n");
+    }
+
     return EFI_SUCCESS;
 }
