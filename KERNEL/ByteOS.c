@@ -6,7 +6,6 @@ void Kernel_Main(void){
     for (UINTN i = 0; i < 1280 * 800; i++) {
         fb[i] = 0xFFFFFF;
     }
-    
     while (TRUE);
 }
 
@@ -28,6 +27,204 @@ void Kernel_Main(void){
 // ==================================== |
 
 // =========== CHAR8 ===========
+
+CHAR8* UInt8ToChar8(UINT8 i) {
+    static CHAR8 buffer[4];
+
+    if (i == 0) {
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + '0';
+        i /= 10;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR8* UInt16ToChar8(UINT16 i) {
+    static CHAR8 buffer[6];
+
+    if (i == 0) {
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + '0';
+        i /= 10;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR8* UInt32ToChar8(UINT32 i) {
+    static CHAR8 buffer[11];
+
+    if (i == 0) {
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + '0';
+        i /= 10;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR8* UInt64ToChar8(UINT64 i) {
+    static CHAR8 buffer[21];
+
+    if (i == 0) {
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + '0';
+        i /= 10;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+
+CHAR8* UInt8ToChar8Hex(UINT8 i) {
+    static CHAR8 buffer[3];
+
+    if (i == 0) {
+        return (CHAR8*)"00";
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+        i /= 16;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR8* UInt16ToChar8Hex(UINT16 i) {
+    static CHAR8 buffer[5];
+
+    if (i == 0) {
+        return (CHAR8*)"00";
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+        i /= 16;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR8* UInt32ToChar8Hex(UINT32 i) {
+    static CHAR8 buffer[9];
+
+    if (i == 0) {
+        return (CHAR8*)"00";
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+        i /= 16;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR8* UInt64ToChar8Hex(UINT64 i) {
+    static CHAR8 buffer[17];
+
+    if (i == 0) {
+        return (CHAR8*)"00";
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+        i /= 16;
+    }
+
+    buffer[j] = '\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR8 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
 
 CHAR8* ConcatChar8(CHAR8* str1, CHAR8* str2){
     static CHAR8 buffer[256];
@@ -57,16 +254,6 @@ CHAR8* RemoveChar8(CHAR8* str, UINT32 len, UINT32 i){
     }
 
     return buffer;
-}
-
-UINTN GetLenghtChar8(CHAR8* str){
-    UINTN len = 0;
-
-    while (str[len] != '\0'){
-        len++;
-    }
-
-    return len;
 }
 
 // =========== CHAR16 ===========
@@ -315,17 +502,199 @@ CHAR16* RemoveChar16(CHAR16* str, UINT32 len, UINT32 i){
     return buffer;
 }
 
-UINTN GetLenghtChar16(CHAR16* str){
-    UINTN len = 0;
+// =========== CHAR32 ===========
 
-    while (str[len] != '\0'){
-        len++;
+CHAR32* UInt8ToChar32(UINT8 i) {
+    static CHAR32 buffer[4];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'\0';
+        return buffer;
     }
 
-    return len;
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + U'0';
+        i /= 10;
+    }
+
+    buffer[j] = U'\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR32 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR32* UInt16ToChar32(UINT16 i) {
+    static CHAR32 buffer[6];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + U'0';
+        i /= 10;
+    }
+
+    buffer[j] = U'\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR32 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR32* UInt32ToChar32(UINT32 i) {
+    static CHAR32 buffer[11];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + U'0';
+        i /= 10;
+    }
+
+    buffer[j] = U'\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR32 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
+}
+CHAR32* UInt64ToChar32(UINT64 i) {
+    static CHAR32 buffer[21];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        buffer[j++] = (i % 10) + U'0';
+        i /= 10;
+    }
+
+    buffer[j] = U'\0';
+
+    for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+        CHAR32 temp = buffer[k];
+        buffer[k] = buffer[l];
+        buffer[l] = temp;
+    }
+
+    return buffer;
 }
 
-// =========== CHAR32 ===========
+CHAR32* UInt8ToChar32Hex(UINT8 i) {
+    static CHAR32 buffer[3];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'0';
+        buffer[2] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + U'0') : (digit - 10 + U'a');
+        i /= 16;
+    }
+
+    buffer[j] = U'\0';
+
+    if (j == 1) {
+        buffer[2] = U'\0';
+        buffer[1] = buffer[0];
+        buffer[0] = U'0';
+    }
+
+    return buffer;
+}
+CHAR32* UInt16ToChar32Hex(UINT16 i) {
+    static CHAR32 buffer[5];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'0';
+        buffer[2] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + U'0') : (digit - 10 + U'a');
+        i /= 16;
+    }
+
+    buffer[j] = U'\0';
+
+    return buffer;
+}
+CHAR32* UInt32ToChar32Hex(UINT32 i) {
+    static CHAR32 buffer[9];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'0';
+        buffer[2] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + U'0') : (digit - 10 + U'a');
+        i /= 16;
+    }
+
+    buffer[j] = U'\0';
+
+    return buffer;
+}
+CHAR32* UInt64ToChar32Hex(UINT64 i) {
+    static CHAR32 buffer[17];
+
+    if (i == 0) {
+        buffer[0] = U'0';
+        buffer[1] = U'0';
+        buffer[2] = U'\0';
+        return buffer;
+    }
+
+    INT32 j = 0;
+    while (i > 0) {
+        INT32 digit = i % 16;
+        buffer[j++] = (digit < 10) ? (digit + U'0') : (digit - 10 + U'a');
+        i /= 16;
+    }
+
+    buffer[j] = U'\0';
+
+    return buffer;
+}
 
 CHAR32* ConcatChar32(CHAR32* str1, CHAR32* str2){
     static CHAR32 buffer[256];
@@ -357,8 +726,26 @@ CHAR32* RemoveChar32(CHAR32* str, UINT32 len, UINT32 i){
     return buffer;
 }
 
-UINTN GetLenghtChar32(CHAR32* str){
-    UINTN len = 0;
+// =========== STRING8 ===========
+
+BOOLEAN CompareString8(STRING8 str1, STRING8 str2) {
+    while (*str1 == *str2) {
+        if (*str1 == L'\0' && *str2 == L'\0') {
+            return TRUE;
+        }
+
+        else if (*str1 == L'\0' || *str2 == L'\0') {
+            return FALSE;
+        }
+        
+        str1++;
+        str2++;
+    }
+
+    return FALSE;
+}
+UINT64 GetLengthString8(CHAR8* str){
+    UINT64 len = 0;
 
     while (str[len] != '\0'){
         len++;
@@ -367,9 +754,9 @@ UINTN GetLenghtChar32(CHAR32* str){
     return len;
 }
 
-// =========== STRING8 ===========
+// =========== STRING16 ===========
 
-BOOLEAN StringCompare8(STRING8 str1, STRING8 str2) {
+BOOLEAN CompareString16(STRING16 str1, STRING16 str2) {
     while (*str1 == *str2) {
         if (*str1 == L'\0' && *str2 == L'\0') {
             return TRUE;
@@ -385,29 +772,19 @@ BOOLEAN StringCompare8(STRING8 str1, STRING8 str2) {
 
     return FALSE;
 }
+UINT64 GetLengthString16(CHAR16* str){
+    UINT64 len = 0;
 
-// =========== STRING16 ===========
-
-BOOLEAN StringCompare16(STRING16 str1, STRING16 str2) {
-    while (*str1 == *str2) {
-        if (*str1 == L'\0' && *str2 == L'\0') {
-            return TRUE;
-        }
-
-        else if (*str1 == L'\0' || *str2 == L'\0') {
-            return FALSE;
-        }
-        
-        str1++;
-        str2++;
+    while (str[len] != '\0'){
+        len++;
     }
 
-    return FALSE;
+    return len;
 }
 
 // =========== STRING32 ===========
 
-BOOLEAN StringCompare32(STRING32 str1, STRING32 str2){
+BOOLEAN CompareString32(STRING32 str1, STRING32 str2){
     while (*str1 == *str2) {
         if (*str1 == L'\0' && *str2 == L'\0') {
             return TRUE;
@@ -422,6 +799,15 @@ BOOLEAN StringCompare32(STRING32 str1, STRING32 str2){
     }
 
     return FALSE;
+}
+UINT64 GetLengthString32(CHAR32* str){
+    UINT64 len = 0;
+
+    while (str[len] != '\0'){
+        len++;
+    }
+
+    return len;
 }
 
 // ==================================== |

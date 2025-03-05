@@ -88,23 +88,55 @@ typedef void VOID;
 // ==================================== |
 
 typedef unsigned int CHAR32;
+typedef CHAR32 WCHAR32;
+typedef CHAR32 UCHAR32;
 typedef CHAR32* STRING32;
 
 typedef unsigned short CHAR16;
+typedef CHAR16 WCHAR16;
+typedef CHAR16 UCHAR16;
 typedef CHAR16* STRING16;
 
 typedef unsigned char CHAR8;
+typedef CHAR8 WCHAR8;
+typedef CHAR8 UCHAR8;
 typedef CHAR8* STRING8;
 
-typedef char CHAR;
-typedef CHAR* STRING;
+typedef union {
+    CHAR8 CHAR8;
+    CHAR16 CHAR16;
+    CHAR32 CHAR32;
+} CHAR;
+typedef union {
+    WCHAR8 WCHAR8;
+    WCHAR16 WCHAR16;
+    WCHAR32 WCHAR32;
+} WCHAR;
+typedef union {
+    UCHAR32 UCHAR8;
+    UCHAR16 UCHAR16;
+    UCHAR32 UCHAR32;
+} UCHAR;
+typedef union{
+    STRING8 STRING8;
+    STRING16 STRING16;
+    STRING32 STRING32;
+} STRING;
 
 // =========== CHAR8 ===========
 
+CHAR8* UInt8ToChar8(UINT8 i);
+CHAR8* UInt16ToChar8(UINT16 i);
+CHAR8* UInt32ToChar8(UINT32 i);
+CHAR8* UInt64ToChar8(UINT64 i);
+
+CHAR8* UInt8ToChar8Hex(UINT8 i);
+CHAR8* UInt16ToChar8Hex(UINT16 i);
+CHAR8* UInt32ToChar8Hex(UINT32 i);
+CHAR8* UInt64ToChar8Hex(UINT64 i);
+
 CHAR8* ConcatChar8(CHAR8* str1, CHAR8* str2);
 CHAR8* RemoveChar8(CHAR8* str, UINT32 len, UINT32 i);
-
-UINTN GetLenghtChar8(CHAR8* str);
 
 // =========== CHAR16 ===========
 
@@ -121,41 +153,42 @@ CHAR16* UInt64ToChar16Hex(UINT64 i);
 CHAR16* ConcatChar16(CHAR16* str1, CHAR16* str2);
 CHAR16* RemoveChar16(CHAR16* str, UINT32 len, UINT32 i);
 
-UINTN GetLenghtChar16(CHAR16* str);
-
 // =========== CHAR32 ===========
+
+CHAR32* UInt8ToChar32(UINT8 i);
+CHAR32* UInt16ToChar32(UINT16 i);
+CHAR32* UInt32ToChar32(UINT32 i);
+CHAR32* UInt64ToChar32(UINT64 i);
+
+CHAR32* UInt8ToChar32Hex(UINT8 i);
+CHAR32* UInt16ToChar32Hex(UINT16 i);
+CHAR32* UInt32ToChar32Hex(UINT32 i);
+CHAR32* UInt64ToChar32Hex(UINT64 i);
 
 CHAR32* ConcatChar32(CHAR32* str1, CHAR32* str2);
 CHAR32* RemoveChar32(CHAR32* str, UINT32 len, UINT32 i);
 
-UINTN GetLenghtChar32(CHAR32* str);
-
 // =========== STRING8 ===========
 
-BOOLEAN StringCompare8(STRING8 str1, STRING8 str2);
+BOOLEAN CompareString8(STRING8 str1, STRING8 str2);
+UINT64 GetLengthString8(CHAR8* str);
 
 // =========== STRING16 ===========
 
-BOOLEAN StringCompare16(STRING16 str1, STRING16 str2);
+BOOLEAN CompareString16(STRING16 str1, STRING16 str2);
+UINT64 GetLengthString16(CHAR16* str);
 
 // =========== STRING32 ===========
 
-BOOLEAN StringCompare32(STRING32 str1, STRING32 str2);
+BOOLEAN CompareString32(STRING32 str1, STRING32 str2);
+UINT64 GetLengthString32(CHAR32* str);
 
 // ==================================== |
 //                KERNEL                |
 // ==================================== |
 
 #define KERNEL_BASE_PATH L"\\KERNEL\\ByteOS.bin"
-#define KERNEL_BASE_SIZE (10 * 1024 * 1024)
-
-typedef struct KERNEL_ENTRY_FRAME_BUFFER_INFO{
-    UINTN *address;
-    UINTN *size;
-    UINT32 *width;
-    UINT32 *height;
-    UINT32 *perLine;
-} KERNEL_ENTRY_FRAME_BUFFER_INFO;
+#define KERNEL_BASE_ALLOC_SIZE (10 * 1024 * 1024)
 
 typedef VOID (*KERNEL_ENTRY_POINT)(VOID);
 

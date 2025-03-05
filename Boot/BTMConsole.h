@@ -14,9 +14,9 @@ EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32
 EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens);
 
 EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
-    EFI_Print(sysTable, (CHAR16*)L"STARTING BOOTMANAGER CONSOLE");
+    EFI_Print(sysTable, L"STARTING BOOTMANAGER CONSOLE");
     
-    BTM_PrintDefaultString(sysTable, (CHAR16*)L"\r\nBOOTMANAGER>");
+    BTM_PrintDefaultString(sysTable, L"\r\nBOOTMANAGER>");
 
     EFI_INPUT_KEY* input = (EFI_INPUT_KEY*)NULL;
     CHAR16 cmd[256];
@@ -30,7 +30,7 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
                 BTM_Tokenize(sysTable, cmd, cmdLen, &tokens);
                 BTM_Execute(sysTable, &tokens);
 
-                BTM_PrintDefaultString(sysTable, (CHAR16*)L"\r\nBOOTMANAGER>");
+                BTM_PrintDefaultString(sysTable, L"\r\nBOOTMANAGER>");
                 
                 cmdLen = 0;
                 cmd[0] = '\0';
@@ -39,7 +39,7 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
                 if (cmdLen > 0){
                     cmd[cmdLen - 1] = L'\0';
                     cmdLen--;
-                    EFI_Print(sysTable, (CHAR16*)L"\b \b");
+                    EFI_Print(sysTable, L"\b \b");
                 }
             }
             else {
@@ -96,9 +96,50 @@ EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32
     return EFI_SUCCESS;
 }
 EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
-    if (StringCompare16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){
-        EFI_Print(sysTable, (CHAR16*)L"\r\nLOADING\r\n");
-    }
+    EFI_STATUS execStatus = 0;
 
-    return EFI_SUCCESS;
+    // =============== HELP ===============
+    if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"help") == TRUE){
+        EFI_Print(sysTable, L"\r\nLIST OF AVAILABLE COMMANDS:");
+        EFI_Print(sysTable, L"\r\n-- help");
+        EFI_Print(sysTable, L"\r\n-- run 'full path' 'header name ex: (pe32, pe32+, elf)'");
+        EFI_Print(sysTable, L"\r\n-- alloc 'address' 'size'");
+        EFI_Print(sysTable, L"\r\n-- free 'address'");
+    }
+    // =============== LOAD 'FULL PATH' 'HEADER NAME' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){
+        EFI_Print(sysTable, L"\r\nLOADING");
+    }
+    // =============== RUN 'FULL PATH' 'HEADER NAME' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"run") == TRUE){
+        EFI_Print(sysTable, L"\r\nRUNNING");
+    }
+    // =============== ALLOC 'SIZE' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE) {
+        BYTE* address = NULL;
+
+        // !!! TODO: CASTING FROM CHAR16 TO SIZE INTIGER !!! 
+        // UINT64 size = (UINT64)btmTokens->tokens[1];
+
+        execStatus = EFI_AllocPool(sysTable, EfiLoaderCode, (UINTN)0, (VOID**)&address);
+         
+        if (EFI_ERROR(execStatus)) {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED: ", UInt8ToChar16(execStatus)));
+        } else {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nALLOCATED MEMORY AT: ", UInt32ToChar16((UINTN)address)));
+        }
+    }
+    
+    // =============== FREE 'ADDRESS' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"free") == TRUE){
+        
+        if (EFI_ERROR(execStatus)){
+            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURED: ", EFI_GetStatus(execStatus)));
+        }
+        else{
+            EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", (STRING16)(EFI_PHYSICAL_ADDRESS)btmTokens->tokens[1]));
+        }    
+    }  
+
+    return execStatus;
 }

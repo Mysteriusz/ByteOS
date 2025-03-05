@@ -96,7 +96,7 @@ typedef enum EFI_ALLOCATE_TYPE {
     MaxAllocateType
  } EFI_ALLOCATE_TYPE;
 
- typedef enum EFI_MEMORY_TYPE {
+typedef enum EFI_MEMORY_TYPE {
     EfiReservedMemoryType,
     EfiLoaderCode,
     EfiLoaderData,
