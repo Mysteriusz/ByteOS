@@ -1,15 +1,17 @@
 #include "../EFI/EFITypes.h"
 
+#define BTM_MAX_TOKENS 10
+
 typedef struct BTM_TOKENS {
-    CHAR16* tokens;
+    CHAR16* tokens[BTM_MAX_TOKENS];
     UINT32 tokenCount;
 } BTM_TOKENS;
 
 EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable);
 EFI_STATUS BTM_PrintDefaultString(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* message);
 EFI_STATUS BTM_CheckInput(IN EFI_SYSTEM_TABLE *sysTable, OUT EFI_INPUT_KEY *input);
-EFI_STATUS BTM_Tokenize(IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens);
-EFI_STATUS BTM_Execute(IN BTM_TOKENS* tokens);
+EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens);
+EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens);
 
 EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
     EFI_Print(sysTable, (CHAR16*)L"STARTING BOOTMANAGER CONSOLE");
@@ -25,7 +27,9 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
             if (input->unicodeChar == EFI_KEY_ENTER){
                 BTM_TOKENS tokens;
 
-                BTM_Tokenize(cmd, cmdLen, &tokens);
+                BTM_Tokenize(sysTable, cmd, cmdLen, &tokens);
+                EFI_Print(sysTable, UInt32ToChar16(tokens.tokenCount));
+                BTM_Execute(sysTable, &tokens);
 
                 BTM_PrintDefaultString(sysTable, (CHAR16*)L"\r\nBOOTMANAGER>");
                 
@@ -61,9 +65,8 @@ EFI_STATUS BTM_CheckInput(IN EFI_SYSTEM_TABLE *sysTable, OUT EFI_INPUT_KEY *inpu
     status = sysTable->conIn->readKeyStroke(sysTable->conIn, input);
     return status;
 }
-EFI_STATUS BTM_Tokenize(IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens){
-    UINT32 i = 0;
-
+EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens){
+    UINT32 i = 0, s = 0, t = 0;
     btmTokens->tokenCount = 0;
 
     while (i < cmdLen){
@@ -71,19 +74,31 @@ EFI_STATUS BTM_Tokenize(IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTok
             i++;
         }
 
+        s = i;
         UINT32 tokenLen = 0;
+
         while (i < cmdLen && cmd[i] != EFI_KEY_SPACE) {
-            i++;
-            tokenLen++;
+            tokenLen++; i++;
         }
         
         if (tokenLen > 0){
+            EFI_AllocPool(sysTable, EfiLoaderData, (tokenLen + 1) * sizeof(CHAR16), (VOID**)&btmTokens->tokens[t]);
+
+            for (UINT32 j = 0; j < tokenLen; j++) {
+                btmTokens->tokens[t][j] = cmd[s + j];
+            }
+            btmTokens->tokens[t][tokenLen] = L'\0';  
+
             btmTokens->tokenCount++;
+            t++;
         }
     }
 
     return EFI_SUCCESS;
 }
-EFI_STATUS BTM_Execute(IN BTM_TOKENS* tokens){
+EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
+    for (UINT32 i = 0; i < btmTokens->tokenCount; i++) {
+        EFI_Print(sysTable, btmTokens->tokens[i]);
+    }   
     return EFI_SUCCESS;
 }
