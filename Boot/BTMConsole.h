@@ -30,8 +30,12 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
                 BTM_Tokenize(sysTable, cmd, cmdLen, &tokens);
                 BTM_Execute(sysTable, &tokens);
 
+                for (UINT i = 0; i < tokens.tokenCount; i++){
+                    EFI_DeAllocPool(sysTable, tokens.tokens[i]);
+                }
+
                 BTM_PrintDefaultString(sysTable, L"\r\nBOOTMANAGER>");
-                
+
                 cmdLen = 0;
                 cmd[0] = '\0';
             }
@@ -114,30 +118,31 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"run") == TRUE){
         EFI_Print(sysTable, L"\r\nRUNNING");
     }
-    // =============== ALLOC 'SIZE' ===============
+    // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE) {
-        BYTE* address = NULL;
+        UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
+        UINT64 size = Char16ToUInt32(btmTokens->tokens[2]);
+        VOID *buffer = (VOID*)address;
 
-        // !!! TODO: CASTING FROM CHAR16 TO SIZE INTIGER !!! 
-        // UINT64 size = (UINT64)btmTokens->tokens[1];
-
-        execStatus = EFI_AllocPool(sysTable, EfiLoaderCode, (UINTN)0, (VOID**)&address);
+        execStatus = EFI_AllocPool(sysTable, EfiLoaderCode, (UINTN)size, (VOID**)&buffer);
          
         if (EFI_ERROR(execStatus)) {
             EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED: ", UInt8ToChar16(execStatus)));
         } else {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nALLOCATED MEMORY AT: ", UInt32ToChar16((UINTN)address)));
+            EFI_Print(sysTable, ConcatChar16(L"\r\nALLOCATED MEMORY AT: ", UInt64ToChar16Hex(address)));
+            EFI_Print(sysTable, ConcatChar16(L" WITH SIZE: ", UInt32ToChar16(size)));
         }
     }
     
     // =============== FREE 'ADDRESS' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"free") == TRUE){
-        
+        UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
+
         if (EFI_ERROR(execStatus)){
             EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURED: ", EFI_GetStatus(execStatus)));
         }
         else{
-            EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", (STRING16)(EFI_PHYSICAL_ADDRESS)btmTokens->tokens[1]));
+            EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));
         }    
     }  
 
