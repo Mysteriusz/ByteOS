@@ -7,6 +7,8 @@
         "efitypes.h": "c",
         "byteos.h": "c",
         "stdlib.h": "c",
-        "byteosgraphics.h": "c"
+        "byteosgraphics.h": "c",
+        "byteosnums.h": "c",
+        "byteoschar.h": "c"
     }
 }
