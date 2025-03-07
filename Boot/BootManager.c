@@ -1,5 +1,5 @@
 #include "../EFI/EFITypes.h"
-#include "BTMConsole.h"
+#include "../BTM/BTMConsole.h"
 
 static EFI_SYSTEM_TABLE *sysTable;
 static EFI_HANDLE *imgHandle;

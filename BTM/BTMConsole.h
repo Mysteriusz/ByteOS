@@ -108,7 +108,7 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         EFI_Print(sysTable, L"\r\n-- help");
         EFI_Print(sysTable, L"\r\n-- run 'full path' 'header name ex: (pe32, pe32+, elf)'");
         EFI_Print(sysTable, L"\r\n-- alloc 'address' 'size'");
-        EFI_Print(sysTable, L"\r\n-- free 'address'");
+        EFI_Print(sysTable, L"\r\n-- free 'address' 'size'");
     }
     // =============== LOAD 'FULL PATH' 'HEADER NAME' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){

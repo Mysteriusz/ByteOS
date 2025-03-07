@@ -1,0 +1,73 @@
+#include "../KERNEL/ByteOS.h"
+
+#define MAGIC_PE32 0x10b
+#define MAGIC_PE32_PLUS 0x20b
+
+struct STANDARD_PE{
+    USHORT magic;
+    BYTE majorLinkerVersion;    
+    BYTE minorLinkerVersion;    
+    ULONG sizeOfCode;    
+    ULONG sizeOfInitializedData;    
+    ULONG sizeOfUninitializedData;    
+    ULONG addressOfEntryPoint;    
+    ULONG baseOfCode;    
+    ULONG baseOfData;    
+} STANDARD_PE;
+struct STANDARD_PE_PLUS{
+    USHORT magic;
+    BYTE majorLinkerVersion;    
+    BYTE minorLinkerVersion;    
+    ULONG sizeOfCode;    
+    ULONG sizeOfInitializedData;    
+    ULONG sizeOfUninitializedData;    
+    ULONG addressOfEntryPoint;    
+    ULONG baseOfCode;   
+} STANDARD_PE_PLUS;
+
+struct OPTIONAL_PE{
+    ULONG imageBase;
+    ULONG sectionAlignment;
+    ULONG fileAlignment;
+    USHORT majorOperatingSystemVersion;
+    USHORT minorOperatingSystemVersion;
+    USHORT majorImageVersion;
+    USHORT minorImageVersion;
+    USHORT majorSubsystemVersion;
+    USHORT minorSubsystemVersion;
+    ULONG win32VersionValue;
+    ULONG sizeOfImage;
+    ULONG sizeOfHeaders;
+    ULONG checkSum;
+    USHORT subsystem;
+    USHORT dllCharacteristics;
+    ULONG sizeOfStackReserve;
+    ULONG sizeOfStackCommit;
+    ULONG sizeOfHeapReserve;
+    ULONG sizeOfHeapCommit;
+    ULONG loaderFlags;
+    ULONG numberOfRvaAndSizes;
+} OPTIONAL_PE;
+struct OPTIONAL_PE_PLUS{
+    ULONGLONG imageBase;
+    ULONG sectionAlignment;
+    ULONG fileAlignment;
+    USHORT majorOperatingSystemVersion;
+    USHORT minorOperatingSystemVersion;
+    USHORT majorImageVersion;
+    USHORT minorImageVersion;
+    USHORT majorSubsystemVersion;
+    USHORT minorSubsystemVersion;
+    ULONG win32VersionValue;
+    ULONG sizeOfImage;
+    ULONG sizeOfHeaders;
+    ULONG checkSum;
+    USHORT subsystem;
+    USHORT dllCharacteristics;
+    ULONGLONG sizeOfStackReserve;
+    ULONGLONG sizeOfStackCommit;
+    ULONGLONG sizeOfHeapReserve;
+    ULONGLONG sizeOfHeapCommit;
+    ULONG loaderFlags;
+    ULONG numberOfRvaAndSizes;
+} OPTIONAL_PE_PLUS;
