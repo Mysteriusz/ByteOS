@@ -40,6 +40,7 @@
 
 #define EFI_PAGE_SHIFT 12
 #define EFI_PAGE_MASK 0xFFF
+#define EFI_PAGE_SIZE 0x00001000
 
 #define EFI_TEXT_ATTR(Foreground, Background) ((Foreground) | ((Background) << 4))
 #define EFI_ERROR(status) (((UINTN)(status)) > 0)
@@ -902,29 +903,19 @@ typedef struct EFI_BOOT_SERVICES {
 // ==================================== |
 
 EFI_STATUS EFI_Print(IN EFI_SYSTEM_TABLE* sysTable, IN CHAR16* message){
-    EFI_STATUS status;
-    status = sysTable->conOut->outputString(sysTable->conOut, message);
-    return status;
+    return sysTable->conOut->outputString(sysTable->conOut, message);
 }
 EFI_STATUS EFI_AllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_MEMORY_TYPE memoryType, IN UINTN bufferSize, OUT VOID** buffer){
-    EFI_STATUS status;
-    status = sysTable->bootServices->allocatePool(memoryType, bufferSize, buffer);
-    return status;
+    return sysTable->bootServices->allocatePool(memoryType, bufferSize, buffer);
 }
 EFI_STATUS EFI_AllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_ALLOCATE_TYPE allocType, IN EFI_MEMORY_TYPE memType, IN UINTN pages, OUT EFI_PHYSICAL_ADDRESS* buffer){
-    EFI_STATUS status;
-    status = sysTable->bootServices->allocatePages(allocType, memType, pages, buffer);
-    return status;
+    return sysTable->bootServices->allocatePages(allocType, memType, pages, buffer);
 }
 EFI_STATUS EFI_DeAllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN VOID* buffer){
-    EFI_STATUS status;
-    status = sysTable->bootServices->freePool(buffer);
-    return status;
+    return sysTable->bootServices->freePool(buffer);
 }
 EFI_STATUS EFI_DeAllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer){
-    EFI_STATUS status;
-    status = sysTable->bootServices->freePages(buffer, pages);
-    return status;
+    return sysTable->bootServices->freePages(buffer, pages);
 }
 
 CHAR16* EFI_GetStatus(IN EFI_STATUS status){

@@ -121,10 +121,15 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE) {
         UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
-        UINT64 size = Char16ToUInt32(btmTokens->tokens[2]);
-        VOID *buffer = (VOID*)address;
+        UINT64 size = Char16ToUInt64(btmTokens->tokens[2]);
 
-        execStatus = EFI_AllocPool(sysTable, EfiLoaderCode, (UINTN)size, (VOID**)&buffer);
+        address &= ~(EFI_PAGE_SIZE - 1);
+        UINT64 pages = EFI_SIZE_TO_PAGES(size);
+        if (size % EFI_PAGE_SIZE != 0) {
+            pages++;
+        }
+
+        execStatus = EFI_AllocPages(sysTable, AllocateAddress, EfiLoaderCode, pages, &address);
          
         if (EFI_ERROR(execStatus)) {
             EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED: ", UInt8ToChar16(execStatus)));
@@ -134,9 +139,18 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         }
     }
     
-    // =============== FREE 'ADDRESS' ===============
+    // =============== FREE 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"free") == TRUE){
         UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
+        UINT64 size = Char16ToUInt64(btmTokens->tokens[2]);
+
+        address &= ~(EFI_PAGE_SIZE - 1);
+        UINT64 pages = EFI_SIZE_TO_PAGES(size);
+        if (size % EFI_PAGE_SIZE != 0) {
+            pages++;
+        }
+
+        execStatus = EFI_DeAllocPages(sysTable, pages, address);
 
         if (EFI_ERROR(execStatus)){
             EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURED: ", EFI_GetStatus(execStatus)));
