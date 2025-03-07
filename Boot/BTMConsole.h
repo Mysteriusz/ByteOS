@@ -1,6 +1,4 @@
 #include "../EFI/EFITypes.h"
-#include "../KERNEL/ByteOSChar.h"
-#include "../KERNEL/ByteOSNums.h"
 
 #define BTM_MAX_TOKENS 10
 
