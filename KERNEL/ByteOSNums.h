@@ -11,6 +11,7 @@
 
 typedef unsigned long long UINT64;
 typedef UINT64 ULONGLONG;
+typedef UINT64 QWORD;
 typedef UINT64* UINT64PTR;
 
 #define UINT64_MAX 0xffffffffffffffff
@@ -24,6 +25,7 @@ typedef INT64* INT64PTR;
 
 typedef unsigned long UINT32; 
 typedef UINT32 ULONG; 
+typedef UINT64 DWORD;
 typedef UINT32* UINT32PTR; 
 #define UINT32_MAX 0xffffffff
 #define UINT32_MIN 0x00000000
@@ -36,6 +38,7 @@ typedef INT32* INT32PTR;
 
 typedef unsigned short UINT16;
 typedef UINT16 USHORT;
+typedef UINT16 WORD;
 typedef UINT16* UINT16PTR;
 #define UINT16_MAX 0xffff
 #define UINT16_MIN 0x0000
@@ -47,13 +50,11 @@ typedef INT16* INT16PTR;
 #define INT16_MIN 0x8000
 
 typedef unsigned char UINT8;
-typedef UINT8 UCHAR;
 typedef UINT8* UINT8PTR;
 #define UINT8_MAX 0xff
 #define UINT8_MIN 0x00
 
 typedef signed char INT8;
-typedef INT8 CHAR;
 typedef INT8* INT8PTR;
 #define INT8_MAX 0x7f
 #define INT8_MIN 0x80

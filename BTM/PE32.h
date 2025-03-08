@@ -3,6 +3,16 @@
 #define MAGIC_PE32 0x10b
 #define MAGIC_PE32_PLUS 0x20b
 
+struct COFF_HEADER{
+    USHORT machine;
+    USHORT numberOfSections;
+    ULONG timeDateStamp;
+    ULONG pointerToSymbolTable;
+    ULONG numberOfSymbols;
+    USHORT sizeOfOptionalHeader;
+    USHORT characteristics;
+} COFF_HEADER;
+
 struct STANDARD_PE{
     USHORT magic;
     BYTE majorLinkerVersion;    
@@ -71,3 +81,8 @@ struct OPTIONAL_PE_PLUS{
     ULONG loaderFlags;
     ULONG numberOfRvaAndSizes;
 } OPTIONAL_PE_PLUS;
+
+struct DATA_DIRECTORY{
+    ULONG virtualAddress;
+    ULONG size;
+} DATA_DIRECTORY;

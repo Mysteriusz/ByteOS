@@ -1131,7 +1131,7 @@ BOOLEAN CompareString8(STRING8 str1, STRING8 str2) {
 UINT64 GetLengthString8(STRING8* str){
     UINT64 len = 0;
 
-    while (str[len] != '\0'){
+    while (*str[len] != '\0'){
         len++;
     }
 
@@ -1159,7 +1159,7 @@ BOOLEAN CompareString16(STRING16 str1, STRING16 str2) {
 UINT64 GetLengthString16(STRING16* str){
     UINT64 len = 0;
 
-    while (str[len] != '\0'){
+    while (*str[len] != '\0'){
         len++;
     }
 
@@ -1187,7 +1187,7 @@ BOOLEAN CompareString32(STRING32 str1, STRING32 str2){
 UINT64 GetLengthString32(STRING32* str){
     UINT64 len = 0;
 
-    while (str[len] != '\0'){
+    while (*str[len] != '\0'){
         len++;
     }
 
