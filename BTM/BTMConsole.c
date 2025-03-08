@@ -133,7 +133,7 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
     // =============== RUN 'ADDRESS' 'HEADER NAME' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"run") == TRUE){
         EFI_Print(sysTable, L"\r\nRUNNING");
-    }
+    } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE) {
         UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
@@ -174,6 +174,21 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));
         }    
     }  
+    // =============== RB 'ADDRESS' 'BYTE COUNT' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"rb") == TRUE){
+        EFI_Print(sysTable, L"\r\nREADING:\r\n");
 
+        UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
+        UINT32 byteCount = Char16ToUInt32(btmTokens->tokens[2]);
+
+        BYTE* data;
+
+        execStatus = EFI_AllocPool(sysTable, EfiBootServicesData, sizeof(BYTE) * byteCount, (VOID**)&data);
+        sysTable->bootServices->copyMem(data, (VOID*)address, sizeof(BYTE) * byteCount);
+
+        for (UINTN i = 0; i < sizeof(BYTE) * byteCount; i++){
+            EFI_Print(sysTable, UInt8ToChar16(data[i]));
+        }
+    }
     return execStatus;
 }

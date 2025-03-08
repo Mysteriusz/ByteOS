@@ -792,10 +792,16 @@ typedef EFI_STATUS (EFIAPI *EFI_EXIT_BOOT_SERVICES)(
     IN UINTN mapKey
 );
 
-typedef EFI_STATUS (EFIAPI *EFI_WAIT_FOR_EVENT) (
+typedef EFI_STATUS (EFIAPI *EFI_WAIT_FOR_EVENT)(
     IN UINTN numberOfEvents,
     IN EFI_EVENT *event,
     OUT UINTN *index
+);
+
+typedef EFI_STATUS (EFIAPI *EFI_COPY_MEM)(
+    IN VOID *destination,
+    IN VOID *source,
+    IN UINTN length
 );
 
 typedef struct EFI_MEMORY_DESCRIPTOR{
@@ -891,7 +897,7 @@ typedef struct EFI_BOOT_SERVICES {
     VOID *installMultipleProtocolInterfaces;
     VOID *uninstallMultipleProtocolInterfaces;
     VOID *calculateCrc32;
-    VOID *copyMem;
+    EFI_COPY_MEM copyMem;
     VOID *setMem;
     VOID *createEventEx;
 } EFI_BOOT_SERVICES;
@@ -909,4 +915,5 @@ EFI_STATUS EFI_DeAllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN VOID* buffer);
 EFI_STATUS EFI_DeAllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer);
 EFI_STATUS EFI_FindProtocol(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer);
 CHAR16* EFI_GetStatus(IN EFI_STATUS status);
+
 #endif
