@@ -99,37 +99,58 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         EFI_Print(sysTable, L"\r\n-- free 'address' 'size'");
     }
     // =============== LOAD 'FULL PATH' 'ADDRESS' ===============
-    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE) {
         EFI_Print(sysTable, L"\r\nLOADING");
-        
         CHAR16* filePath = btmTokens->tokens[1];
         UINT64 address = Char16ToUInt64(btmTokens->tokens[2]);
-
+    
         EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* sfsp = NULL;
-        
-        execStatus = sysTable->bootServices->locateProtocol(&(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, NULL, (VOID**)&sfsp);
-        
-        if (EFI_ERROR(execStatus)){
-            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURED WHILE FINDING THE PROTOCOL: ", UInt8ToChar16(execStatus)));
+        EFI_STATUS execStatus;
+        EFI_HANDLE* handleBuffer = NULL;
+        UINTN handleCount = 0;
+    
+        execStatus = sysTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
+        if (EFI_ERROR(execStatus)) {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED WHILE FINDING THE PROTOCOL: ", UInt8ToChar16(execStatus)));
+            return execStatus;
         }
-        else {
-            EFI_FILE_PROTOCOL* root = NULL;
-            sfsp->openVolume(sfsp, &root);
-            
-            EFI_FILE_PROTOCOL* lookup = NULL;
-            execStatus = root->open(root, &lookup, filePath, (UINT64*)EFI_FILE_MODE_READ, 0);
-            
-            if (EFI_ERROR(execStatus)){
-                EFI_Print(sysTable, ConcatChar16(L"\r\nFILE NOT FOUND: ", filePath));
-                return execStatus;
-            }
-            
-            lookup->read(lookup, (UINTN*)1000000, (VOID*)address);
-
-
-            EFI_Print(sysTable, ConcatChar16(L"\r\nLOADED AT: ", UInt64ToChar16Hex(address)));
+    
+        execStatus = sysTable->bootServices->handleProtocol(handleBuffer[0], &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (VOID**)&sfsp);
+        if (EFI_ERROR(execStatus)) {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED WHILE OPENING THE FILE SYSTEM: ", UInt8ToChar16(execStatus)));
+            return execStatus;
         }
-    }
+    
+        EFI_Print(sysTable, ConcatChar16(L"\r\nPATH: ", filePath));
+    
+        EFI_FILE_PROTOCOL* root = NULL;
+        execStatus = sfsp->openVolume(sfsp, &root);
+        if (EFI_ERROR(execStatus)) {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nVOLUME ERROR: ", filePath));
+            return execStatus;
+        }
+    
+        EFI_FILE_PROTOCOL* file = NULL;
+        execStatus = root->open(root, &file, filePath, (UINT64*)EFI_FILE_MODE_READ, 0);
+        if (EFI_ERROR(execStatus)) {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nFILE NOT FOUND: ", filePath));
+            return execStatus;
+        }
+    
+        UINTN readSize = 0x1000;
+        CHAR16* buffer = (CHAR16*)address;
+        execStatus = file->read(file, &readSize, buffer);
+    
+        if (EFI_ERROR(execStatus)) {
+            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR READING FILE: ", filePath));
+            return execStatus;
+        }
+    
+        EFI_Print(sysTable, ConcatChar16(L"\r\nLOADED AT: ", UInt64ToChar16Hex(address)));
+        EFI_Print(sysTable, ConcatChar16(L"\r\nSIZE: ", UInt64ToChar16(readSize)));
+    
+        file->close(file);
+    }   
     // =============== RUN 'ADDRESS' 'HEADER NAME' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"run") == TRUE){
         EFI_Print(sysTable, L"\r\nRUNNING");
@@ -174,21 +195,33 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));
         }    
     }  
-    // =============== RB 'ADDRESS' 'BYTE COUNT' ===============
-    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"rb") == TRUE){
-        EFI_Print(sysTable, L"\r\nREADING:\r\n");
-
+    // =============== RB 'ADDRESS' 'BYTE COUNT' 'CHAR SIZE' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"rb") == TRUE) {
         UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
-        UINT32 byteCount = Char16ToUInt32(btmTokens->tokens[2]);
+        UINT64 readCount = Char16ToUInt64(btmTokens->tokens[2]);
+        CHAR16* charPointer = (CHAR16*)address;
 
-        BYTE* data;
+        EFI_Print(sysTable, L"\r\n");
+        for (UINTN i = 0; i < readCount / sizeof(CHAR16); i++) {
+            CHAR16 currentChar = charPointer[i];
+            CHAR16 charBuffer[2] = { currentChar, L'\0' };
 
-        execStatus = EFI_AllocPool(sysTable, EfiBootServicesData, sizeof(BYTE) * byteCount, (VOID**)&data);
-        sysTable->bootServices->copyMem(data, (VOID*)address, sizeof(BYTE) * byteCount);
-
-        for (UINTN i = 0; i < sizeof(BYTE) * byteCount; i++){
-            EFI_Print(sysTable, UInt8ToChar16(data[i]));
+            // ASCII char range
+            if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"ascii") == TRUE && currentChar >= 0x20 && currentChar <= 0x7E) {
+                EFI_Print(sysTable, charBuffer);
+            }
+            else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"utf8") == TRUE && currentChar <= 0xff){
+                EFI_Print(sysTable, charBuffer);
+            }
+            else{
+                EFI_Print(sysTable, L"\0");
+            }
         }
     }
+    // =============== CLEAR ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"clear") == TRUE){
+        execStatus = sysTable->conOut->clearScreen(sysTable->conOut);
+    }
+    
     return execStatus;
 }
