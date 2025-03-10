@@ -5,10 +5,15 @@ $BIOS = "D:\byteos\boot\Bios64.bin"
 $EFIFILESRC = "D:\byteos\boot\BOOTX64.EFI"
 $EFIFILEDEST = "EFI\BOOT\BOOTX64.EFI"
 
+$KERNELFILESRC = "D:\byteos\kernel\byteos.bin"
+$KERNELFILEDEST = "KERNEL\byteos.bin"
+
 $Mount = Mount-VHD -Path $VHDX -Passthru
 $DriveLetter = ($Mount | Get-Disk | Get-Partition | Get-Volume).DriveLetter + ":"
 Start-Sleep -Seconds 2
+
 Copy-Item -Path "$EFIFILESRC" -Destination "$DriveLetter\$EFIFILEDEST" -Force
+Copy-Item -Path "$KERNELFILESRC" -Destination "$DriveLetter\$KERNELFILEDEST" -Force
 
 Write-Host "File copied successfully to $DriveLetter"
 Dismount-VHD -Path $VHDX

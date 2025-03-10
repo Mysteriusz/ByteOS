@@ -25,7 +25,7 @@ typedef INT64* INT64PTR;
 
 typedef unsigned long UINT32; 
 typedef UINT32 ULONG; 
-typedef UINT64 DWORD;
+typedef UINT32 DWORD;
 typedef UINT32* UINT32PTR; 
 #define UINT32_MAX 0xffffffff
 #define UINT32_MIN 0x00000000

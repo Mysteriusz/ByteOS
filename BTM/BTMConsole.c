@@ -1,4 +1,5 @@
 #include "BTMConsole.h"
+#include "PE32.h"
 
 EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
     EFI_Print(sysTable, L"STARTING BOOTMANAGER CONSOLE");
@@ -94,13 +95,14 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         EFI_Print(sysTable, L"\r\nLIST OF AVAILABLE COMMANDS:");
         EFI_Print(sysTable, L"\r\n-- help");
         EFI_Print(sysTable, L"\r\n-- load 'full path' 'address' ");
-        EFI_Print(sysTable, L"\r\n-- run 'address' 'header name ex: (pe32, pe32+, elf)'");
+        EFI_Print(sysTable, L"\r\n-- run 'address' 'offset type ex: (raw, virtual)'");
         EFI_Print(sysTable, L"\r\n-- alloc 'address' 'size'");
         EFI_Print(sysTable, L"\r\n-- free 'address' 'size'");
+        EFI_Print(sysTable, L"\r\n-- rb 'address' 'byte count' 'charset ex: (byte, ascii, utf8)'");
+        EFI_Print(sysTable, L"\r\n-- clear");
     }
     // =============== LOAD 'FULL PATH' 'ADDRESS' ===============
-    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE) {
-        EFI_Print(sysTable, L"\r\nLOADING");
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){
         CHAR16* filePath = btmTokens->tokens[1];
         UINT64 address = Char16ToUInt64(btmTokens->tokens[2]);
     
@@ -137,8 +139,9 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             return execStatus;
         }
     
-        UINTN readSize = 0x1000;
+        UINTN readSize = 50000;
         CHAR16* buffer = (CHAR16*)address;
+
         execStatus = file->read(file, &readSize, buffer);
     
         if (EFI_ERROR(execStatus)) {
@@ -151,12 +154,37 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
     
         file->close(file);
     }   
-    // =============== RUN 'ADDRESS' 'HEADER NAME' ===============
+    // =============== RUN 'ADDRESS' 'OFFSET TYPE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"run") == TRUE){
-        EFI_Print(sysTable, L"\r\nRUNNING");
+        UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
+        CHAR16 *type = btmTokens->tokens[2];
+
+        VOID* baseAdr = (VOID*)address;
+
+        UINT16 magic = GetPeVersion(baseAdr);
+        UINT32 entryPointOffset = 0;
+
+        if (CompareString16((STRING16)type, (STRING16)L"raw") == TRUE){
+            entryPointOffset = GetRawEntryPointOffset(baseAdr);
+        }
+        else if (CompareString16((STRING16)type, (STRING16)L"virtual") == TRUE){
+            entryPointOffset = GetVirutalEntryPointOffset(baseAdr);
+        }
+        else{
+            return execStatus;
+        }
+
+        typedef VOID (*ENTRY_POINT)(VOID);
+        ENTRY_POINT entryPoint = (ENTRY_POINT)((UINT64)(address + entryPointOffset));
+        
+        EFI_Print(sysTable, ConcatChar16(L"\r\nMAGIC: ", UInt16ToChar16Hex(magic)));
+        EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
+        EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
+
+        entryPoint();
     } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
-    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE) {
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE){
         UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
         UINT64 size = Char16ToUInt64(btmTokens->tokens[2]);
         
@@ -195,26 +223,39 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));
         }    
     }  
-    // =============== RB 'ADDRESS' 'BYTE COUNT' 'CHAR SIZE' ===============
-    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"rb") == TRUE) {
+    // =============== RB 'ADDRESS' 'BYTE COUNT' 'CHARSET' ===============
+    else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"rb") == TRUE){
         UINT64 address = Char16ToUInt64(btmTokens->tokens[1]);
         UINT64 readCount = Char16ToUInt64(btmTokens->tokens[2]);
-        CHAR16* charPointer = (CHAR16*)address;
 
+        VOID *addressBuffer = (VOID*)address;
+        
+        BYTE *byteBuffer = (BYTE*)addressBuffer;
+        CHAR8 *char8Buffer = (CHAR8*)addressBuffer;
+        CHAR16 *char16Buffer = (CHAR16*)addressBuffer;
+        CHAR32 *char32Buffer = (CHAR32*)addressBuffer;
+        
         EFI_Print(sysTable, L"\r\n");
-        for (UINTN i = 0; i < readCount / sizeof(CHAR16); i++) {
-            CHAR16 currentChar = charPointer[i];
-            CHAR16 charBuffer[2] = { currentChar, L'\0' };
-
-            // ASCII char range
-            if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"ascii") == TRUE && currentChar >= 0x20 && currentChar <= 0x7E) {
-                EFI_Print(sysTable, charBuffer);
+        if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"byte") == TRUE){
+            for (UINTN i = 0; i < readCount; i++){
+                EFI_Print(sysTable, UInt8ToChar16Hex(byteBuffer[i]));
             }
-            else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"utf8") == TRUE && currentChar <= 0xff){
-                EFI_Print(sysTable, charBuffer);
+        }
+        else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"ascii") == TRUE){
+            for (UINTN i = 0; i < readCount; i++){
+                CHAR16 printable[2] = { (CHAR16)char8Buffer[i], L'\0' };
+                EFI_Print(sysTable, printable);
             }
-            else{
-                EFI_Print(sysTable, L"\0");
+        }
+        else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"utf8") == TRUE){
+            for (UINTN i = 0; i < readCount; i++){
+                CHAR16 printable[2] = { (CHAR16)char8Buffer[i], L'\0' };
+                EFI_Print(sysTable, printable);
+            }
+        }
+        else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"utf16") == TRUE){
+            for (UINTN i = 0; i < readCount; i++){
+                EFI_Print(sysTable, &char16Buffer[i]);
             }
         }
     }
