@@ -284,16 +284,17 @@ EFI_STATUS GATHER_GPU_INFO(IN EFI_SYSTEM_TABLE *sysTable, OUT UINT32 *gpuCount, 
 
     EFI_AllocPool(sysTable, EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)gpuInfo);
 
-    *gpuCount = 0;
+    *gpuCount = handleCount;
 
     for (UINTN i = 0; i < handleCount; i++){
         EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
         sysTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
 
-        (*gpuInfo)[*gpuCount].framebufferAddress = gop->mode->frameBufferBase;
-        (*gpuInfo)[*gpuCount].frameBufferSize = gop->mode->frameBufferSize;
+        (*gpuInfo)[i].framebufferAddress = gop->mode->frameBufferBase;
+        (*gpuInfo)[i].frameBufferSize = gop->mode->frameBufferSize;
+        (*gpuInfo)[i].horizontalRes = gop->mode->info->horizontalResolution;
+        (*gpuInfo)[i].verticalRes = gop->mode->info->verticalResolution;
 
-        (*gpuCount)++;
     }
 
     return EFI_SUCCESS;

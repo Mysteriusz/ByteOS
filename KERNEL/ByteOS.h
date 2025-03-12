@@ -55,63 +55,63 @@ UINT64 ByteAPI Char32ToUInt64(CHAR32* str);
 
 // =========== CHAR8 ===========
 
-CHAR8* UInt8ToChar8(UINT8 i);
-CHAR8* UInt16ToChar8(UINT16 i);
-CHAR8* UInt32ToChar8(UINT32 i);
-CHAR8* UInt64ToChar8(UINT64 i);
+CHAR8* ByteAPI UInt8ToChar8(UINT8 i);
+CHAR8* ByteAPI UInt16ToChar8(UINT16 i);
+CHAR8* ByteAPI UInt32ToChar8(UINT32 i);
+CHAR8* ByteAPI UInt64ToChar8(UINT64 i);
 
-CHAR8* UInt8ToChar8Hex(UINT8 i);
-CHAR8* UInt16ToChar8Hex(UINT16 i);
-CHAR8* UInt32ToChar8Hex(UINT32 i);
-CHAR8* UInt64ToChar8Hex(UINT64 i);
+CHAR8* ByteAPI UInt8ToChar8Hex(UINT8 i);
+CHAR8* ByteAPI UInt16ToChar8Hex(UINT16 i);
+CHAR8* ByteAPI UInt32ToChar8Hex(UINT32 i);
+CHAR8* ByteAPI UInt64ToChar8Hex(UINT64 i);
 
-CHAR8* ConcatChar8(CHAR8* str1, CHAR8* str2);
-CHAR8* RemoveChar8(CHAR8* str, UINT32 len, UINT32 i);
+CHAR8* ByteAPI ConcatChar8(CHAR8* str1, CHAR8* str2);
+CHAR8* ByteAPI RemoveChar8(CHAR8* str, UINT32 len, UINT32 i);
 
 // =========== CHAR16 ===========
 
-CHAR16* UInt8ToChar16(UINT8 i);
-CHAR16* UInt16ToChar16(UINT16 i);
-CHAR16* UInt32ToChar16(UINT32 i);
-CHAR16* UInt64ToChar16(UINT64 i);
+CHAR16* ByteAPI UInt8ToChar16(UINT8 i);
+CHAR16* ByteAPI UInt16ToChar16(UINT16 i);
+CHAR16* ByteAPI UInt32ToChar16(UINT32 i);
+CHAR16* ByteAPI UInt64ToChar16(UINT64 i);
 
-CHAR16* UInt8ToChar16Hex(UINT8 i);
-CHAR16* UInt16ToChar16Hex(UINT16 i);
-CHAR16* UInt32ToChar16Hex(UINT32 i);
-CHAR16* UInt64ToChar16Hex(UINT64 i);
+CHAR16* ByteAPI UInt8ToChar16Hex(UINT8 i);
+CHAR16* ByteAPI UInt16ToChar16Hex(UINT16 i);
+CHAR16* ByteAPI UInt32ToChar16Hex(UINT32 i);
+CHAR16* ByteAPI UInt64ToChar16Hex(UINT64 i);
 
-CHAR16* ConcatChar16(CHAR16* str1, CHAR16* str2);
-CHAR16* RemoveChar16(CHAR16* str, UINT32 len, UINT32 i);
+CHAR16* ByteAPI ConcatChar16(CHAR16* str1, CHAR16* str2);
+CHAR16* ByteAPI RemoveChar16(CHAR16* str, UINT32 len, UINT32 i);
 
 // =========== CHAR32 ===========
 
-CHAR32* UInt8ToChar32(UINT8 i);
-CHAR32* UInt16ToChar32(UINT16 i);
-CHAR32* UInt32ToChar32(UINT32 i);
-CHAR32* UInt64ToChar32(UINT64 i);
+CHAR32* ByteAPI UInt8ToChar32(UINT8 i);
+CHAR32* ByteAPI UInt16ToChar32(UINT16 i);
+CHAR32* ByteAPI UInt32ToChar32(UINT32 i);
+CHAR32* ByteAPI UInt64ToChar32(UINT64 i);
 
-CHAR32* UInt8ToChar32Hex(UINT8 i);
-CHAR32* UInt16ToChar32Hex(UINT16 i);
-CHAR32* UInt32ToChar32Hex(UINT32 i);
-CHAR32* UInt64ToChar32Hex(UINT64 i);
+CHAR32* ByteAPI UInt8ToChar32Hex(UINT8 i);
+CHAR32* ByteAPI UInt16ToChar32Hex(UINT16 i);
+CHAR32* ByteAPI UInt32ToChar32Hex(UINT32 i);
+CHAR32* ByteAPI UInt64ToChar32Hex(UINT64 i);
 
-CHAR32* ConcatChar32(CHAR32* str1, CHAR32* str2);
-CHAR32* RemoveChar32(CHAR32* str, UINT32 len, UINT32 i);
+CHAR32* ByteAPI ConcatChar32(CHAR32* str1, CHAR32* str2);
+CHAR32* ByteAPI RemoveChar32(CHAR32* str, UINT32 len, UINT32 i);
 
 // =========== STRING8 ===========
 
-BOOLEAN CompareString8(STRING8 str1, STRING8 str2);
-UINT64 GetLengthString8(STRING8* str);
+BOOLEAN ByteAPI CompareString8(STRING8 str1, STRING8 str2);
+UINT64 ByteAPI GetLengthString8(STRING8* str);
 
 // =========== STRING16 ===========
 
-BOOLEAN CompareString16(STRING16 str1, STRING16 str2);
-UINT64 GetLengthString16(STRING16* str);
+BOOLEAN ByteAPI CompareString16(STRING16 str1, STRING16 str2);
+UINT64 ByteAPI GetLengthString16(STRING16* str);
 
 // =========== STRING32 ===========
 
-BOOLEAN CompareString32(STRING32 str1, STRING32 str2);
-UINT64 GetLengthString32(STRING32* str);
+BOOLEAN ByteAPI CompareString32(STRING32 str1, STRING32 str2);
+UINT64 ByteAPI GetLengthString32(STRING32* str);
 
 #pragma endregion CHAR
 
@@ -124,6 +124,8 @@ UINT64 GetLengthString32(STRING32* str);
 typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN framebufferAddress;
     UINTN frameBufferSize;
+    UINTN horizontalRes;
+    UINTN verticalRes;
 } KERNEL_GRAPHICAL_DEVICE_INFO;
 typedef struct KERNEL_CPU_DEVICE_INFO{
     CHAR8 *manufacturer;
