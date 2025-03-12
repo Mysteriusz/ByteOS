@@ -98,7 +98,7 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         EFI_Print(sysTable, L"\r\n-- run 'address' 'offset type ex: (raw, virtual)'");
         EFI_Print(sysTable, L"\r\n-- alloc 'address' 'size'");
         EFI_Print(sysTable, L"\r\n-- free 'address' 'size'");
-        EFI_Print(sysTable, L"\r\n-- rb 'address' 'byte count' 'charset ex: (byte, ascii, utf8)'");
+        EFI_Print(sysTable, L"\r\n-- rb 'address' 'byte count' 'charset ex: (byte, ascii, utf8, utf16)'");
         EFI_Print(sysTable, L"\r\n-- clear");
     }
     // =============== LOAD 'FULL PATH' 'ADDRESS' ===============
@@ -174,14 +174,23 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             return execStatus;
         }
 
-        typedef VOID (*ENTRY_POINT)(VOID);
+        KERNEL_DEVICE_INFO devInfo;
+
+        for (UINTN i = 0; i < BTM_MAX_TOKENS; i++){
+            if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"gpui") == TRUE){
+                GATHER_GPU_INFO(sysTable, &devInfo.gpuiCount, &devInfo.gpui);       
+            }
+        }
+
+        typedef VOID (*ENTRY_POINT)(KERNEL_DEVICE_INFO *devi);
         ENTRY_POINT entryPoint = (ENTRY_POINT)((UINT64)(address + entryPointOffset));
         
         EFI_Print(sysTable, ConcatChar16(L"\r\nMAGIC: ", UInt16ToChar16Hex(magic)));
         EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
         EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
+        EFI_Print(sysTable, ConcatChar16(L"\r\nF1: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
 
-        entryPoint();
+        entryPoint(&devInfo);
     } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE){
@@ -265,4 +274,27 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
     }
     
     return execStatus;
+}
+
+EFI_STATUS GATHER_GPU_INFO(IN EFI_SYSTEM_TABLE *sysTable, OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INFO **gpuInfo){
+    EFI_HANDLE *handleBuffer;
+    UINTN handleCount;
+
+    sysTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
+
+    EFI_AllocPool(sysTable, EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)gpuInfo);
+
+    *gpuCount = 0;
+
+    for (UINTN i = 0; i < handleCount; i++){
+        EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+        sysTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
+
+        (*gpuInfo)[*gpuCount].framebufferAddress = gop->mode->frameBufferBase;
+        (*gpuInfo)[*gpuCount].frameBufferSize = gop->mode->frameBufferSize;
+
+        (*gpuCount)++;
+    }
+
+    return EFI_SUCCESS;
 }

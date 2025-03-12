@@ -121,12 +121,23 @@ UINT64 GetLengthString32(STRING32* str);
 
 #pragma region KERNEL
 
-#define KERNEL_BASE_PATH L"\\KERNEL\\ByteOS.bin"
-#define KERNEL_BASE_ALLOC_SIZE (10 * 1024 * 1024)
+typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
+    UINTN framebufferAddress;
+    UINTN frameBufferSize;
+} KERNEL_GRAPHICAL_DEVICE_INFO;
+typedef struct KERNEL_CPU_DEVICE_INFO{
+    CHAR8 *manufacturer;
+} KERNEL_CPU_DEVICE_INFO;
+typedef struct KERNEL_DEVICE_INFO{
+    KERNEL_GRAPHICAL_DEVICE_INFO *gpui;
+    UINT32 gpuiCount;
+    KERNEL_CPU_DEVICE_INFO *cpui;
+    UINT32 cpuiCount;
+} KERNEL_DEVICE_INFO;
 
-typedef VOID (*KERNEL_ENTRY_POINT)(VOID);
-
+typedef VOID (*KERNEL_ENTRY_POINT)(KERNEL_DEVICE_INFO devInfo);
 typedef UINTN KERNEL_LOAD_STATUS;
+
 #define KERNEL_LOAD_SUCCESS 0
 #define KERNEL_LOAD_ERROR_FILE 1
 #define KERNEL_LOAD_ERROR_FILE_INFD 2

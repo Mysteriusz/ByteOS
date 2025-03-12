@@ -1,11 +1,12 @@
 #include "ByteOS.h"
+#include "../EFI/EFITypes.h"
 
 // ==================================== |
 //                KERNEL                |
 // ==================================== |
 
-void Kernel_Main(void){
-    UINT32 *fb = (UINT32 *)(0xc0000000);
+void Kernel_Main(KERNEL_DEVICE_INFO devInfo){
+    UINT32 *fb = (UINT32*)(devInfo.gpui[0].framebufferAddress);
     
     for (UINTN i = 0; i < 1280 * 800; i++) {
         fb[i] = 0xFFFFFF;

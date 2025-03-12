@@ -234,6 +234,15 @@ typedef EFI_STATUS (EFIAPI *EFI_TEXT_ENABLE_CURSOR)(
     IN BOOLEAN visible
 );
 
+typedef struct SIMPLE_TEXT_OUTPUT_MODE {
+    INT32 maxMode;
+    INT32 mode;
+    INT32 attribute;
+    INT32 cursorColumn;
+    INT32 cursorRow;
+    BOOLEAN cursorVisible;
+} SIMPLE_TEXT_OUTPUT_MODE;
+
 typedef struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
     EFI_TEXT_RESET reset;
     EFI_TEXT_STRING outputString;
@@ -914,6 +923,7 @@ EFI_STATUS EFI_AllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_ALLOCATE_TYPE al
 EFI_STATUS EFI_DeAllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN VOID* buffer);
 EFI_STATUS EFI_DeAllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer);
 EFI_STATUS EFI_FindProtocol(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer);
+
 CHAR16* EFI_GetStatus(IN EFI_STATUS status);
 
 #endif
