@@ -10,14 +10,14 @@ void Kernel_Main(KERNEL_DEVICE_INFO devInfo){
     UINT32 *fb = (UINT32*)(devInfo.gpui[0].framebufferAddress);
 
     BTS_FONT font;
-    font.header.horizontalSize = BASE_FONT_WIDTH;
-    font.header.verticalSize = BASE_FONT_HEIGHT;
+    font.header.horizontalMultiplier = 2;
+    font.header.verticalMultiplier = 2;
 
     for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
         fb[i] = 0x000000;
     }
 
-    BTS_CHAR c = {BTS_CAPITAL_A}; 
+    BTS_CHAR c = {BTS_CAPITAL_B}; 
     PrintChar(font, &c, fb, devInfo.gpui[0].horizontalRes);
     
     while (TRUE);
