@@ -13,6 +13,7 @@
         "stdint.h": "c",
         "vcruntime.h": "c",
         "btmconsole.h": "c",
-        "byteosfont.h": "c"
+        "byteosfont.h": "c",
+        "nums.h": "c"
     }
 }

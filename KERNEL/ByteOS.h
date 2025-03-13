@@ -5,8 +5,8 @@
 //              DEFINITIONS             |
 // ==================================== |
 
-#include "ByteOSChar.h"
-#include "ByteOSNums.h"
+#include "Char.h"
+#include "Nums.h"
 
 #define IN
 #define OUT

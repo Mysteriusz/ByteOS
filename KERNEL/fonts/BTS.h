@@ -1,4 +1,4 @@
-#include "ByteOSFont.h"
+#include "Font.h"
 
 #define BTS_FONT_MODE 0
 #define BTS_HORIZONTAL_MULTIPLIER 2

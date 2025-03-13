@@ -1,6 +1,6 @@
 #include "ByteOS.h"
 #include "../efi/EFITypes.h"
-#include "fonts/BTSFont.h"
+#include "fonts/BTS.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -13,7 +13,7 @@ VOID Kernel_Main(KERNEL_DEVICE_INFO devInfo){
         fb[i] = 0x000000;
     }
 
-    FONT_CHAR c = {BTS_CAPITAL_B};
+    FONT_CHAR c = {BTS_9};
     FONT f = BTS_GetFont();
 
     PrintChar(&f, &c, fb, devInfo.gpui[0].horizontalRes);

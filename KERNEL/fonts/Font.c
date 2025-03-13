@@ -1,4 +1,4 @@
-#include "ByteOSFont.h"
+#include "Font.h"
 
 VOID PrintChar(FONT *font, FONT_CHAR *character, UINT32 *frameBufferAddress, UINT32 frameBufferHorizontalSize) {
     for (UINT32 y = 0; y < font->pixelHeight; y++) {
