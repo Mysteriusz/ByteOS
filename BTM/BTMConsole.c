@@ -175,22 +175,27 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         }
 
         KERNEL_DEVICE_INFO devInfo;
+        KERNEL_MEMORY_MAP memMap;
 
         for (UINTN i = 0; i < BTM_MAX_TOKENS; i++){
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"gpui") == TRUE){
                 GATHER_GPU_INFO(sysTable, &devInfo.gpuiCount, &devInfo.gpui);       
             }
+            if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"mm") == TRUE){
+                GATHER_MEM_MAP(sysTable, (KERNEL_MEMORY_MAP**)&memMap);       
+            }
         }
 
-        typedef VOID (*ENTRY_POINT)(KERNEL_DEVICE_INFO *devi);
+        typedef VOID (*ENTRY_POINT)(KERNEL_DEVICE_INFO *devi, KERNEL_MEMORY_MAP *memm);
         ENTRY_POINT entryPoint = (ENTRY_POINT)((UINT64)(address + entryPointOffset));
         
         EFI_Print(sysTable, ConcatChar16(L"\r\nMAGIC: ", UInt16ToChar16Hex(magic)));
         EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
         EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
-        EFI_Print(sysTable, ConcatChar16(L"\r\nF1: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
+        EFI_Print(sysTable, ConcatChar16(L"\r\nGPUI: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
+        EFI_Print(sysTable, ConcatChar16(L"\r\nMM: ", UInt64ToChar16(memMap.size)));
 
-        entryPoint(&devInfo);
+        entryPoint(&devInfo, &memMap);
     } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE){
@@ -276,6 +281,41 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
     return execStatus;
 }
 
+EFI_STATUS GATHER_MEM_MAP(IN EFI_SYSTEM_TABLE *sysTable, OUT KERNEL_MEMORY_MAP **memMap){
+    UINTN size = 0;
+    EFI_MEMORY_DESCRIPTOR *memDesc = NULL;
+    UINTN mapKey;
+    UINTN descriptorSize;
+    UINT32 descriptorVersion;
+
+    sysTable->bootServices->getMemoryMap(&size, memDesc, &mapKey, &descriptorSize, &descriptorVersion);
+    
+    EFI_AllocPool(sysTable, EfiLoaderData, size, (VOID**)&memDesc);
+    
+    sysTable->bootServices->getMemoryMap(&size, memDesc, &mapKey, &descriptorSize, &descriptorVersion);
+    
+    UINTN descCount = size / descriptorSize;
+    
+    EFI_AllocPool(sysTable, EfiLoaderData, sizeof(KERNEL_MEMORY_MAP) + descCount * sizeof(KERNEL_MEMORY_DESCRIPTOR), (VOID**)memMap);
+    
+    (*memMap)->size = size;
+    (*memMap)->mapKey = mapKey;
+    (*memMap)->descriptorSize = descriptorSize;
+    (*memMap)->descriptorCount = descCount;
+    (*memMap)->descriptorVersion = descriptorVersion;
+    
+    EFI_MEMORY_DESCRIPTOR *desc = memDesc;
+    for (UINTN i = 0; i < descCount; i++) {
+        (*memMap)->entries[i].type = desc->type;
+        (*memMap)->entries[i].attribute = desc->attribute;
+        (*memMap)->entries[i].numberOfPages = desc->numberOfPages;
+        (*memMap)->entries[i].physicalStart = desc->physicalStart;
+        (*memMap)->entries[i].virtualStart = desc->virtualStart;
+        desc = (EFI_MEMORY_DESCRIPTOR*)((UINT8*)desc + descriptorSize);
+    }
+
+    return EFI_SUCCESS;
+}
 EFI_STATUS GATHER_GPU_INFO(IN EFI_SYSTEM_TABLE *sysTable, OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INFO **gpuInfo){
     EFI_HANDLE *handleBuffer;
     UINTN handleCount;
@@ -294,7 +334,6 @@ EFI_STATUS GATHER_GPU_INFO(IN EFI_SYSTEM_TABLE *sysTable, OUT UINT32 *gpuCount, 
         (*gpuInfo)[i].frameBufferSize = gop->mode->frameBufferSize;
         (*gpuInfo)[i].horizontalRes = gop->mode->info->horizontalResolution;
         (*gpuInfo)[i].verticalRes = gop->mode->info->verticalResolution;
-
     }
 
     return EFI_SUCCESS;

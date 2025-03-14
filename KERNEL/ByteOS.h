@@ -136,6 +136,21 @@ typedef struct KERNEL_DEVICE_INFO{
     KERNEL_CPU_DEVICE_INFO *cpui;
     UINT32 cpuiCount;
 } KERNEL_DEVICE_INFO;
+typedef struct KERNEL_MEMORY_DESCRIPTOR{
+    UINT32 type;
+    UINT64 attribute;
+    UINT64 numberOfPages;
+    PHYSICAL_ADDRESS physicalStart;
+    VIRTUAL_ADDRESS virtualStart;
+} KERNEL_MEMORY_DESCRIPTOR;
+typedef struct KERNEL_MEMORY_MAP{
+    UINTN size;
+    UINTN mapKey;
+    UINTN descriptorSize;
+    UINTN descriptorCount;
+    UINT32 descriptorVersion;
+    KERNEL_MEMORY_DESCRIPTOR entries[];
+} KERNEL_MEMORY_MAP;
 
 typedef VOID (*KERNEL_ENTRY_POINT)(KERNEL_DEVICE_INFO devInfo);
 typedef UINTN KERNEL_LOAD_STATUS;
@@ -152,5 +167,16 @@ typedef UINTN KERNEL_LOAD_STATUS;
 CHAR16* ByteAPI GetKernelLoadStatus(KERNEL_LOAD_STATUS status);
 
 #pragma endregion KERNEL
+
+// ==================================== |
+//               INTERNAL               |
+// ==================================== |
+
+#pragma region INTERNAL
+
+typedef UINT32 BT_STATUS;
+#define BT_SUCCESS 0
+
+#pragma endregion INTERNAL
 
 #endif

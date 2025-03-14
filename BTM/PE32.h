@@ -1,7 +1,7 @@
 #ifndef PE32_H
 #define PE32_H
 
-#include "../kernel/ByteOS.h"
+#include "kernel/ByteOS.h"
 
 #pragma pack(push, 1)
 

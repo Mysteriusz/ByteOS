@@ -1,10 +1,6 @@
 #include "ByteOS.h"
 
-// ==================================== |
-//                MEMORY                |
-// ==================================== |
+BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap);
 
-VOID* ByteAPI Alloc(CONST UINTN size){
-}
-VOID* ByteAPI DeAlloc(UINTN size){
-}
+BT_STATUS ByteAPI Alloc(IN OUT VOID *buffer, IN OUT UINTN size);
+BT_STATUS ByteAPI DeAlloc(IN OUT VOID *buffer, IN OUT UINTN size);

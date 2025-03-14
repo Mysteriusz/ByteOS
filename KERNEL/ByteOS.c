@@ -1,17 +1,20 @@
 #include "ByteOS.h"
 #include "../efi/EFITypes.h"
 #include "fonts/BTS.h"
+#include "memory/Memory.h"
 
 // ==================================== |
 //                KERNEL                |
 // ==================================== |
 
-VOID Kernel_Main(KERNEL_DEVICE_INFO devInfo){
+VOID Kernel_Main(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP memMap){
     UINT32 *fb = (UINT32*)(devInfo.gpui[0].framebufferAddress);
 
-    for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
-        fb[i] = 0x000000;
-    }
+    // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
+    //     fb[i] = 0x000000;
+    // }
+
+    InitializeMemory(&memMap);
 
     FONT_CHAR c = {BTS_9};
     FONT f = BTS_GetFont();

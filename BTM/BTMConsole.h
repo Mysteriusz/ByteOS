@@ -1,7 +1,7 @@
 #ifndef BTM_CONSOLE
 #define BTM_CONSOLE
 
-#include "../efi/EFITypes.h"
+#include "efi/EFITypes.h"
 
 #define BTM_MAX_TOKENS 10
 
@@ -16,6 +16,7 @@ EFI_STATUS BTM_CheckInput(IN EFI_SYSTEM_TABLE *sysTable, OUT EFI_INPUT_KEY *inpu
 EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens);
 EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens);
 
+EFI_STATUS GATHER_MEM_MAP(IN EFI_SYSTEM_TABLE *sysTable, OUT KERNEL_MEMORY_MAP **memMap);
 EFI_STATUS GATHER_GPU_INFO(IN EFI_SYSTEM_TABLE *sysTable, OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INFO **gpuInfo);
 
 #endif  
