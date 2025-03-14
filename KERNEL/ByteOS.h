@@ -149,6 +149,7 @@ typedef struct KERNEL_MEMORY_MAP{
     UINTN descriptorSize;
     UINT32 descriptorVersion;
     UINT32 entryCount;
+    UINT64 usableSize;
     KERNEL_MEMORY_DESCRIPTOR entries[];
 } KERNEL_MEMORY_MAP;
 

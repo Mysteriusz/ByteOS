@@ -1,26 +1,33 @@
 #include "EFITypes.h"
 
 // ==================================== |
+//              EFI_GLOBALS             |
+// ==================================== |
+
+EFI_HANDLE *imageHandle;
+EFI_SYSTEM_TABLE *systemTable;
+
+// ==================================== |
 //              EFI_METHODS             |
 // ==================================== |
 
-EFI_STATUS EFI_Print(IN EFI_SYSTEM_TABLE* sysTable, IN CHAR16* message){
-    return sysTable->conOut->outputString(sysTable->conOut, message);
+EFI_STATUS EFI_Print(IN CHAR16* message){
+    return systemTable->conOut->outputString(systemTable->conOut, message);
 }
-EFI_STATUS EFI_AllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_MEMORY_TYPE memoryType, IN UINTN bufferSize, OUT VOID** buffer){
-    return sysTable->bootServices->allocatePool(memoryType, bufferSize, buffer);
+EFI_STATUS EFI_AllocPool(IN EFI_MEMORY_TYPE memoryType, IN UINTN bufferSize, OUT VOID** buffer){
+    return systemTable->bootServices->allocatePool(memoryType, bufferSize, buffer);
 }
-EFI_STATUS EFI_AllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_ALLOCATE_TYPE allocType, IN EFI_MEMORY_TYPE memType, IN UINTN pages, OUT EFI_PHYSICAL_ADDRESS* buffer){
-    return sysTable->bootServices->allocatePages(allocType, memType, pages, buffer);
+EFI_STATUS EFI_AllocPages(IN EFI_ALLOCATE_TYPE allocType, IN EFI_MEMORY_TYPE memType, IN UINTN pages, OUT EFI_PHYSICAL_ADDRESS* buffer){
+    return systemTable->bootServices->allocatePages(allocType, memType, pages, buffer);
 }
-EFI_STATUS EFI_DeAllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN VOID* buffer){
-    return sysTable->bootServices->freePool(buffer);
+EFI_STATUS EFI_DeAllocPool(IN VOID* buffer){
+    return systemTable->bootServices->freePool(buffer);
 }
-EFI_STATUS EFI_DeAllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer){
-    return sysTable->bootServices->freePages(buffer, pages);
+EFI_STATUS EFI_DeAllocPages(IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer){
+    return systemTable->bootServices->freePages(buffer, pages);
 }
-EFI_STATUS EFI_FindProtocol(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer){
-    return sysTable->bootServices->locateHandleBuffer(ByProtocol, &guid, NULL, count, (EFI_HANDLE**)&buffer);
+EFI_STATUS EFI_FindProtocol(IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer){
+    return systemTable->bootServices->locateHandleBuffer(ByProtocol, &guid, NULL, count, (EFI_HANDLE**)&buffer);
 }
 CHAR16* EFI_GetStatus(IN EFI_STATUS status){
     switch (status) {

@@ -1,11 +1,15 @@
 #include "Memory.h"
 
+#define KERNEL_PAGE_SIZE 1024
+#define CONV_PAGE_SIZE 4096
+
 BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap){
     for (UINTN i = 0; i < memMap->entryCount; i++){
         KERNEL_MEMORY_DESCRIPTOR desc = memMap->entries[i];
         
-        // EfiConventionalMemory
-        if (desc.type == 7){
+        // EfiConventionalMemory || EfiBootServicesCode || EfiBootServicesData
+        if (desc.type == 7 || desc.type == 3 || desc.type == 4){
+            
         }
     }
 

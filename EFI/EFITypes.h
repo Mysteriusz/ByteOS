@@ -158,6 +158,13 @@ typedef VOID (EFIAPI *EFI_RESET_SYSTEM)(
 );
 
 // ==================================== |
+//              EFI_GLOBALS             |
+// ==================================== |
+
+extern EFI_HANDLE *imageHandle;
+extern EFI_SYSTEM_TABLE *systemTable;
+
+// ==================================== |
 //    EFI_SIMPLE_TEXT_INPUT_PROTOCOL    |
 // ==================================== |
 
@@ -917,12 +924,12 @@ typedef struct EFI_BOOT_SERVICES {
 //              EFI_METHODS             |
 // ==================================== |
 
-EFI_STATUS EFI_Print(IN EFI_SYSTEM_TABLE* sysTable, IN CHAR16* message);
-EFI_STATUS EFI_AllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_MEMORY_TYPE memoryType, IN UINTN bufferSize, OUT VOID** buffer);
-EFI_STATUS EFI_AllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_ALLOCATE_TYPE allocType, IN EFI_MEMORY_TYPE memType, IN UINTN pages, OUT EFI_PHYSICAL_ADDRESS* buffer);
-EFI_STATUS EFI_DeAllocPool(IN EFI_SYSTEM_TABLE* sysTable, IN VOID* buffer);
-EFI_STATUS EFI_DeAllocPages(IN EFI_SYSTEM_TABLE* sysTable, IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer);
-EFI_STATUS EFI_FindProtocol(IN EFI_SYSTEM_TABLE* sysTable, IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer);
+EFI_STATUS EFI_Print(IN CHAR16* message);
+EFI_STATUS EFI_AllocPool(IN EFI_MEMORY_TYPE memoryType, IN UINTN bufferSize, OUT VOID** buffer);
+EFI_STATUS EFI_AllocPages(IN EFI_ALLOCATE_TYPE allocType, IN EFI_MEMORY_TYPE memType, IN UINTN pages, OUT EFI_PHYSICAL_ADDRESS* buffer);
+EFI_STATUS EFI_DeAllocPool(IN VOID* buffer);
+EFI_STATUS EFI_DeAllocPages(IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer);
+EFI_STATUS EFI_FindProtocol(IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer);
 
 CHAR16* EFI_GetStatus(IN EFI_STATUS status);
 

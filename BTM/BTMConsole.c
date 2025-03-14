@@ -1,28 +1,28 @@
 #include "BTMConsole.h"
 #include "PE32.h"
 
-EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
-    EFI_Print(sysTable, L"STARTING BOOTMANAGER CONSOLE");
+EFI_STATUS BTM_StartConsole(){
+    EFI_Print(L"STARTING BOOTMANAGER CONSOLE");
     
-    BTM_PrintDefaultString(sysTable, L"\r\nBOOTMANAGER>");
+    BTM_PrintDefaultString(L"\r\nBOOTMANAGER>");
 
     EFI_INPUT_KEY* input = (EFI_INPUT_KEY*)NULL;
     CHAR16 cmd[256];
     UINT32 cmdLen = 0;
 
     while (TRUE){
-        if (BTM_CheckInput(sysTable, input) == EFI_SUCCESS){
+        if (BTM_CheckInput(input) == EFI_SUCCESS){
             if (input->unicodeChar == EFI_KEY_ENTER){
                 BTM_TOKENS tokens;
 
-                BTM_Tokenize(sysTable, cmd, cmdLen, &tokens);
-                BTM_Execute(sysTable, &tokens);
+                BTM_Tokenize(cmd, cmdLen, &tokens);
+                BTM_Execute(&tokens);
 
                 for (UINT i = 0; i < tokens.tokenCount; i++){
-                    EFI_DeAllocPool(sysTable, tokens.tokens[i]);
+                    EFI_DeAllocPool(tokens.tokens[i]);
                 }
 
-                BTM_PrintDefaultString(sysTable, L"\r\nBOOTMANAGER>");
+                BTM_PrintDefaultString(L"\r\nBOOTMANAGER>");
 
                 cmdLen = 0;
                 cmd[0] = '\0';
@@ -31,7 +31,7 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
                 if (cmdLen > 0){
                     cmd[cmdLen - 1] = L'\0';
                     cmdLen--;
-                    EFI_Print(sysTable, L"\b \b");
+                    EFI_Print(L"\b \b");
                 }
             }
             else {
@@ -39,24 +39,24 @@ EFI_STATUS BTM_StartConsole(IN EFI_SYSTEM_TABLE *sysTable){
                 cmd[cmdLen + 1] = L'\0';     
                 cmdLen++;
 
-                EFI_Print(sysTable, &input->unicodeChar);
+                EFI_Print(&input->unicodeChar);
             }
         }
     }
 }
-EFI_STATUS BTM_PrintDefaultString(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* message){
-    sysTable->conOut->setAttribute(sysTable->conOut, EFI_TEXT_ATTR(EFI_YELLOW, EFI_BLACK));
-    EFI_Print(sysTable, message);
-    sysTable->conOut->setAttribute(sysTable->conOut, EFI_TEXT_ATTR(EFI_LIGHTGRAY, EFI_BLACK));    
+EFI_STATUS BTM_PrintDefaultString(IN CHAR16* message){
+    systemTable->conOut->setAttribute(systemTable->conOut, EFI_TEXT_ATTR(EFI_YELLOW, EFI_BLACK));
+    EFI_Print(message);
+    systemTable->conOut->setAttribute(systemTable->conOut, EFI_TEXT_ATTR(EFI_LIGHTGRAY, EFI_BLACK));    
 
     return EFI_SUCCESS;
 }
-EFI_STATUS BTM_CheckInput(IN EFI_SYSTEM_TABLE *sysTable, OUT EFI_INPUT_KEY *input){
+EFI_STATUS BTM_CheckInput(OUT EFI_INPUT_KEY *input){
     EFI_STATUS status;
-    status = sysTable->conIn->readKeyStroke(sysTable->conIn, input);
+    status = systemTable->conIn->readKeyStroke(systemTable->conIn, input);
     return status;
 }
-EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens){
+EFI_STATUS BTM_Tokenize(IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens){
     UINT32 i = 0, s = 0, t = 0;
     btmTokens->tokenCount = 0;
 
@@ -73,7 +73,7 @@ EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32
         }
         
         if (tokenLen > 0){
-            EFI_AllocPool(sysTable, EfiLoaderData, (tokenLen + 1) * sizeof(CHAR16), (VOID**)&btmTokens->tokens[t]);
+            EFI_AllocPool(EfiLoaderData, (tokenLen + 1) * sizeof(CHAR16), (VOID**)&btmTokens->tokens[t]);
 
             for (UINT32 j = 0; j < tokenLen; j++) {
                 btmTokens->tokens[t][j] = cmd[s + j];
@@ -87,19 +87,19 @@ EFI_STATUS BTM_Tokenize(IN EFI_SYSTEM_TABLE *sysTable, IN CHAR16* cmd, IN UINT32
 
     return EFI_SUCCESS;
 }
-EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
+EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
     EFI_STATUS execStatus = 0;
 
     // =============== HELP ===============
     if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"help") == TRUE){
-        EFI_Print(sysTable, L"\r\nLIST OF AVAILABLE COMMANDS:");
-        EFI_Print(sysTable, L"\r\n-- help");
-        EFI_Print(sysTable, L"\r\n-- load 'full path' 'address' ");
-        EFI_Print(sysTable, L"\r\n-- run 'address' 'offset type ex: (raw, virtual)'");
-        EFI_Print(sysTable, L"\r\n-- alloc 'address' 'size'");
-        EFI_Print(sysTable, L"\r\n-- free 'address' 'size'");
-        EFI_Print(sysTable, L"\r\n-- rb 'address' 'byte count' 'charset ex: (byte, ascii, utf8, utf16)'");
-        EFI_Print(sysTable, L"\r\n-- clear");
+        EFI_Print(L"\r\nLIST OF AVAILABLE COMMANDS:");
+        EFI_Print(L"\r\n-- help");
+        EFI_Print(L"\r\n-- load 'full path' 'address' ");
+        EFI_Print(L"\r\n-- run 'address' 'offset type ex: (raw, virtual)'");
+        EFI_Print(L"\r\n-- alloc 'address' 'size'");
+        EFI_Print(L"\r\n-- free 'address' 'size'");
+        EFI_Print(L"\r\n-- rb 'address' 'byte count' 'charset ex: (byte, ascii, utf8, utf16)'");
+        EFI_Print(L"\r\n-- clear");
     }
     // =============== LOAD 'FULL PATH' 'ADDRESS' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"load") == TRUE){
@@ -111,31 +111,31 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         EFI_HANDLE* handleBuffer = NULL;
         UINTN handleCount = 0;
     
-        execStatus = sysTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
+        execStatus = systemTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
         if (EFI_ERROR(execStatus)) {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED WHILE FINDING THE PROTOCOL: ", UInt8ToChar16(execStatus)));
+            EFI_Print(ConcatChar16(L"\r\nERROR OCCURRED WHILE FINDING THE PROTOCOL: ", UInt8ToChar16(execStatus)));
             return execStatus;
         }
     
-        execStatus = sysTable->bootServices->handleProtocol(handleBuffer[0], &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (VOID**)&sfsp);
+        execStatus = systemTable->bootServices->handleProtocol(handleBuffer[0], &(EFI_GUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (VOID**)&sfsp);
         if (EFI_ERROR(execStatus)) {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED WHILE OPENING THE FILE SYSTEM: ", UInt8ToChar16(execStatus)));
+            EFI_Print(ConcatChar16(L"\r\nERROR OCCURRED WHILE OPENING THE FILE SYSTEM: ", UInt8ToChar16(execStatus)));
             return execStatus;
         }
     
-        EFI_Print(sysTable, ConcatChar16(L"\r\nPATH: ", filePath));
+        EFI_Print(ConcatChar16(L"\r\nPATH: ", filePath));
     
         EFI_FILE_PROTOCOL* root = NULL;
         execStatus = sfsp->openVolume(sfsp, &root);
         if (EFI_ERROR(execStatus)) {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nVOLUME ERROR: ", filePath));
+            EFI_Print(ConcatChar16(L"\r\nVOLUME ERROR: ", filePath));
             return execStatus;
         }
     
         EFI_FILE_PROTOCOL* file = NULL;
         execStatus = root->open(root, &file, filePath, (UINT64*)EFI_FILE_MODE_READ, 0);
         if (EFI_ERROR(execStatus)) {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nFILE NOT FOUND: ", filePath));
+            EFI_Print(ConcatChar16(L"\r\nFILE NOT FOUND: ", filePath));
             return execStatus;
         }
     
@@ -145,12 +145,12 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         execStatus = file->read(file, &readSize, buffer);
     
         if (EFI_ERROR(execStatus)) {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR READING FILE: ", filePath));
+            EFI_Print(ConcatChar16(L"\r\nERROR READING FILE: ", filePath));
             return execStatus;
         }
     
-        EFI_Print(sysTable, ConcatChar16(L"\r\nLOADED AT: ", UInt64ToChar16Hex(address)));
-        EFI_Print(sysTable, ConcatChar16(L"\r\nSIZE: ", UInt64ToChar16(readSize)));
+        EFI_Print(ConcatChar16(L"\r\nLOADED AT: ", UInt64ToChar16Hex(address)));
+        EFI_Print(ConcatChar16(L"\r\nSIZE: ", UInt64ToChar16(readSize)));
     
         file->close(file);
     }   
@@ -177,24 +177,41 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         KERNEL_DEVICE_INFO devInfo;
         KERNEL_MEMORY_MAP memMap;
 
+        BOOLEAN mm = FALSE;
+        BOOLEAN gpui = FALSE;
+
         for (UINTN i = 0; i < BTM_MAX_TOKENS; i++){
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"gpui") == TRUE){
-                EFI_Print(sysTable, L"\r\nGPUI: TRUE");
-                GATHER_GPU_INFO(sysTable, &devInfo.gpuiCount, &devInfo.gpui);       
+                GATHER_GPU_INFO(&devInfo.gpuiCount, &devInfo.gpui);       
+                gpui = TRUE;
             }
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"mm") == TRUE){
-                EFI_Print(sysTable, L"\r\nMM: TRUE");
-                GATHER_MEM_MAP(sysTable, (KERNEL_MEMORY_MAP**)&memMap);       
+                GATHER_MEM_MAP(TRUE, (KERNEL_MEMORY_MAP**)&memMap);  
+                mm = TRUE;
             }
         }
 
         typedef VOID (*ENTRY_POINT)(KERNEL_DEVICE_INFO *devi, KERNEL_MEMORY_MAP *memm);
         ENTRY_POINT entryPoint = (ENTRY_POINT)((UINT64)(address + entryPointOffset));
         
-        EFI_Print(sysTable, ConcatChar16(L"\r\nMAGIC: ", UInt16ToChar16Hex(magic)));
-        EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
-        EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
-        EFI_Print(sysTable, ConcatChar16(L"\r\nGPUI: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
+        EFI_Print(ConcatChar16(L"\r\nMAGIC: ", UInt16ToChar16Hex(magic)));
+        EFI_Print(ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
+        EFI_Print(ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
+        EFI_Print(ConcatChar16(L"\r\nGPUI 0 ADDRESS: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
+
+        if (gpui == TRUE){
+            EFI_Print(L"\r\nGPUI: TRUE");
+        }
+        else{
+            EFI_Print(L"\r\nGPUI: FALSE");
+        }
+        if (mm == TRUE){
+            EFI_Print(L"\r\nMM: TRUE");
+            systemTable->bootServices->exitBootServices(imageHandle, memMap.mapKey);
+        }
+        else{
+            EFI_Print(L"\r\nMM: FALSE");
+        }
 
         entryPoint(&devInfo, &memMap);
     } 
@@ -209,13 +226,13 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             pages++;
         }
 
-        execStatus = EFI_AllocPages(sysTable, AllocateAddress, EfiLoaderCode, pages, &address);
+        execStatus = EFI_AllocPages(AllocateAddress, EfiLoaderCode, pages, &address);
          
         if (EFI_ERROR(execStatus)) {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURRED: ", UInt8ToChar16(execStatus)));
+            EFI_Print(ConcatChar16(L"\r\nERROR OCCURRED: ", UInt8ToChar16(execStatus)));
         } else {
-            EFI_Print(sysTable, ConcatChar16(L"\r\nALLOCATED MEMORY AT: ", UInt64ToChar16Hex(address)));
-            EFI_Print(sysTable, ConcatChar16(L" WITH SIZE: ", UInt32ToChar16(size)));
+            EFI_Print(ConcatChar16(L"\r\nALLOCATED MEMORY AT: ", UInt64ToChar16Hex(address)));
+            EFI_Print(ConcatChar16(L" WITH SIZE: ", UInt32ToChar16(size)));
         }
     }
     // =============== FREE 'ADDRESS' 'SIZE' ===============
@@ -229,13 +246,13 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
             pages++;
         }
 
-        execStatus = EFI_DeAllocPages(sysTable, pages, address);
+        execStatus = EFI_DeAllocPages(pages, address);
 
         if (EFI_ERROR(execStatus)){
-            EFI_Print(sysTable, ConcatChar16(L"\r\nERROR OCCURED: ", EFI_GetStatus(execStatus)));
+            EFI_Print(ConcatChar16(L"\r\nERROR OCCURED: ", EFI_GetStatus(execStatus)));
         }
         else{
-            EFI_Print(sysTable, ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));
+            EFI_Print(ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));
         }    
     }  
     // =============== RB 'ADDRESS' 'BYTE COUNT' 'CHARSET' ===============
@@ -250,101 +267,102 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         CHAR16 *char16Buffer = (CHAR16*)addressBuffer;
         CHAR32 *char32Buffer = (CHAR32*)addressBuffer;
         
-        EFI_Print(sysTable, L"\r\n");
+        EFI_Print(L"\r\n");
         if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"byte") == TRUE){
             for (UINTN i = 0; i < readCount; i++){
-                EFI_Print(sysTable, UInt8ToChar16Hex(byteBuffer[i]));
+                EFI_Print(UInt8ToChar16Hex(byteBuffer[i]));
             }
         }
         else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"ascii") == TRUE){
             for (UINTN i = 0; i < readCount; i++){
                 CHAR16 printable[2] = { (CHAR16)char8Buffer[i], L'\0' };
-                EFI_Print(sysTable, printable);
+                EFI_Print(printable);
             }
         }
         else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"utf8") == TRUE){
             for (UINTN i = 0; i < readCount; i++){
                 CHAR16 printable[2] = { (CHAR16)char8Buffer[i], L'\0' };
-                EFI_Print(sysTable, printable);
+                EFI_Print(printable);
             }
         }
         else if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"utf16") == TRUE){
             for (UINTN i = 0; i < readCount; i++){
-                EFI_Print(sysTable, &char16Buffer[i]);
+                EFI_Print(&char16Buffer[i]);
             }
         }
     }
     // =============== CLEAR ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"clear") == TRUE){
-        execStatus = sysTable->conOut->clearScreen(sysTable->conOut);
+        execStatus = systemTable->conOut->clearScreen(systemTable->conOut);
     }
     
     return execStatus;
 }
 
-EFI_STATUS GATHER_MEM_MAP(IN EFI_SYSTEM_TABLE *sysTable, OUT KERNEL_MEMORY_MAP **memMap){
+EFI_STATUS GATHER_MEM_MAP(IN BOOLEAN bootServices, OUT KERNEL_MEMORY_MAP **memMap){
     UINTN size = 0;
     EFI_MEMORY_DESCRIPTOR *memDesc = NULL;
     UINTN mapKey = 0;
     UINTN descriptorSize = 0;
     UINT32 descriptorVersion = 0;
 
-    sysTable->bootServices->getMemoryMap(&size, NULL, &mapKey, &descriptorSize, &descriptorVersion);
+    systemTable->bootServices->getMemoryMap(&size, NULL, &mapKey, &descriptorSize, &descriptorVersion);
     
     size += 2 * descriptorSize;
-    EFI_AllocPool(sysTable, EfiLoaderData, size, (VOID**)&memDesc);
+    EFI_AllocPool(EfiLoaderData, size, (VOID**)&memDesc);
     
-    sysTable->bootServices->getMemoryMap(&size, memDesc, &mapKey, &descriptorSize, &descriptorVersion);
+    systemTable->bootServices->getMemoryMap(&size, memDesc, &mapKey, &descriptorSize, &descriptorVersion);
     
     UINT8 *start = (UINT8*)memDesc;
     UINT8 *end = start + size;
     UINT8 *offset = start;
-    UINT64 s = 0;
+    UINT64 usable = 0;
     
     while (offset < end){
         (*memMap)->entryCount++;
         offset += descriptorSize;
     }
 
-    EFI_AllocPool(sysTable, EfiLoaderData, (*memMap)->entryCount, (VOID**)&(*memMap)->entries);
+    EFI_AllocPool(EfiLoaderData, (*memMap)->entryCount, (VOID**)&(*memMap)->entries);
 
     offset = (UINT8*)memDesc;
     
     for (UINTN i = 0; i < (*memMap)->entryCount; i++){
         EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR*)offset;
         
-        if (desc->type == EfiConventionalMemory){
-            s += desc->numberOfPages * EFI_PAGE_SIZE;
+        if (desc->type == 7 || (bootServices == TRUE && (desc->type == 3 || desc->type == 4))){
+            usable += desc->numberOfPages * EFI_PAGE_SIZE;
         }
         
         (*memMap)->entries[i] = *(KERNEL_MEMORY_DESCRIPTOR*)desc;
         offset += descriptorSize;
     }
 
-    EFI_Print(sysTable, ConcatChar16(L"\r\nAvailable conventional memory (MB): ", UInt64ToChar16(s / (1024 * 1024))));  
+    EFI_Print(ConcatChar16(L"\r\nAvailable conventional memory (MB): ", UInt64ToChar16(usable / (1024 * 1024))));  
 
     (*memMap)->descriptorSize = descriptorSize;
     (*memMap)->descriptorVersion = descriptorVersion;
     (*memMap)->mapKey = mapKey;
     (*memMap)->size = size;
+    (*memMap)->usableSize = usable;
 
-    EFI_DeAllocPool(sysTable, memDesc);
+    EFI_DeAllocPool(memDesc);
 
     return EFI_SUCCESS;
 }
-EFI_STATUS GATHER_GPU_INFO(IN EFI_SYSTEM_TABLE *sysTable, OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INFO **gpuInfo){
+EFI_STATUS GATHER_GPU_INFO(OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INFO **gpuInfo){
     EFI_HANDLE *handleBuffer;
     UINTN handleCount;
 
-    sysTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
+    systemTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
 
-    EFI_AllocPool(sysTable, EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)gpuInfo);
+    EFI_AllocPool(EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)gpuInfo);
 
     *gpuCount = handleCount;
 
     for (UINTN i = 0; i < handleCount; i++){
         EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
-        sysTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
+        systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
 
         (*gpuInfo)[i].framebufferAddress = gop->mode->frameBufferBase;
         (*gpuInfo)[i].frameBufferSize = gop->mode->frameBufferSize;

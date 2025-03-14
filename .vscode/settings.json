@@ -15,6 +15,7 @@
         "btmconsole.h": "c",
         "byteosfont.h": "c",
         "nums.h": "c",
-        "char.h": "c"
+        "char.h": "c",
+        "memory.h": "c"
     }
 }
