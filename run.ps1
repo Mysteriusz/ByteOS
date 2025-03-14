@@ -20,4 +20,4 @@ Dismount-VHD -Path $VHDX
 Write-Host "VHDX unmounted!"
 
 qemu-img convert -f vhdx -O raw "$VHDX" "$IMG"
-qemu-system-x86_64 -drive format=raw,unit=0,file="$IMG" -bios "$BIOS" -m 512M -vga std -name BYTEOS -machine q35 -net none 
+qemu-system-x86_64 -drive format=raw,unit=0,file="$IMG" -bios "$BIOS" -m 1024M -vga std -name BYTEOS -machine q35 -net none 

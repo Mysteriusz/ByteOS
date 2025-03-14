@@ -138,17 +138,17 @@ typedef struct KERNEL_DEVICE_INFO{
 } KERNEL_DEVICE_INFO;
 typedef struct KERNEL_MEMORY_DESCRIPTOR{
     UINT32 type;
-    UINT64 attribute;
-    UINT64 numberOfPages;
     PHYSICAL_ADDRESS physicalStart;
     VIRTUAL_ADDRESS virtualStart;
+    UINT64 numberOfPages;
+    UINT64 attribute;
 } KERNEL_MEMORY_DESCRIPTOR;
 typedef struct KERNEL_MEMORY_MAP{
     UINTN size;
     UINTN mapKey;
     UINTN descriptorSize;
-    UINTN descriptorCount;
     UINT32 descriptorVersion;
+    UINT32 entryCount;
     KERNEL_MEMORY_DESCRIPTOR entries[];
 } KERNEL_MEMORY_MAP;
 

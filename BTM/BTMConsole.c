@@ -179,9 +179,11 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
 
         for (UINTN i = 0; i < BTM_MAX_TOKENS; i++){
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"gpui") == TRUE){
+                EFI_Print(sysTable, L"\r\nGPUI: TRUE");
                 GATHER_GPU_INFO(sysTable, &devInfo.gpuiCount, &devInfo.gpui);       
             }
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"mm") == TRUE){
+                EFI_Print(sysTable, L"\r\nMM: TRUE");
                 GATHER_MEM_MAP(sysTable, (KERNEL_MEMORY_MAP**)&memMap);       
             }
         }
@@ -193,7 +195,6 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
         EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
         EFI_Print(sysTable, ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
         EFI_Print(sysTable, ConcatChar16(L"\r\nGPUI: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
-        EFI_Print(sysTable, ConcatChar16(L"\r\nMM: ", UInt64ToChar16(memMap.size)));
 
         entryPoint(&devInfo, &memMap);
     } 
@@ -284,35 +285,50 @@ EFI_STATUS BTM_Execute(IN EFI_SYSTEM_TABLE *sysTable, IN BTM_TOKENS* btmTokens){
 EFI_STATUS GATHER_MEM_MAP(IN EFI_SYSTEM_TABLE *sysTable, OUT KERNEL_MEMORY_MAP **memMap){
     UINTN size = 0;
     EFI_MEMORY_DESCRIPTOR *memDesc = NULL;
-    UINTN mapKey;
-    UINTN descriptorSize;
-    UINT32 descriptorVersion;
+    UINTN mapKey = 0;
+    UINTN descriptorSize = 0;
+    UINT32 descriptorVersion = 0;
 
-    sysTable->bootServices->getMemoryMap(&size, memDesc, &mapKey, &descriptorSize, &descriptorVersion);
+    sysTable->bootServices->getMemoryMap(&size, NULL, &mapKey, &descriptorSize, &descriptorVersion);
     
+    size += 2 * descriptorSize;
     EFI_AllocPool(sysTable, EfiLoaderData, size, (VOID**)&memDesc);
     
     sysTable->bootServices->getMemoryMap(&size, memDesc, &mapKey, &descriptorSize, &descriptorVersion);
     
-    UINTN descCount = size / descriptorSize;
+    UINT8 *start = (UINT8*)memDesc;
+    UINT8 *end = start + size;
+    UINT8 *offset = start;
+    UINT64 s = 0;
     
-    EFI_AllocPool(sysTable, EfiLoaderData, sizeof(KERNEL_MEMORY_MAP) + descCount * sizeof(KERNEL_MEMORY_DESCRIPTOR), (VOID**)memMap);
-    
-    (*memMap)->size = size;
-    (*memMap)->mapKey = mapKey;
-    (*memMap)->descriptorSize = descriptorSize;
-    (*memMap)->descriptorCount = descCount;
-    (*memMap)->descriptorVersion = descriptorVersion;
-    
-    EFI_MEMORY_DESCRIPTOR *desc = memDesc;
-    for (UINTN i = 0; i < descCount; i++) {
-        (*memMap)->entries[i].type = desc->type;
-        (*memMap)->entries[i].attribute = desc->attribute;
-        (*memMap)->entries[i].numberOfPages = desc->numberOfPages;
-        (*memMap)->entries[i].physicalStart = desc->physicalStart;
-        (*memMap)->entries[i].virtualStart = desc->virtualStart;
-        desc = (EFI_MEMORY_DESCRIPTOR*)((UINT8*)desc + descriptorSize);
+    while (offset < end){
+        (*memMap)->entryCount++;
+        offset += descriptorSize;
     }
+
+    EFI_AllocPool(sysTable, EfiLoaderData, (*memMap)->entryCount, (VOID**)&(*memMap)->entries);
+
+    offset = (UINT8*)memDesc;
+    
+    for (UINTN i = 0; i < (*memMap)->entryCount; i++){
+        EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR*)offset;
+        
+        if (desc->type == EfiConventionalMemory){
+            s += desc->numberOfPages * EFI_PAGE_SIZE;
+        }
+        
+        (*memMap)->entries[i] = *(KERNEL_MEMORY_DESCRIPTOR*)desc;
+        offset += descriptorSize;
+    }
+
+    EFI_Print(sysTable, ConcatChar16(L"\r\nAvailable conventional memory (MB): ", UInt64ToChar16(s / (1024 * 1024))));  
+
+    (*memMap)->descriptorSize = descriptorSize;
+    (*memMap)->descriptorVersion = descriptorVersion;
+    (*memMap)->mapKey = mapKey;
+    (*memMap)->size = size;
+
+    EFI_DeAllocPool(sysTable, memDesc);
 
     return EFI_SUCCESS;
 }

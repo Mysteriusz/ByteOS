@@ -1,7 +1,7 @@
 #include "Memory.h"
 
 BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap){
-    for (UINTN i = 0; i < memMap->descriptorCount; i++){
+    for (UINTN i = 0; i < memMap->entryCount; i++){
         KERNEL_MEMORY_DESCRIPTOR desc = memMap->entries[i];
         
         // EfiConventionalMemory

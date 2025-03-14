@@ -89,8 +89,8 @@ typedef unsigned char BOOLEAN;
     typedef signed int INTN;
 #endif
 
-typedef UINTN PHYSICAL_ADDRESS;
-typedef UINTN VIRTUAL_ADDRESS;
+typedef UINT64 PHYSICAL_ADDRESS;
+typedef UINT64 VIRTUAL_ADDRESS;
 
 #pragma endregion NUMS
 
