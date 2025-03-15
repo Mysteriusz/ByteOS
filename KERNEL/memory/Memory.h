@@ -2,7 +2,7 @@
 
 #define FIRST_PAGE_OFFSET 0x1000 // 4 KiB RAM
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
-#define MAX_PAGES 0x800000 // 32 GiB RAM
+#define MAX_PAGES 0x400000 // 16 GiB RAM
 
 typedef UINT8 BT_MEMORY_PAGE_STATUS;
 #define PAGE_FREE 0
@@ -28,10 +28,9 @@ typedef UINT8 BT_MEMORY_ACCESS_LEVEL;
 #define BT_ACCESS_KERNEL 6
 
 typedef struct MEMORY_PAGE{
-    UINT64 protectionLevel;
-    UINT64 attributes;
-    UINT32 size;
-    UINT8 allocated;
+    BT_MEMORY_PROTECTION_LEVEL protectionLevel;
+    UINT8 attributes;
+    BT_MEMORY_PAGE_STATUS allocationStatus;
     PHYSICAL_ADDRESS physicalAddress;
 } MEMORY_PAGE;
 
