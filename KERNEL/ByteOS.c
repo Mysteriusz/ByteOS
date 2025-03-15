@@ -9,27 +9,33 @@
 typedef struct test{
     UINT8 a;
     UINT8 b;
+    UINT8 c[0x1000];
 } test;
 
-UINT64 Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
+BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
 
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
     //     fb[i] = 0x000000;
     // }
 
-    UINT32 status;
-
+    BT_STATUS status;
     status = InitializeMemory(memMap);
+
+    if (BT_ERROR(status)){
+        return status;
+    }
+
+    test *t1 = NULL;
+    UINTN s1 = sizeof(test);
     
-    test *t = NULL;
-    UINTN s = sizeof(test);
-    
-    status = AllocPages((VOID**)&t, &s, 0);
-    t->a = 0xaa;
-    t->b = 0xcc;
-    status = FreePages(t, &s, 5);
-    // return (UINT64);
+    status = AllocPages((VOID**)&t1, &s1, 0);
+    t1->a = 0xaa;
+    t1->b = 0xbb;
+    t1->c[0x1000] = 0xcc;
+    return (UINT64)t1;
+
+    // status = FreePages(t, &s, 5);
 
     // status = ClearPages((VOID*)0, 1, 6);
 

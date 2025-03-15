@@ -59,9 +59,6 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_ME
                 return BT_SUCCESS;
             }
         }
-        else{
-            return BT_NOT_ENOUGH_MEMORY;
-        }
 
         i++;
     }
