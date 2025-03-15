@@ -1,5 +1,42 @@
 #include "ByteOS.h"
 
+#define FIRST_PAGE_OFFSET 0x1000 // 4 KiB RAM
+#define PAGE_SIZE 0x1000 // 4 KiB RAM
+#define MAX_PAGES 0x800000 // 32 GiB RAM
+
+typedef UINT8 BT_MEMORY_PAGE_STATUS;
+#define PAGE_FREE 0
+#define PAGE_ALLOCATED 1
+#define PAGE_RESERVED 2
+
+typedef UINT8 BT_MEMORY_PROTECTION_LEVEL;
+#define BT_PROTECTION_NONE 0
+#define BT_PROTECTION_LOW 1
+#define BT_PROTECTION_INTERMEDIATE 2
+#define BT_PROTECTION_HIGH 3
+#define BT_PROTECTION_VERY_HIGH 4
+#define BT_PROTECTION_FULL 5
+#define BT_PROTECTION_KERNEL 6
+
+typedef UINT8 BT_MEMORY_ACCESS_LEVEL;
+#define BT_ACCESS_NONE 0
+#define BT_ACCESS_LOW 1
+#define BT_ACCESS_INTERMEDIATE 2
+#define BT_ACCESS_HIGH 3
+#define BT_ACCESS_VERY_HIGH 4
+#define BT_ACCESS_FULL 5
+#define BT_ACCESS_KERNEL 6
+
+typedef struct MEMORY_PAGE{
+    UINT64 protectionLevel;
+    UINT64 attributes;
+    UINT32 size;
+    PHYSICAL_ADDRESS physicalAddress;
+} MEMORY_PAGE;
+
 BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap);
 
-BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN size);
+BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PROTECTION_LEVEL protectionLevel);
+BT_STATUS ByteAPI ClearPages(IN VOID *ptr, IN UINTN count, IN BT_MEMORY_ACCESS_LEVEL accessLevel);
+
+MEMORY_PAGE ByteAPI GetPage(UINTN index);

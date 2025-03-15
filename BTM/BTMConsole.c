@@ -175,7 +175,7 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         }
 
         KERNEL_DEVICE_INFO devInfo;
-        KERNEL_MEMORY_MAP memMap;
+        KERNEL_MEMORY_MAP *memMap;
 
         BOOLEAN mm = FALSE;
         BOOLEAN gpui = FALSE;
@@ -186,7 +186,7 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
                 gpui = TRUE;
             }
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"mm") == TRUE){
-                GATHER_MEM_MAP(TRUE, (KERNEL_MEMORY_MAP**)&memMap);  
+                GATHER_MEM_MAP(TRUE, &memMap);  
                 mm = TRUE;
             }
         }
@@ -207,13 +207,13 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         }
         if (mm == TRUE){
             EFI_Print(L"\r\nMM: TRUE");
-            systemTable->bootServices->exitBootServices(imageHandle, memMap.mapKey);
+            systemTable->bootServices->exitBootServices(imageHandle, memMap->mapKey);
         }
         else{
             EFI_Print(L"\r\nMM: FALSE");
         }
         
-        EFI_Print(ConcatChar16(L"\r\nRETURN ADDRESS: ", UInt64ToChar16Hex(entryPoint(&devInfo, &memMap))));
+        EFI_Print(ConcatChar16(L"\r\nRETURN ADDRESS: ", UInt64ToChar16Hex(entryPoint(&devInfo, memMap))));
     } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE){
@@ -318,6 +318,8 @@ EFI_STATUS GATHER_MEM_MAP(IN BOOLEAN bootServices, OUT KERNEL_MEMORY_MAP **memMa
     UINT8 *offset = start;
     UINT64 usable = 0;
     
+    (*memMap)->entryCount = 0;
+
     while (offset < end){
         (*memMap)->entryCount++;
         offset += descriptorSize;
@@ -334,7 +336,7 @@ EFI_STATUS GATHER_MEM_MAP(IN BOOLEAN bootServices, OUT KERNEL_MEMORY_MAP **memMa
             usable += desc->numberOfPages * EFI_PAGE_SIZE;
         }
         
-        (*memMap)->entries[i].size = desc->physicalStart + (desc->numberOfPages * EFI_PAGE_SIZE);
+        (*memMap)->entries[i].size = desc->numberOfPages * EFI_PAGE_SIZE;
         (*memMap)->entries[i].type = desc->type;
         (*memMap)->entries[i].physicalStart = desc->physicalStart;
         (*memMap)->entries[i].virtualStart = desc->virtualStart;
@@ -344,13 +346,12 @@ EFI_STATUS GATHER_MEM_MAP(IN BOOLEAN bootServices, OUT KERNEL_MEMORY_MAP **memMa
     }
 
     EFI_Print(ConcatChar16(L"\r\nAvailable conventional memory (MB): ", UInt64ToChar16(usable / (1024 * 1024))));  
-
     (*memMap)->descriptorSize = descriptorSize;
     (*memMap)->descriptorVersion = descriptorVersion;
     (*memMap)->mapKey = mapKey;
     (*memMap)->size = size;
     (*memMap)->usableSize = usable;
-
+    
     EFI_DeAllocPool(memDesc);
 
     return EFI_SUCCESS;

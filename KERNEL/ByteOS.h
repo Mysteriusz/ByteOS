@@ -176,9 +176,15 @@ CHAR16* ByteAPI GetKernelLoadStatus(KERNEL_LOAD_STATUS status);
 #pragma region INTERNAL
 
 typedef UINT32 BT_STATUS;
+#define BT_ERROR(status)(((UINTN)(status)) > 0)
+
 #define BT_SUCCESS 0
-#define BT_MEMORY_OVERFLOW_ERROR 0x100
+
+#define BT_MEMORY_OVERFLOW 0x100
 #define BT_NOT_ENOUGH_MEMORY 0x101
+#define BT_UNKNOWN_MEMORY 0x102
+
+#define BT_ACCESS_VIOLATION 0x1000
 
 #pragma endregion INTERNAL
 

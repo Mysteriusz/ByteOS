@@ -11,21 +11,34 @@ typedef struct test{
     UINT8 b;
 } test;
 
-UINT64 Kernel_Main(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP memMap){
-    UINT32 *fb = (UINT32*)(devInfo.gpui[0].framebufferAddress);
+UINT64 Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
+    UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
 
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
     //     fb[i] = 0x000000;
     // }
 
-    InitializeMemory(&memMap);
+    UINT32 status;
 
-    test *t;
-    AllocPages((VOID**)&t, sizeof(test));
+    status = InitializeMemory(memMap);
+    
+    test *t = NULL;
+    UINTN s = sizeof(test);
+    
+    status = AllocPages((VOID**)&t, &s, 0);
     t->a = 0xaa;
-    t->b = 0xbb;
+    t->b = 0xcc;
 
     return (UINT64)t;
+    // status = ClearPages((VOID*)0, 1, 6);
+
+    // return GetPage(1).physicalAddress;
+    
+        // if (status == BT_UNKNOWN_MEMORY){
+        //     t->a = 0xbb;
+        // }
+        // else{
+        // }
 
     // FONT_CHAR c = {BTS_9};
     // FONT f = BTS_GetFont();

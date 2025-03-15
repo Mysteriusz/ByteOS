@@ -1,24 +1,11 @@
 #include "Memory.h"
 
-#define PAGE_SIZE 0x1000 // 4 KiB RAM
-#define MAX_PAGES 0x2000000 // 128 GiB RAM
-
-#define PAGE_FREE 0
-#define PAGE_ALLOCATED 1
-
-typedef struct MEMORY_PAGE{
-    UINT64 protectionLevel;
-    UINT64 attributes;
-    UINT32 size;
-    PHYSICAL_ADDRESS physicalAddress;
-} MEMORY_PAGE;
-
 UINT64 pageMapCount = 0;
 PHYSICAL_ADDRESS pageMap[MAX_PAGES];
 
-UINT8 allocationMap[MAX_PAGES];
-UINT64 attributeMap[MAX_PAGES];
-UINT64 protectionMap[MAX_PAGES];
+BT_MEMORY_PROTECTION_LEVEL protectionMap[MAX_PAGES];
+BT_MEMORY_PAGE_STATUS allocationMap[MAX_PAGES];
+UINT32 attributeMap[MAX_PAGES];
 
 BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap){
     UINTN memMapIndex = 0;
@@ -28,17 +15,18 @@ BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap){
         
         // EfiConventionalMemory || EfiBootServicesCode || EfiBootServicesData
         if (desc.type == 7 || desc.type == 3 || desc.type == 4){
-            PHYSICAL_ADDRESS pos = desc.physicalStart;
-            PHYSICAL_ADDRESS end = desc.physicalStart + desc.size;
+            PHYSICAL_ADDRESS pos = desc.physicalStart + FIRST_PAGE_OFFSET;
+
+            PHYSICAL_ADDRESS end = pos + desc.size;
 
             while (pos + PAGE_SIZE <= end){
-                if (memMapIndex >= PAGE_SIZE) return BT_MEMORY_OVERFLOW_ERROR;
-
+                if (pageMapCount >= MAX_PAGES) return BT_MEMORY_OVERFLOW;
+                
                 attributeMap[memMapIndex] = 0;
-                protectionMap[memMapIndex] = 0;
+                protectionMap[memMapIndex] = BT_PROTECTION_NONE;
                 allocationMap[memMapIndex] = PAGE_FREE;
                 pageMap[memMapIndex] = pos;
-
+                
                 memMapIndex++;
                 pageMapCount++;
 
@@ -50,8 +38,8 @@ BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap){
     return BT_SUCCESS;
 }
 
-BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN size){
-    UINTN allocPageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PROTECTION_LEVEL protectionLevel){
+    UINTN allocPageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE;
     UINTN allocated = 0;
     UINTN i = 0;
     
@@ -60,10 +48,14 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN size){
     while (i < pageMapCount){
         if (allocationMap[i] == PAGE_FREE){
             allocationMap[i] = PAGE_ALLOCATED;
+            protectionMap[i] = protectionLevel;
+
             allocated++;
 
             if (allocated == allocPageCount){
                 *buffer = (VOID*)pageMap[i - (allocPageCount - 1)];
+                *size = allocated;
+                
                 return BT_SUCCESS;
             }
         }
@@ -72,4 +64,35 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN size){
     }
 
     return BT_NOT_ENOUGH_MEMORY;
+}
+BT_STATUS ByteAPI ClearPages(IN VOID *ptr, IN UINTN count, IN BT_MEMORY_ACCESS_LEVEL accessLevel){
+    PHYSICAL_ADDRESS pageAddress = (PHYSICAL_ADDRESS)ptr;
+    pageAddress &= ~(PAGE_SIZE - 1);
+
+    UINTN pageIndex = 0;
+
+    while (pageMap[pageIndex] != pageAddress){
+        if (pageIndex >= pageMapCount) return BT_UNKNOWN_MEMORY;
+        pageIndex++;
+    }
+
+    for (UINTN i = 0; i < count; i++){
+        if (protectionMap[pageIndex + i] > accessLevel) return BT_ACCESS_VIOLATION;        
+
+        for (PHYSICAL_ADDRESS pb = pageMap[pageIndex + i]; pb < pageMap[pageIndex + i] + PAGE_SIZE; pb += sizeof(UINTN)){
+            *((UINTN*)pb) = 0;
+        }
+    }
+
+    return BT_SUCCESS;
+}
+
+MEMORY_PAGE ByteAPI GetPage(UINTN index){
+    MEMORY_PAGE page;
+    page.physicalAddress = pageMap[index];
+    page.protectionLevel = protectionMap[index];
+    page.attributes = attributeMap[index];
+    page.size = PAGE_SIZE;
+
+    return page;
 }
