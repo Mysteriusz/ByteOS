@@ -28,11 +28,11 @@ UINT64 Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     status = AllocPages((VOID**)&t, &s, 0);
     t->a = 0xaa;
     t->b = 0xcc;
+    status = FreePages(t, &s, 5);
+    // return (UINT64);
 
-    return (UINT64)t;
     // status = ClearPages((VOID*)0, 1, 6);
 
-    // return GetPage(1).physicalAddress;
     
         // if (status == BT_UNKNOWN_MEMORY){
         //     t->a = 0xbb;

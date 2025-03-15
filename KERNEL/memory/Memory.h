@@ -31,12 +31,14 @@ typedef struct MEMORY_PAGE{
     UINT64 protectionLevel;
     UINT64 attributes;
     UINT32 size;
+    UINT8 allocated;
     PHYSICAL_ADDRESS physicalAddress;
 } MEMORY_PAGE;
 
 BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap);
 
-BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PROTECTION_LEVEL protectionLevel);
+BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PROTECTION_LEVEL protectionLevel);
+BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_ACCESS_LEVEL accessLevel);
 BT_STATUS ByteAPI ClearPages(IN VOID *ptr, IN UINTN count, IN BT_MEMORY_ACCESS_LEVEL accessLevel);
 
 MEMORY_PAGE ByteAPI GetPage(UINTN index);
