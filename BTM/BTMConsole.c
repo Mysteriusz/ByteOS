@@ -191,14 +191,14 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
             }
         }
 
-        typedef VOID (*ENTRY_POINT)(KERNEL_DEVICE_INFO *devi, KERNEL_MEMORY_MAP *memm);
+        typedef UINT64 (*ENTRY_POINT)(KERNEL_DEVICE_INFO *devi, KERNEL_MEMORY_MAP *memm);
         ENTRY_POINT entryPoint = (ENTRY_POINT)((UINT64)(address + entryPointOffset));
         
         EFI_Print(ConcatChar16(L"\r\nMAGIC: ", UInt16ToChar16Hex(magic)));
         EFI_Print(ConcatChar16(L"\r\nENTRY POINT OFFSET: ", UInt16ToChar16Hex(entryPointOffset)));
         EFI_Print(ConcatChar16(L"\r\nENTRY POINT: ", UInt64ToChar16Hex((UINT64)entryPoint)));
         EFI_Print(ConcatChar16(L"\r\nGPUI 0 ADDRESS: ", UInt32ToChar16Hex(devInfo.gpui[0].framebufferAddress)));
-
+        
         if (gpui == TRUE){
             EFI_Print(L"\r\nGPUI: TRUE");
         }
@@ -212,8 +212,8 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         else{
             EFI_Print(L"\r\nMM: FALSE");
         }
-
-        entryPoint(&devInfo, &memMap);
+        
+        EFI_Print(ConcatChar16(L"\r\nRETURN ADDRESS: ", UInt64ToChar16Hex(entryPoint(&devInfo, &memMap))));
     } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
     else if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"alloc") == TRUE){
@@ -334,7 +334,12 @@ EFI_STATUS GATHER_MEM_MAP(IN BOOLEAN bootServices, OUT KERNEL_MEMORY_MAP **memMa
             usable += desc->numberOfPages * EFI_PAGE_SIZE;
         }
         
-        (*memMap)->entries[i] = *(KERNEL_MEMORY_DESCRIPTOR*)desc;
+        (*memMap)->entries[i].size = desc->physicalStart + (desc->numberOfPages * EFI_PAGE_SIZE);
+        (*memMap)->entries[i].type = desc->type;
+        (*memMap)->entries[i].physicalStart = desc->physicalStart;
+        (*memMap)->entries[i].virtualStart = desc->virtualStart;
+        (*memMap)->entries[i].attribute = desc->attribute;
+
         offset += descriptorSize;
     }
 

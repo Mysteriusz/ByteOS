@@ -140,7 +140,7 @@ typedef struct KERNEL_MEMORY_DESCRIPTOR{
     UINT32 type;
     PHYSICAL_ADDRESS physicalStart;
     VIRTUAL_ADDRESS virtualStart;
-    UINT64 numberOfPages;
+    UINT64 size;
     UINT64 attribute;
 } KERNEL_MEMORY_DESCRIPTOR;
 typedef struct KERNEL_MEMORY_MAP{
@@ -177,6 +177,8 @@ CHAR16* ByteAPI GetKernelLoadStatus(KERNEL_LOAD_STATUS status);
 
 typedef UINT32 BT_STATUS;
 #define BT_SUCCESS 0
+#define BT_MEMORY_OVERFLOW_ERROR 0x100
+#define BT_NOT_ENOUGH_MEMORY 0x101
 
 #pragma endregion INTERNAL
 

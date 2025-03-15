@@ -1,5 +1,4 @@
 #include "ByteOS.h"
-#include "../efi/EFITypes.h"
 #include "fonts/BTS.h"
 #include "memory/Memory.h"
 
@@ -7,7 +6,12 @@
 //                KERNEL                |
 // ==================================== |
 
-VOID Kernel_Main(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP memMap){
+typedef struct test{
+    UINT8 a;
+    UINT8 b;
+} test;
+
+UINT64 Kernel_Main(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP memMap){
     UINT32 *fb = (UINT32*)(devInfo.gpui[0].framebufferAddress);
 
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
@@ -16,12 +20,19 @@ VOID Kernel_Main(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP memMap){
 
     InitializeMemory(&memMap);
 
-    FONT_CHAR c = {BTS_9};
-    FONT f = BTS_GetFont();
+    test *t;
+    AllocPages((VOID**)&t, sizeof(test));
+    t->a = 0xaa;
+    t->b = 0xbb;
 
-    PrintChar(&f, &c, fb, devInfo.gpui[0].horizontalRes);
+    return (UINT64)t;
+
+    // FONT_CHAR c = {BTS_9};
+    // FONT f = BTS_GetFont();
+
+    // PrintChar(&f, &c, fb, devInfo.gpui[0].horizontalRes);
     
-    while (TRUE);
+    // while (TRUE);
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {
