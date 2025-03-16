@@ -65,8 +65,8 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_ME
                 *buffer = (VOID*)firstPageAddress;
                 *count = allocated;
 
-                if (lastPageAddress > furthestAddress){
-                    firstPageAddress = lastPageAddress;
+                if (furthestAddress < lastPageAddress){
+                    furthestAddress = lastPageAddress;
                 }
 
                 return BT_SUCCESS;
@@ -79,13 +79,12 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_ME
     return BT_NOT_ENOUGH_MEMORY;
 }
 BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_ACCESS_LEVEL accessLevel){
-    UINTN freePageCount = (*count + PAGE_SIZE - 1) / PAGE_SIZE;
     UINTN freed = 0;
     PHYSICAL_ADDRESS pageAddress = (PHYSICAL_ADDRESS)buffer;
     pageAddress &= ~(PAGE_SIZE - 1);
-    UINTN i = PAGE_INDEX_FROM_ADDRESS(pageAddress);
+    UINTN i = PAGE_INDEX_FROM_ADDRESS(pageAddress) - 1;
 
-    if (freePageCount > pageMapCount) return BT_NOT_ENOUGH_MEMORY;
+    if (*count > pageMapCount) return BT_NOT_ENOUGH_MEMORY;
 
     PHYSICAL_ADDRESS firstFreed = 0;
 
@@ -94,16 +93,21 @@ BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_A
             if (protectionMap[i] > accessLevel){
                 return BT_ACCESS_VIOLATION;
             }
-
+            
             pageMap[i] = PAGE_FREE;
+            
             firstFreed = PAGE_ADDRESS_FROM_INDEX(i);
-
             freed++;
+            
+            if (freed == *count){
+                BT_STATUS status = ClearPages(buffer, *count, accessLevel);
+                if (BT_ERROR(status)){
+                    return status;
+                }
 
-            if (freed == freePageCount){
                 *count = freed;
 
-                if (closestAddress < firstFreed){
+                if (closestAddress > firstFreed){
                     closestAddress = firstFreed;
                 }
 
@@ -116,8 +120,8 @@ BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_A
 
     return BT_NOT_ENOUGH_MEMORY;
 }
-BT_STATUS ByteAPI ClearPages(IN VOID *ptr, IN UINTN count, IN BT_MEMORY_ACCESS_LEVEL accessLevel){
-    PHYSICAL_ADDRESS pageAddress = (PHYSICAL_ADDRESS)ptr;
+BT_STATUS ByteAPI ClearPages(IN VOID *buffer, IN UINTN count, IN BT_MEMORY_ACCESS_LEVEL accessLevel){
+    PHYSICAL_ADDRESS pageAddress = (PHYSICAL_ADDRESS)buffer;
     pageAddress &= ~(PAGE_SIZE - 1);
 
     UINTN pageIndex = PAGE_INDEX_FROM_ADDRESS(pageAddress);
@@ -125,9 +129,9 @@ BT_STATUS ByteAPI ClearPages(IN VOID *ptr, IN UINTN count, IN BT_MEMORY_ACCESS_L
     for (UINTN i = 0; i < count; i++){
         if (protectionMap[pageIndex + i] > accessLevel) return BT_ACCESS_VIOLATION;        
 
-        PHYSICAL_ADDRESS phys = PAGE_ADDRESS_FROM_INDEX(pageIndex + i);
-        for (PHYSICAL_ADDRESS pb = phys; pb < phys + PAGE_SIZE; pb += sizeof(UINTN)){
-            *((UINTN*)pb) = 0;
+        PHYSICAL_ADDRESS phys = PAGE_ADDRESS_FROM_INDEX(pageIndex + i) - 1;
+        for (PHYSICAL_ADDRESS pb = phys; pb < phys + PAGE_SIZE; pb += sizeof(BYTE)){
+            *((BYTE*)pb) = 0;
         }
     }
 

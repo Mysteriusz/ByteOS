@@ -31,7 +31,11 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     test *t2 = NULL;
     UINTN s2 = sizeof(test);
+    UINTN s12 = 2;
     
+    test *t3 = NULL;
+    UINTN s3 = sizeof(test);
+
     status = AllocPages((VOID**)&t1, &s1, 0);
     t1->a = 0xaa;
     t1->b = 0xbb;
@@ -40,7 +44,13 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t2->a = 0xdd;
     t2->b = 0xee;
     t2->c[0x1000] = 0xff;
-    return (UINT64)t2;
+    status = FreePages(t1, &s12, 2);
+    status = AllocPages((VOID**)&t3, &s3, 0);
+    t3->a = 0x11;
+    t3->b = 0x22;
+    t3->c[0x1000] = 0x33;
+    return (UINT64)GetPage(0).allocationStatus;
+    // ClearPages((VOID*)0x1000, 2, 2);
 
     // status = FreePages(t, &s, 5);
 
