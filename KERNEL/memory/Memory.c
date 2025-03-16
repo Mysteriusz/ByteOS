@@ -53,6 +53,16 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_ME
     
     while (i < pageMapCount){
         if (pageMap[i] == PAGE_FREE){
+            // SAFETY CHECK
+            UINTN sfci = i;
+            UINTN sfcallocated = 0;
+            while (sfcallocated < allocPageCount){
+                if (pageMap[sfci++] == PAGE_ALLOCATED){
+                    goto SKIP_PAGE;
+                }  
+                sfcallocated++;
+            }
+
             pageMap[i] = PAGE_ALLOCATED;
             protectionMap[i] = protectionLevel;
 
@@ -73,6 +83,7 @@ BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_ME
                 return BT_SUCCESS;
             }
         }
+        SKIP_PAGE:
 
         i++;
     }

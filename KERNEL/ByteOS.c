@@ -6,11 +6,17 @@
 //                KERNEL                |
 // ==================================== |
 
-typedef struct test{
+typedef struct testa{
     UINT8 a;
     UINT8 b;
     UINT8 c[0x1000];
-} test;
+} testa;
+typedef struct testb{
+    UINT8 a;
+    UINT8 b;
+    UINT8 c[0x1000];
+    UINT8 d[0x1000];
+} testb;
 
 BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
@@ -26,14 +32,14 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
         return status;
     }
 
-    test *t1 = NULL;
-    UINTN s1 = sizeof(test);
+    testa *t1 = NULL;
+    UINTN s1 = sizeof(testa);
     
-    test *t2 = NULL;
-    UINTN s2 = sizeof(test);
+    testa *t2 = NULL;
+    UINTN s2 = sizeof(testa);
     
-    test *t3 = NULL;
-    UINTN s3 = sizeof(test);
+    testb *t3 = NULL;
+    UINTN s3 = sizeof(testb);
 
     status = AllocPages((VOID**)&t1, &s1, 0);
     t1->a = 0xaa;
@@ -48,6 +54,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t3->a = 0x11;
     t3->b = 0x22;
     t3->c[0x1000] = 0x33;
+    t3->d[0x1000] = 0x44;
     return (UINT64)t3;
     // ClearPages((VOID*)0x1000, 2, 2);
 
