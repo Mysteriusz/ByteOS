@@ -29,11 +29,18 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     test *t1 = NULL;
     UINTN s1 = sizeof(test);
     
+    test *t2 = NULL;
+    UINTN s2 = sizeof(test);
+    
     status = AllocPages((VOID**)&t1, &s1, 0);
     t1->a = 0xaa;
     t1->b = 0xbb;
     t1->c[0x1000] = 0xcc;
-    return (UINT64)t1;
+    status = AllocPages((VOID**)&t2, &s2, 0);
+    t2->a = 0xdd;
+    t2->b = 0xee;
+    t2->c[0x1000] = 0xff;
+    return (UINT64)t2;
 
     // status = FreePages(t, &s, 5);
 
