@@ -1,8 +1,8 @@
 #include "ByteOS.h"
 
 #define FIRST_PAGE_OFFSET 0x1000 // 4 KiB RAM
-#define PAGE_SIZE 0x1000 // 4 KiB RAM
-#define MAX_PAGES 0x400000 // 16 GiB RAM
+#define PAGE_SIZE 0x2000 // 4 KiB RAM
+#define MAX_PAGES 0x200000 // 16 GiB RAM
 
 typedef UINT8 BT_MEMORY_PAGE_STATUS;
 #define PAGE_FREE 0
