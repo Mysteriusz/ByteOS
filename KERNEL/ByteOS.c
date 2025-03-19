@@ -40,35 +40,38 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     testa *t4 = NULL;
     UINTN s4 = sizeof(testa);
     
-    testa *t5 = NULL;
+    testb *t5 = NULL;
     UINTN s5 = sizeof(testb);    
     
     status = AllocPages((VOID**)&t1, &s1, 0);
-    t1->a = 0xaa;
-    t1->b = 0xbb;
-    t1->c[0x1000] = 0xcc;
+    t1->a = 0x11;
+    t1->b = 0x11;
+    t1->c[0x1000] = 0x11;
     status = AllocPages((VOID**)&t2, &s2, 0);
-    t2->a = 0xdd;
-    t2->b = 0xee;
-    t2->c[0x1000] = 0xff;
+    t2->a = 0x22;
+    t2->b = 0x22;
+    t2->c[0x1000] = 0x22;
     status = FreePages(t1, &s1, 2);
     status = AllocPages((VOID**)&t3, &s3, 0);
-    t3->a = 0x11;
-    t3->b = 0x22;
+    t3->a = 0x33;
+    t3->b = 0x33;
     t3->c[0x1000] = 0x33;
-    t3->d[0x1000] = 0x44;
+    t3->d[0x1000] = 0x33;
     status = AllocPages((VOID**)&t4, &s4, 0);
-    t4->a = 0xaa;
-    t4->b = 0xbb;
-    t4->c[0x1000] = 0xcc;
+    t4->a = 0x44;
+    t4->b = 0x44;
+    t4->c[0x1000] = 0x44;
+    return (UINT64)t4;
+    // status = AllocPages((VOID**)&t5, &s5, 0);
+    // t5->a = 0xbb;
+    // t5->b = 0xcc;
+    // t5->c[0x1000] = 0xdd;
+    // t5->d[0x1000] = 0xee;
+    
     // return (UINT64)GetPage(1).allocation;
     // return (UINT64)status;
     // return (UINT64)t4;
-    status = AllocPages((VOID**)&t5, &s5, 0);
-    t5->a = 0xaa;
-    t5->b = 0xbb;
-    t5->c[0x1000] = 0xcc;
-    return (UINT64)t5;
+    // return (UINT64)GetPage(1).allocation;
     // ClearPages((VOID*)0x1000, 2, 2);
 
     // status = FreePages(t, &s, 5);

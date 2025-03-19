@@ -17,6 +17,7 @@
         "nums.h": "c",
         "char.h": "c",
         "memory.h": "c",
-        "bts.h": "c"
+        "bts.h": "c",
+        "pe32.h": "c"
     }
 }

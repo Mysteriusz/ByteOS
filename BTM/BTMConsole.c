@@ -4,8 +4,15 @@
 EFI_STATUS BTM_StartConsole(){
     EFI_Print(L"STARTING BOOTMANAGER CONSOLE");
     
+    BTM_TOKENS tokens;
+    CHAR16* bLoadCmd = L"load kernel\\byteos.bin 232000";
+    BTM_Tokenize(bLoadCmd, 29, &tokens);
+    BTM_Execute(&tokens);
+    CHAR16* bRunCmd = L"run 232000 raw gpui mm";
+    BTM_Tokenize(bRunCmd, 23, &tokens);
+    BTM_Execute(&tokens);
+    
     BTM_PrintDefaultString(L"\r\nBOOTMANAGER>");
-
     EFI_INPUT_KEY* input = (EFI_INPUT_KEY*)NULL;
     CHAR16 cmd[256];
     UINT32 cmdLen = 0;
