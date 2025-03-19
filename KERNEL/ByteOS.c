@@ -26,7 +26,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // }
 
     BT_STATUS status;
-    status = InitializeMemory(memMap);
+    status = InitializePhysicalMemory(memMap);
     
     testa *t1 = NULL;
     UINTN s1 = sizeof(testa);    
@@ -43,16 +43,16 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     testb *t5 = NULL;
     UINTN s5 = sizeof(testb);    
     
-    status = AllocPages((VOID**)&t1, &s1, 0);
+    status = AllocPhysicalPages((VOID**)&t1, &s1, 0);
     t1->a = 0x11;
     t1->b = 0x11;
     t1->c[0x1000] = 0x11;
-    status = AllocPages((VOID**)&t2, &s2, 0);
+    status = AllocPhysicalPages((VOID**)&t2, &s2, 0);
     t2->a = 0x22;
     t2->b = 0x22;
     t2->c[0x1000] = 0x22;
-    status = FreePages(t1, &s1, 2);
-    status = AllocPages((VOID**)&t3, &s3, 0);
+    status = FreePhysicalPages(t1, &s1);
+    status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
     t3->a = 0x33;
     t3->b = 0x33;
     t3->c[0x1000] = 0x33;

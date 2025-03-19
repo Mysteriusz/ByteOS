@@ -1,5 +1,6 @@
 #include "ByteOS.h"
 
+#define MAX_PAGE_SECTIONS 0x10 // 8 Pages
 #define FIRST_PAGE_OFFSET 0x1000 // 4 KiB RAM
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
 #define MAX_PAGES 0x400000 // 16 GiB RAM
@@ -26,6 +27,11 @@ typedef UINT8 BT_MEMORY_PAGE_FLAGS;
 #define BT_MEMORY_USER_RWX (BT_MEMORY_USER | BT_MEMORY_RWX)
 #define BT_MEMORY_KERNEL_RWX (BT_MEMORY_KERNEL | BT_MEMORY_RWX)
 
+typedef struct MEMORY_SECTION{
+    PHYSICAL_ADDRESS start;
+    PHYSICAL_ADDRESS end;
+} MEMORY_SECTION;
+
 typedef struct MEMORY_PAGE{
     BT_MEMORY_PAGE_ALLOCATION allocation;
     BT_MEMORY_PAGE_FLAGS flags;
@@ -34,14 +40,28 @@ typedef struct MEMORY_PAGE{
     UINT64 index;
 } MEMORY_PAGE;
 
-BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap);
+// ==================================== |
+//               PHYSICAL               |
+// ==================================== |
 
-BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
-BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
-BT_STATUS ByteAPI ClearPages(IN VOID *address, IN UINTN count, IN BT_MEMORY_PAGE_FLAGS flags);
+BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap);
+BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
+BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *count);
+BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *address, IN UINTN count);
+MEMORY_PAGE ByteAPI GetPhysicalPage(UINT64 index);
+
+// ==================================== |
+//                HELPERS               |
+// ==================================== |
+
+PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 index);
+UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address);
+UINT64 PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT64 sectionIndex);
+UINT64 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress);
+
+// ==================================== |
+//                 DEBUG                |
+// ==================================== |
 
 VOID DEBUG_ALLOC(UINT64 index);
 VOID DEBUG_FREE(UINT64 index);
-PHYSICAL_ADDRESS DEBUG_CLOSEST();
-
-MEMORY_PAGE ByteAPI GetPage(UINT64 index);
