@@ -57,11 +57,12 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t3->b = 0x33;
     t3->c[0x1000] = 0x33;
     t3->d[0x1000] = 0x33;
-    status = AllocPages((VOID**)&t4, &s4, 0);
-    t4->a = 0x44;
-    t4->b = 0x44;
-    t4->c[0x1000] = 0x44;
-    return (UINT64)t4;
+    // status = AllocPages((VOID**)&t4, &s4, 0);
+    // t4->a = 0x44;
+    // t4->b = 0x44;
+    // t4->c[0x1000] = 0x44;
+    // status = ClearPages(t4, 2, 0);
+    return (UINT64)t3;
     // status = AllocPages((VOID**)&t5, &s5, 0);
     // t5->a = 0xbb;
     // t5->b = 0xcc;

@@ -139,6 +139,11 @@ BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_P
                     closestAddress = pageAddress;
                 }
 
+                BT_STATUS clStatus = ClearPages((VOID*)pageAddress, freed, flags);
+                if (BT_ERROR(clStatus)){
+                    return clStatus;
+                }
+                
                 return BT_SUCCESS;
             }
         }
@@ -147,6 +152,13 @@ BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_P
     }
 
     return BT_NOT_ENOUGH_MEMORY;
+}
+BT_STATUS ByteAPI ClearPages(IN VOID *address, IN UINTN count, IN BT_MEMORY_PAGE_FLAGS flags){
+    BYTE *ptr = (BYTE*)address;
+    for (UINTN i = 0; i < count * PAGE_SIZE; i++) {
+        ptr[i] = 0x00;
+    }
+    return BT_SUCCESS;
 }
 
 VOID DEBUG_ALLOC(UINT64 index){

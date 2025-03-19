@@ -38,6 +38,7 @@ BT_STATUS ByteAPI InitializeMemory(KERNEL_MEMORY_MAP *memMap);
 
 BT_STATUS ByteAPI AllocPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
 BT_STATUS ByteAPI FreePages(IN VOID *buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
+BT_STATUS ByteAPI ClearPages(IN VOID *address, IN UINTN count, IN BT_MEMORY_PAGE_FLAGS flags);
 
 VOID DEBUG_ALLOC(UINT64 index);
 VOID DEBUG_FREE(UINT64 index);
