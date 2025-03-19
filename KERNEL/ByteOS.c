@@ -27,20 +27,22 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
     status = InitializeMemory(memMap);
-
-    if (BT_ERROR(status)){
-        return status;
-    }
-
+    
     testa *t1 = NULL;
-    UINTN s1 = sizeof(testa);
+    UINTN s1 = sizeof(testa);    
     
     testa *t2 = NULL;
     UINTN s2 = sizeof(testa);
     
     testb *t3 = NULL;
     UINTN s3 = sizeof(testb);
-
+    
+    testa *t4 = NULL;
+    UINTN s4 = sizeof(testa);
+    
+    testa *t5 = NULL;
+    UINTN s5 = sizeof(testb);    
+    
     status = AllocPages((VOID**)&t1, &s1, 0);
     t1->a = 0xaa;
     t1->b = 0xbb;
@@ -55,7 +57,18 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t3->b = 0x22;
     t3->c[0x1000] = 0x33;
     t3->d[0x1000] = 0x44;
-    return (UINT64)t3;
+    status = AllocPages((VOID**)&t4, &s4, 0);
+    t4->a = 0xaa;
+    t4->b = 0xbb;
+    t4->c[0x1000] = 0xcc;
+    // return (UINT64)GetPage(1).allocation;
+    // return (UINT64)status;
+    // return (UINT64)t4;
+    status = AllocPages((VOID**)&t5, &s5, 0);
+    t5->a = 0xaa;
+    t5->b = 0xbb;
+    t5->c[0x1000] = 0xcc;
+    return (UINT64)t5;
     // ClearPages((VOID*)0x1000, 2, 2);
 
     // status = FreePages(t, &s, 5);
