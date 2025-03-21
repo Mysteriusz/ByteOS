@@ -34,7 +34,7 @@ typedef struct MEMORY_SECTION{
 typedef struct MEMORY_PAGE{
     BT_MEMORY_PAGE_ALLOCATION allocation;
     BT_MEMORY_PAGE_FLAGS flags;
-    UINT8 attributes;
+    UINT16 attributes;
     PHYSICAL_ADDRESS physicalAddress;
     UINT64 index;
 } MEMORY_PAGE;
@@ -44,13 +44,16 @@ typedef struct MEMORY_PAGE{
 // ==================================== |
 
 BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap);
+
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
 BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *count);
 BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *address, IN UINTN count);
 MEMORY_PAGE ByteAPI GetPhysicalPage(UINT64 index);
 
+BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
+
 // ==================================== |
-//                HELPERS               |
+//           PHYSICAL HELPERS           |
 // ==================================== |
 
 PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 index);
@@ -59,7 +62,7 @@ UINT64 PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT64 sectionIndex);
 UINT64 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress);
 
 // ==================================== |
-//                 DEBUG                |
+//            PHYSICAL DEBUG            |
 // ==================================== |
 
 VOID DEBUG_ALLOC(UINT64 index);
@@ -67,5 +70,5 @@ VOID DEBUG_FREE(UINT64 index);
 MEMORY_SECTION DEBUG_SECTION(UINT64 index);
 UINT64 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address);
 UINT64 DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT64 index);
-PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT64 index);
 UINT64 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address);
+PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT64 index);

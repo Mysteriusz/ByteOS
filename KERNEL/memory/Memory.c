@@ -48,6 +48,7 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
 
     return BT_SUCCESS;
 }
+
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags){
     UINTN allocPageCount = (*count + PAGE_SIZE - 1) / PAGE_SIZE;
     UINTN allocated = 0;
@@ -117,6 +118,14 @@ BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *count){
 
     if (freePageCount > pageCount) return BT_NOT_ENOUGH_MEMORY;
     
+    // PERMISSION CHECK
+    UINTN pi = i;
+    while (pi < freePageCount){
+        if ((flagMap[pi++] & BT_MEMORY_WRITE) == FALSE){
+            return BT_MEMORY_NOT_READABLE;
+        }
+    }
+
     while (i < pageCount){
         if (PAGE_CHECK(i) == PAGE_ALLOCATED){   
             PAGE_DEALLOC(i);
@@ -145,7 +154,13 @@ BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *count){
     return BT_NOT_ENOUGH_MEMORY;
 }
 BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *buffer, IN UINTN count){
-    BYTE *ptr = (BYTE*)buffer;
+    BYTE *ptr = (BYTE*)PAGE_PAD_ADDRESS((PHYSICAL_ADDRESS)buffer);
+
+    // PERMISSION CHECK
+    if ((flagMap[PAGE_INDEX_FROM_ADDRESS((PHYSICAL_ADDRESS)ptr)] & BT_MEMORY_WRITE) == FALSE){
+        return BT_MEMORY_NOT_WRITABLE;
+    }
+    
     for (UINTN i = 0; i < count * PAGE_SIZE; i++) {
         ptr[i] = 0x00;
     }
@@ -162,8 +177,12 @@ MEMORY_PAGE ByteAPI GetPhysicalPage(UINT64 index){
     return page;
 }
 
+BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
+    return 0;
+}
+
 // ==================================== |
-//                HELPERS               |
+//           PHYSICAL HELPERS           |
 // ==================================== |
 
 PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
@@ -231,7 +250,7 @@ UINT64 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress){
 }
 
 // ==================================== |
-//                 DEBUG                |
+//            PHYSICAL DEBUG            |
 // ==================================== |
 
 VOID DEBUG_ALLOC(UINT64 index){
