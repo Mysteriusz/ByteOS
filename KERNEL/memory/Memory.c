@@ -188,14 +188,27 @@ PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
     return UINT64_MAX;
 }
 UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
-    UINT64 adr = pageAddress;
+    UINTN sectionIndex = 0; 
+    UINTN currPageIndex = 0; 
+    UINTN currPageAddress = 0; 
+    
+    while(sectionIndex < pageSectionCount){
+        UINT64 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
+        currPageAddress = pageSections[sectionIndex].start;
 
-    if (adr == 0){
-        return 0;
+        for (UINTN i = 0; i < sectionPageCount; i++){
+            // SECTION WITH PAGE FOUND
+            if (currPageAddress == pageAddress){
+                return currPageIndex;
+            }
+
+            currPageIndex++;
+        }
+
+        sectionIndex++;
     }
-    else{
-        return adr / PAGE_SIZE;
-    }
+
+    return UINT64_MAX;
 }
 UINT64 PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT64 sectionIndex){
     if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end) {
@@ -236,6 +249,9 @@ UINT64 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address){
 UINT64 DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT64 index){
     return PAGE_SECTION_OFFSET(address, index);
 }
-UINT64 DEBUG_ADDRESS_FROM_INDEX(UINT64 index){
+PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT64 index){
     return PAGE_ADDRESS_FROM_INDEX(index);
+}
+UINT64 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address){
+    return PAGE_INDEX_FROM_ADDRESS(address);
 }

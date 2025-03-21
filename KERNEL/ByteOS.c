@@ -31,8 +31,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
     status = InitializePhysicalMemory(memMap);
-    return PAGE_ADDRESS_FROM_INDEX(2);
-    // return DEBUG_SECTION_OFFSET(0x100, 1);
     
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
@@ -62,12 +60,13 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t2->a = 0x22;
     t2->b = 0x22;
     t2->c[0x1000] = 0x22;
-    // status = FreePhysicalPages(t1, &s1);
+    status = FreePhysicalPages(t1, &s1);
     status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
     t3->a = 0x33;
     t3->b = 0x33;
     t3->c[0x1000] = 0x33;
     t3->d[0x1000] = 0x33;
+    return (UINT64)t3;
     // status = AllocPages((VOID**)&t4, &s4, 0);
     // t4->a = 0x44;
     // t4->b = 0x44;
