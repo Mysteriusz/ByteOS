@@ -18,6 +18,10 @@ typedef struct testb{
     UINT8 d[0x1000];
 } testb;
 
+typedef struct FIRST_PAGE{
+    BYTE data[0x1000];
+} FIRST_PAGE;
+
 BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
 
@@ -27,7 +31,14 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
     status = InitializePhysicalMemory(memMap);
+    return PAGE_ADDRESS_FROM_INDEX(2);
+    // return DEBUG_SECTION_OFFSET(0x100, 1);
     
+    FIRST_PAGE *f = NULL;
+    UINTN fs = sizeof(FIRST_PAGE);    
+    status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL);
+
+
     testa *t1 = NULL;
     UINTN s1 = sizeof(testa);    
     
@@ -42,7 +53,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     testb *t5 = NULL;
     UINTN s5 = sizeof(testb);    
-    
+
     status = AllocPhysicalPages((VOID**)&t1, &s1, 0);
     t1->a = 0x11;
     t1->b = 0x11;
@@ -51,7 +62,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t2->a = 0x22;
     t2->b = 0x22;
     t2->c[0x1000] = 0x22;
-    status = FreePhysicalPages(t1, &s1);
+    // status = FreePhysicalPages(t1, &s1);
     status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
     t3->a = 0x33;
     t3->b = 0x33;
@@ -62,7 +73,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // t4->b = 0x44;
     // t4->c[0x1000] = 0x44;
     // status = ClearPages(t4, 2, 0);
-    return (UINT64)t3;
+    // return (UINT64)t1;
     // status = AllocPages((VOID**)&t5, &s5, 0);
     // t5->a = 0xbb;
     // t5->b = 0xcc;

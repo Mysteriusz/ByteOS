@@ -336,10 +336,18 @@ EFI_STATUS GATHER_MEM_MAP(IN BOOLEAN bootServices, OUT KERNEL_MEMORY_MAP **memMa
 
     offset = (UINT8*)memDesc;
     
+    UINTN x = 0;
+
     for (UINTN i = 0; i < (*memMap)->entryCount; i++){
         EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR*)offset;
         
         if (desc->type == 7 || (bootServices == TRUE && (desc->type == 3 || desc->type == 4))){
+            if (x < 5){
+                EFI_Print(ConcatChar16(L"\r\nMemory Descriptor Start Address: ", UInt64ToChar16Hex(desc->physicalStart)));
+                EFI_Print(ConcatChar16(L"\r\nMemory Descriptor Size: ", UInt64ToChar16Hex(desc->numberOfPages * EFI_PAGE_SIZE)));
+                x++;
+            }
+
             usable += desc->numberOfPages * EFI_PAGE_SIZE;
         }
         

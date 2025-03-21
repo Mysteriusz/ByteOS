@@ -5,7 +5,7 @@ UINT64 pageGroupCount = 0;
 UINT64 pageSectionCount = 0;
 PHYSICAL_ADDRESS closestAddress = 0;
 
-MEMORY_SECTION pageSectionOffsets[MAX_PAGE_SECTIONS];
+MEMORY_SECTION pageSections[MAX_PAGE_SECTIONS];
 UINT8 pageGroups[MAX_PAGE_GROUPS];
 UINT8 flagMap[MAX_PAGES];
 
@@ -24,25 +24,27 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
         
         // EfiConventionalMemory || EfiBootServicesCode || EfiBootServicesData
         if (desc.type == 7 || desc.type == 3 || desc.type == 4){
-            PHYSICAL_ADDRESS pos = desc.physicalStart + FIRST_PAGE_OFFSET;
+            PHYSICAL_ADDRESS pos = desc.physicalStart;
             PHYSICAL_ADDRESS end = pos + desc.size;
 
-            pageSectionOffsets[pageSectionCount].start = pos;
-            pageSectionOffsets[pageSectionCount].end = end;
-            pageSectionCount++;
+            if (pageSectionCount == 0){
+                closestAddress = pos;
+            }
+
+            pageSections[pageSectionCount++] = (MEMORY_SECTION){.start = pos, .end = end};
 
             while (pos + PAGE_SIZE <= end){
                 if (pageGroupCount >= MAX_PAGES) return BT_MEMORY_OVERFLOW;
                 
-                pageGroups[pageCount++] = PAGE_FREE;
-                
+                PAGE_DEALLOC(pageCount);
+                pageCount++;
+
                 pos += PAGE_SIZE;
             }
         }
     }
 
     pageGroupCount = pageCount / PAGES_PER_GROUP;
-    closestAddress = FIRST_PAGE_OFFSET;
 
     return BT_SUCCESS;
 }
@@ -165,10 +167,28 @@ MEMORY_PAGE ByteAPI GetPhysicalPage(UINT64 index){
 // ==================================== |
 
 PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
-    return FIRST_PAGE_OFFSET + (pageIndex * PAGE_SIZE);
+    UINTN sectionIndex = 0; 
+    UINTN currPageIndex = 0; 
+    
+    while(sectionIndex < pageSectionCount){
+        UINT64 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
+
+        for (UINTN i = 0; i < sectionPageCount; i++){
+            // SECTION WITH PAGE FOUND
+            if (currPageIndex == pageIndex){
+                return pageSections[sectionIndex].start + (PAGE_SIZE * i);
+            }
+
+            currPageIndex++;
+        }
+
+        sectionIndex++;
+    }
+
+    return UINT64_MAX;
 }
 UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
-    UINT64 adr = pageAddress - FIRST_PAGE_OFFSET;
+    UINT64 adr = pageAddress;
 
     if (adr == 0){
         return 0;
@@ -178,17 +198,23 @@ UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
     }
 }
 UINT64 PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT64 sectionIndex){
-    if (pageAddress >= pageSectionOffsets[sectionIndex].start && pageAddress < pageSectionOffsets[sectionIndex].end){
-        return pageAddress - pageSectionOffsets[sectionIndex].start;
-    }    
+    if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end) {
+        return pageAddress - pageSections[sectionIndex].start;
+    }
 
+    if (pageAddress < pageSections[sectionIndex].start) {
+        return pageSections[sectionIndex].start - pageAddress;
+    }
+    
+    return pageAddress - pageSections[sectionIndex].end;
 }
 UINT64 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress){
     for (UINTN i = 0; i < pageSectionCount; i++){
-        if (pageAddress >= pageSectionOffsets[i].start && pageAddress < pageSectionOffsets[i].end){
+        if (pageAddress >= pageSections[i].start && pageAddress < pageSections[i].end){
             return i;
         }    
     }
+    return UINT64_MAX;
 }
 
 // ==================================== |
@@ -200,4 +226,16 @@ VOID DEBUG_ALLOC(UINT64 index){
 }
 VOID DEBUG_FREE(UINT64 index){
     PAGE_DEALLOC(index);
+}
+MEMORY_SECTION DEBUG_SECTION(UINT64 index){
+    return pageSections[index];
+}
+UINT64 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address){
+    return PAGE_SECTION_INDEX(address);
+}
+UINT64 DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT64 index){
+    return PAGE_SECTION_OFFSET(address, index);
+}
+UINT64 DEBUG_ADDRESS_FROM_INDEX(UINT64 index){
+    return PAGE_ADDRESS_FROM_INDEX(index);
 }
