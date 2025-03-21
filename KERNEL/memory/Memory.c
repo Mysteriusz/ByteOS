@@ -192,15 +192,13 @@ PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
     while(sectionIndex < pageSectionCount){
         UINT64 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
 
-        for (UINTN i = 0; i < sectionPageCount; i++){
+        if (pageIndex >= currPageIndex && pageIndex < currPageIndex + sectionPageCount){
             // SECTION WITH PAGE FOUND
-            if (currPageIndex == pageIndex){
-                return pageSections[sectionIndex].start + (PAGE_SIZE * i);
-            }
-
-            currPageIndex++;
+            UINT64 offset = (pageIndex - currPageIndex) * PAGE_SIZE;
+            return pageSections[sectionIndex].start + offset;
         }
-
+        
+        currPageIndex += sectionPageCount;
         sectionIndex++;
     }
 
@@ -209,21 +207,17 @@ PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
 UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
     UINTN sectionIndex = 0; 
     UINTN currPageIndex = 0; 
-    UINTN currPageAddress = 0; 
     
     while(sectionIndex < pageSectionCount){
         UINT64 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
-        currPageAddress = pageSections[sectionIndex].start;
 
-        for (UINTN i = 0; i < sectionPageCount; i++){
+        if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end){
             // SECTION WITH PAGE FOUND
-            if (currPageAddress == pageAddress){
-                return currPageIndex;
-            }
-
-            currPageIndex++;
+            UINT64 offset = pageAddress - pageSections[sectionIndex].start;
+            return currPageIndex + offset / PAGE_SIZE;
         }
 
+        currPageIndex += sectionPageCount;
         sectionIndex++;
     }
 

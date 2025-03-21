@@ -60,7 +60,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t2->b = 0x22;
     t2->c[0x1000] = 0x22;
     status = FreePhysicalPages(t1, &s1);
-    return (UINT64)status;
     status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
     t3->a = 0x33;
     t3->b = 0x33;
@@ -75,6 +74,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t5->b = 0xcc;
     t5->c[0x1000] = 0xdd;
     t5->d[0x1000] = 0xee;
+    return (UINT64)t5;
     // status = ClearPages(t4, 2, 0);
     // return (UINT64)t1;
     

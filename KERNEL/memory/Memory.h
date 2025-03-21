@@ -1,6 +1,6 @@
 #include "ByteOS.h"
 
-#define MAX_PAGE_SECTIONS 0x40 // 64 Sections
+#define MAX_PAGE_SECTIONS 0x64 // 100 Sections
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
 #define MAX_PAGES 0x400000 // 16 GiB RAM
 #define PAGES_PER_GROUP 0x08 // 8 Pages
@@ -38,6 +38,11 @@ typedef struct MEMORY_PAGE{
     PHYSICAL_ADDRESS physicalAddress;
     UINT64 index;
 } MEMORY_PAGE;
+
+typedef struct MEMORY_PAGE_POOL{
+    UINT64 pageIndex;
+    UINT32 innerIndex;
+} MEMORY_PAGE_POOL;
 
 // ==================================== |
 //               PHYSICAL               |
