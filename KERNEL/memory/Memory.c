@@ -216,7 +216,7 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
                 };
 
                 prevBlock->next = &newBlock;
-                return 1;
+                return BT_SUCCESS;
             }
 
             // CHECK IF THE BLOCK IS LAST AND THERE IS ENOUGH MEMORY 
@@ -228,7 +228,7 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
                 };
                 *buffer = (VOID*)((PHYSICAL_ADDRESS)curr->address + block->next->rva); 
                 curr->blockCount++;
-                return 2;
+                return BT_SUCCESS;
             }
             else if (blockStartAddress + block->size - (PHYSICAL_ADDRESS)curr->address <= *size) {
                 goto NEW_POOL;
@@ -268,7 +268,7 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     }
 
     *buffer = (VOID*)poolAddress;
-    return 3;
+    return BT_SUCCESS;
 }
 
 // ==================================== |
