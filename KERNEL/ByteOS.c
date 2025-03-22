@@ -51,14 +51,15 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     testb *t5 = NULL;
     UINTN s5 = sizeof(testb);    
     
-    FIRST_PAGE *t6 = NULL;    
-    UINTN s6 = sizeof(FIRST_PAGE);    
-    BYTE *t7[16];
-    UINTN s7 = sizeof(BYTE) * 16;
+    BYTE *t6[16];
+    UINTN s6 = sizeof(BYTE) * 16;
+    BYTE *t7[32];
+    UINTN s7 = sizeof(BYTE) * 32;
     
     status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
     status = AllocPhysicalPool((VOID**)&t7, &s7, 0);
-    return (UINT64)status;
+    return (UINT64)DEBUG_GET_FREE_POOLS()->blocks->next->rva;
+    // return (UINT64)DEBUG_GET_FREE_POOLS()->blockCount;
     // status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
     // t1->a = 0x11;
     // t1->b = 0x11;

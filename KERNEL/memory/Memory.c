@@ -197,24 +197,35 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     }
 
     while (curr != NULL){
-        PHYSICAL_ADDRESS prevBlockEndAddress = 0;
+        PHYSICAL_ADDRESS prevBlockEndAddress = (PHYSICAL_ADDRESS)curr;
         UINTN blockIndex = 0;
 
         MEMORY_PAGE_POOL_BLOCK *block = curr->blocks;
         while (blockIndex < curr->blockCount){
             PHYSICAL_ADDRESS blockStartAddress = (PHYSICAL_ADDRESS)curr + block->rva;
-            // CHECK IF THERE IS ENOUGH MEMORY IN THE POOL
-            if (blockStartAddress + block->size - (PHYSICAL_ADDRESS)curr <= *size){
+            // CHECK IF THERE IS ENOUGH MEMORY BETWEEN CURRENT AND PREVIOUS BLOCK
+            if (blockStartAddress - prevBlockEndAddress >= *size){
                 return 0x200;
             }
+
+            // CHECK IF THE BLOCK IS LAST AND THERE IS ENOUGH MEMORY 
+            if (block->next == NULL && blockStartAddress + block->size - (PHYSICAL_ADDRESS)curr <= *size){
+                block->next = &(MEMORY_PAGE_POOL_BLOCK){
+                    .next = NULL,
+                    .rva = block->rva + block->size,
+                    .size = *size   
+                };
+                *buffer = (VOID*)((PHYSICAL_ADDRESS)curr + block->next->rva); 
+                curr->blockCount++;
+                return BT_SUCCESS;
+            }
+            else if (block->next != NULL){
+                continue;
+            }
             else{
-                return 0x202;
+                goto NEW_POOL;
             }
             
-            // CHECK IF THERE IS ENOUGH MEMORY BETWEEN BLOCKS
-            if (blockStartAddress - prevBlockEndAddress >= *size){
-                return 0x201;
-            }
             prevBlockEndAddress = blockStartAddress + block->size;
             block = block->next;
             blockIndex++;
@@ -226,23 +237,23 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     }
 
     UINT32 closestIndex = PAGE_INDEX_FROM_ADDRESS(closestAddress);
-
+    
+    NEW_POOL:
+    // CREATE NEW POOL IF NONE WITH ENOUGH SPACE FOUND
     if (closestIndex != UINT32_MAX){
         PAGE_ALLOC(closestIndex);
-        MEMORY_PAGE_POOL newPool;
-        newPool.blockCount = 0;
-        newPool.blocks = NULL;
-        newPool.next = NULL;
-        newPool.previous = prev;
-        newPool.initialized = TRUE;
 
         MEMORY_PAGE_POOL_BLOCK block;
         block.rva = 0;
         block.size = *size;
         block.next = NULL;
 
+        MEMORY_PAGE_POOL newPool;
+        newPool.blockCount = 1;
         newPool.blocks = &block;
-        newPool.blockCount++;
+        newPool.next = NULL;
+        newPool.previous = prev;
+        newPool.initialized = TRUE;
 
         if (freePools.initialized == FALSE){
             freePools = newPool;
