@@ -55,7 +55,30 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINTN s6 = sizeof(BYTE) * 16;
     BYTE *t7 = NULL;
     UINTN s7 = sizeof(BYTE) * 32;
-        
+
+    status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
+    t1->a = 0x11;
+    t1->b = 0x11;
+    t1->c[0x1000] = 0x11;
+    status = AllocPhysicalPages((VOID**)&t2, &s2, 0);
+    t2->a = 0x22;
+    t2->b = 0x22;
+    t2->c[0x1000] = 0x22;
+    status = FreePhysicalPages(t1, &s1);
+    status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
+    t3->a = 0x33;
+    t3->b = 0x33;
+    t3->c[0x1000] = 0x33;
+    t3->d[0x1000] = 0x33;
+    status = AllocPhysicalPages((VOID**)&t4, &s4, 0);
+    t4->a = 0x44;
+    t4->b = 0x44;
+    t4->c[0x1000] = 0x44;
+    status = AllocPhysicalPages((VOID**)&t5, &s5, 0);
+    t5->a = 0xbb;
+    t5->b = 0xcc;
+    t5->c[0x1000] = 0xdd;
+    t5->d[0x1000] = 0xee;
     
     status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
     for (int i = 0; i < 16; i++) {
@@ -65,33 +88,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     for (int i = 0; i < 16; i++) {
         t7[i] = i;
     }
-    return (UINT64)t7;
-
-    // status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
-    // t1->a = 0x11;
-    // t1->b = 0x11;
-    // t1->c[0x1000] = 0x11;
-    // status = AllocPhysicalPages((VOID**)&t2, &s2, 0);
-    // t2->a = 0x22;
-    // t2->b = 0x22;
-    // t2->c[0x1000] = 0x22;
-    // status = FreePhysicalPages(t1, &s1);
-    // status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
-    // t3->a = 0x33;
-    // t3->b = 0x33;
-    // t3->c[0x1000] = 0x33;
-    // t3->d[0x1000] = 0x33;
-    // status = AllocPhysicalPages((VOID**)&t4, &s4, 0);
-    // t4->a = 0x44;
-    // t4->b = 0x44;
-    // t4->c[0x1000] = 0x44;
-    // status = AllocPhysicalPages((VOID**)&t5, &s5, 0);
-    // t5->a = 0xbb;
-    // t5->b = 0xcc;
-    // t5->c[0x1000] = 0xdd;
-    // t5->d[0x1000] = 0xee;
-    return (UINT64)t5;
-
+    return (UINT64)DEBUG_CLOSEST();
+    
     // return (UINT64)GetPage(1).allocation;
     // return (UINT64)status;
     // return (UINT64)t4;
