@@ -51,8 +51,6 @@ typedef struct MEMORY_PAGE_POOL{
     UINT64 address;
     UINT32 blockCount;
     MEMORY_PAGE_POOL* next;
-    MEMORY_PAGE_POOL* previous;
-    BOOLEAN initialized : 1;
 } MEMORY_PAGE_POOL;
 
 // ==================================== |
@@ -61,12 +59,13 @@ typedef struct MEMORY_PAGE_POOL{
 
 BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap);
 
-BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *count, IN BT_MEMORY_PAGE_FLAGS flags);
-BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *count);
-BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *address, IN UINTN count);
+BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
+BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size);
+BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *address, IN UINTN size);
 MEMORY_PAGE ByteAPI GetPhysicalPage(UINT32 index);
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
+BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size);
 
 // ==================================== |
 //           PHYSICAL HELPERS           |
@@ -77,6 +76,7 @@ UINT32 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address);
 PHYSICAL_ADDRESS PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT32 sectionIndex);
 UINT32 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress);
 VOID PAGE_UPDATE_CLOSEST();
+MEMORY_PAGE_POOL *PAGE_MAKE_POOL(PHYSICAL_ADDRESS address, MEMORY_PAGE_POOL_BLOCK *block);
 
 // ==================================== |
 //            PHYSICAL DEBUG            |

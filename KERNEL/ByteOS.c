@@ -90,8 +90,9 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     for (int i = 0; i < 16; i++) {
         t7[i] = i;
     }    
-    status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
-    return (UINT64)DEBUG_CLOSEST();
+    status = FreePhysicalPool(t7, &s7);
+    return (UINT64)DEBUG_GET_FREE_POOLS()->blockCount;
+    // return (UINT64)DEBUG_GET_FREE_POOLS()->blocks->size;
     
     // return (UINT64)GetPage(1).allocation;
     // return (UINT64)status;
