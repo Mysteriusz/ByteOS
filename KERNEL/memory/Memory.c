@@ -1,18 +1,23 @@
 #include "Memory.h"
 
-UINT64 pageCount = 0;
-UINT64 pageGroupCount = 0;
-UINT64 pageSectionCount = 0;
+UINT32 pageCount = 0;
 PHYSICAL_ADDRESS closestAddress = 0;
 
-MEMORY_SECTION pageSections[MAX_PAGE_SECTIONS];
-UINT8 pageGroups[MAX_PAGE_GROUPS];
-UINT8 flagMap[MAX_PAGES];
+MEMORY_SECTION pageSections[MAX_PAGE_SECTIONS]; // MEMORY_SECTION PER SECTION  
+UINT32 pageSectionCount = 0;
+
+UINT8 pageGroups[MAX_PAGE_GROUPS]; // BIT PER PAGE
+UINT8 flagMap[MAX_PAGES]; // BYTE PER PAGE
+UINT32 pageGroupCount = 0;
+
+MEMORY_PAGE_POOL freePools;
+MEMORY_PAGE_POOL allocPools;
+UINT32 poolCount = 0;
 
 #define PAGE_PAD_ADDRESS(address)(((PHYSICAL_ADDRESS)address & ~(PAGE_SIZE - 1)))
-#define PAGE_ALLOC(index)(pageGroups[((UINT64)index / PAGES_PER_GROUP)] |= (PAGE_ALLOCATED << ((UINT64)index % PAGES_PER_GROUP)))
-#define PAGE_DEALLOC(index)(pageGroups[((UINT64)index / PAGES_PER_GROUP)] &= ~(PAGE_ALLOCATED << ((UINT64)index % PAGES_PER_GROUP)))
-#define PAGE_CHECK(index)((pageGroups[((UINT64)index / PAGES_PER_GROUP)] & (PAGE_ALLOCATED << ((UINT64)index % PAGES_PER_GROUP))) != 0)
+#define PAGE_ALLOC(index)(pageGroups[((UINT32)index / PAGES_PER_GROUP)] |= (PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP)))
+#define PAGE_DEALLOC(index)(pageGroups[((UINT32)index / PAGES_PER_GROUP)] &= ~(PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP)))
+#define PAGE_CHECK(index)((pageGroups[((UINT32)index / PAGES_PER_GROUP)] & (PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP))) != 0)
 
 // ==================================== |
 //               PHYSICAL               |
@@ -45,6 +50,12 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
     }
 
     pageGroupCount = pageCount / PAGES_PER_GROUP;
+
+    freePools.blocks = NULL;
+    freePools.blockCount = 0;
+    freePools.next = NULL;
+    freePools.previous = NULL;
+    freePools.initialized = FALSE;
 
     return BT_SUCCESS;
 }
@@ -166,7 +177,7 @@ BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *buffer, IN UINTN count){
     }
     return BT_SUCCESS;
 }
-MEMORY_PAGE ByteAPI GetPhysicalPage(UINT64 index){
+MEMORY_PAGE ByteAPI GetPhysicalPage(UINT32 index){
     MEMORY_PAGE page;
     page.allocation = PAGE_CHECK(index);
     page.flags = flagMap[index];
@@ -178,23 +189,85 @@ MEMORY_PAGE ByteAPI GetPhysicalPage(UINT64 index){
 }
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
-    return 0;
+    MEMORY_PAGE_POOL *curr = &freePools;
+    MEMORY_PAGE_POOL *prev = NULL;
+
+    if (*size > PAGE_SIZE){
+        return BT_NOT_ENOUGH_MEMORY;
+    }
+
+    while (curr != NULL){
+        PHYSICAL_ADDRESS prevBlockEndAddress = 0;
+        UINTN blockIndex = 0;
+
+        MEMORY_PAGE_POOL_BLOCK *block = curr->blocks;
+        while (blockIndex < curr->blockCount){
+            PHYSICAL_ADDRESS blockStartAddress = (PHYSICAL_ADDRESS)curr + block->rva;
+            // CHECK IF THERE IS ENOUGH MEMORY IN THE POOL
+            if (blockStartAddress + block->size - (PHYSICAL_ADDRESS)curr <= *size){
+                return 0x200;
+            }
+            else{
+                return 0x202;
+            }
+            
+            // CHECK IF THERE IS ENOUGH MEMORY BETWEEN BLOCKS
+            if (blockStartAddress - prevBlockEndAddress >= *size){
+                return 0x201;
+            }
+            prevBlockEndAddress = blockStartAddress + block->size;
+            block = block->next;
+            blockIndex++;
+        }
+
+        prev = curr;    
+        curr = curr->next;
+        continue;    
+    }
+
+    UINT32 closestIndex = PAGE_INDEX_FROM_ADDRESS(closestAddress);
+
+    if (closestIndex != UINT32_MAX){
+        PAGE_ALLOC(closestIndex);
+        MEMORY_PAGE_POOL newPool;
+        newPool.blockCount = 0;
+        newPool.blocks = NULL;
+        newPool.next = NULL;
+        newPool.previous = prev;
+        newPool.initialized = TRUE;
+
+        MEMORY_PAGE_POOL_BLOCK block;
+        block.rva = 0;
+        block.size = *size;
+        block.next = NULL;
+
+        newPool.blocks = &block;
+        newPool.blockCount++;
+
+        if (freePools.initialized == FALSE){
+            freePools = newPool;
+        }
+
+        return BT_SUCCESS;
+    }
+
+    return BT_NOT_ENOUGH_MEMORY;
 }
 
 // ==================================== |
 //           PHYSICAL HELPERS           |
 // ==================================== |
 
-PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
+PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT32 pageIndex){
     UINTN sectionIndex = 0; 
     UINTN currPageIndex = 0; 
     
     while(sectionIndex < pageSectionCount){
-        UINT64 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
+        UINT32 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
 
         if (pageIndex >= currPageIndex && pageIndex < currPageIndex + sectionPageCount){
             // SECTION WITH PAGE FOUND
-            UINT64 offset = (pageIndex - currPageIndex) * PAGE_SIZE;
+            UINT32 offset = (pageIndex - currPageIndex) * PAGE_SIZE;
             return pageSections[sectionIndex].start + offset;
         }
         
@@ -202,18 +275,18 @@ PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT64 pageIndex){
         sectionIndex++;
     }
 
-    return UINT64_MAX;
+    return UINT32_MAX;
 }
-UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
+UINT32 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
     UINTN sectionIndex = 0; 
     UINTN currPageIndex = 0; 
     
     while(sectionIndex < pageSectionCount){
-        UINT64 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
+        UINT32 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
 
         if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end){
             // SECTION WITH PAGE FOUND
-            UINT64 offset = pageAddress - pageSections[sectionIndex].start;
+            UINT32 offset = pageAddress - pageSections[sectionIndex].start;
             return currPageIndex + offset / PAGE_SIZE;
         }
 
@@ -221,9 +294,9 @@ UINT64 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
         sectionIndex++;
     }
 
-    return UINT64_MAX;
+    return UINT32_MAX;
 }
-UINT64 PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT64 sectionIndex){
+PHYSICAL_ADDRESS PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT32 sectionIndex){
     if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end) {
         return pageAddress - pageSections[sectionIndex].start;
     }
@@ -234,37 +307,40 @@ UINT64 PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT64 sectionIndex){
     
     return pageAddress - pageSections[sectionIndex].end;
 }
-UINT64 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress){
+UINT32 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress){
     for (UINTN i = 0; i < pageSectionCount; i++){
         if (pageAddress >= pageSections[i].start && pageAddress < pageSections[i].end){
             return i;
         }    
     }
-    return UINT64_MAX;
+    return UINT32_MAX;
 }
 
 // ==================================== |
 //            PHYSICAL DEBUG            |
 // ==================================== |
 
-VOID DEBUG_ALLOC(UINT64 index){
+VOID DEBUG_ALLOC(UINT32 index){
     PAGE_ALLOC(index);
 }
-VOID DEBUG_FREE(UINT64 index){
+VOID DEBUG_FREE(UINT32 index){
     PAGE_DEALLOC(index);
 }
-MEMORY_SECTION DEBUG_SECTION(UINT64 index){
+MEMORY_SECTION DEBUG_SECTION(UINT32 index){
     return pageSections[index];
 }
-UINT64 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address){
+UINT32 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address){
     return PAGE_SECTION_INDEX(address);
 }
-UINT64 DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT64 index){
+PHYSICAL_ADDRESS DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT32 index){
     return PAGE_SECTION_OFFSET(address, index);
 }
-PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT64 index){
+PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT32 index){
     return PAGE_ADDRESS_FROM_INDEX(index);
 }
-UINT64 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address){
+UINT32 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address){
     return PAGE_INDEX_FROM_ADDRESS(address);
+}
+MEMORY_PAGE_POOL *DEBUG_GET_FREE_POOLS(){
+    return &freePools;
 }
