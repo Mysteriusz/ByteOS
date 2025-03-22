@@ -19,7 +19,7 @@ typedef struct testb{
 } testb;
 
 typedef struct FIRST_PAGE{
-    BYTE data[PAGE_SIZE];
+    BYTE d1[PAGE_SIZE];
 } FIRST_PAGE;
 
 BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
@@ -28,7 +28,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
     //     fb[i] = 0x000000;
     // }
-
+    
     BT_STATUS status;
     status = InitializePhysicalMemory(memMap);
     
@@ -51,15 +51,22 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     testb *t5 = NULL;
     UINTN s5 = sizeof(testb);    
     
-    BYTE *t6[16];
+    BYTE *t6 = NULL;
     UINTN s6 = sizeof(BYTE) * 16;
-    BYTE *t7[32];
+    BYTE *t7 = NULL;
     UINTN s7 = sizeof(BYTE) * 32;
+        
     
     status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    for (int i = 0; i < 16; i++) {
+        t6[i] = i;
+    }    
     status = AllocPhysicalPool((VOID**)&t7, &s7, 0);
-    return (UINT64)DEBUG_GET_FREE_POOLS()->blocks->next->rva;
-    // return (UINT64)DEBUG_GET_FREE_POOLS()->blockCount;
+    for (int i = 0; i < 16; i++) {
+        t7[i] = i;
+    }
+    return (UINT64)t7;
+
     // status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
     // t1->a = 0x11;
     // t1->b = 0x11;
@@ -83,9 +90,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // t5->b = 0xcc;
     // t5->c[0x1000] = 0xdd;
     // t5->d[0x1000] = 0xee;
-    // status = ClearPages(t4, 2, 0);
-    // return (UINT64)t1;
-    
+    return (UINT64)t5;
+
     // return (UINT64)GetPage(1).allocation;
     // return (UINT64)status;
     // return (UINT64)t4;

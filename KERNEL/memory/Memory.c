@@ -51,6 +51,7 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
 
     pageGroupCount = pageCount / PAGES_PER_GROUP;
 
+    freePools.address = 0;
     freePools.blocks = NULL;
     freePools.blockCount = 0;
     freePools.next = NULL;
@@ -90,10 +91,10 @@ BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *count, 
                 *count = allocated * PAGE_SIZE;
                 
                 if (firstPageAddress == closestAddress){
-                    closestAddress = lastPageAddress;
+                    closestAddress = lastPageAddress + PAGE_SIZE;
                 }
                 
-                return BT_SUCCESS;
+                return lastPageAddress;
             }
         }
         // SAFETY CHECK
@@ -197,27 +198,27 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     }
 
     while (curr != NULL){
-        PHYSICAL_ADDRESS prevBlockEndAddress = (PHYSICAL_ADDRESS)curr;
+        PHYSICAL_ADDRESS prevBlockEndAddress = (PHYSICAL_ADDRESS)curr->address;
         UINTN blockIndex = 0;
 
         MEMORY_PAGE_POOL_BLOCK *block = curr->blocks;
         while (blockIndex < curr->blockCount){
-            PHYSICAL_ADDRESS blockStartAddress = (PHYSICAL_ADDRESS)curr + block->rva;
+            PHYSICAL_ADDRESS blockStartAddress = (PHYSICAL_ADDRESS)curr->address + block->rva;
             // CHECK IF THERE IS ENOUGH MEMORY BETWEEN CURRENT AND PREVIOUS BLOCK
             if (blockStartAddress - prevBlockEndAddress >= *size){
                 return 0x200;
             }
 
             // CHECK IF THE BLOCK IS LAST AND THERE IS ENOUGH MEMORY 
-            if (block->next == NULL && blockStartAddress + block->size - (PHYSICAL_ADDRESS)curr <= *size){
+            if (block->next == NULL && blockStartAddress + block->size - (PHYSICAL_ADDRESS)curr->address <= *size){
                 block->next = &(MEMORY_PAGE_POOL_BLOCK){
                     .next = NULL,
                     .rva = block->rva + block->size,
                     .size = *size   
                 };
-                *buffer = (VOID*)((PHYSICAL_ADDRESS)curr + block->next->rva); 
+                *buffer = (VOID*)((PHYSICAL_ADDRESS)curr->address + block->next->rva); 
                 curr->blockCount++;
-                return BT_SUCCESS;
+                return 0x201;
             }
             else if (block->next != NULL){
                 continue;
@@ -254,11 +255,13 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
         newPool.next = NULL;
         newPool.previous = prev;
         newPool.initialized = TRUE;
+        newPool.address = closestAddress;
 
         if (freePools.initialized == FALSE){
             freePools = newPool;
         }
 
+        *buffer = (VOID*)closestAddress;
         return BT_SUCCESS;
     }
 
@@ -354,4 +357,7 @@ UINT32 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address){
 }
 MEMORY_PAGE_POOL *DEBUG_GET_FREE_POOLS(){
     return &freePools;
+}
+PHYSICAL_ADDRESS DEBUG_CLOSEST(){
+    return closestAddress;
 }
