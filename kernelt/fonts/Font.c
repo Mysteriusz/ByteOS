@@ -1,6 +1,6 @@
 #include "Font.h"
 
-VOID PrintChar(FONT *font, FONT_CHAR *character, UINT32 *frameBufferAddress, UINT32 frameBufferHorizontalSize) {
+VOID PrintChar(IN FONT *font, IN FONT_CHAR *character, IN UINT32 *frameBufferAddress, IN UINT32 frameBufferHorizontalSize) {
     for (UINT32 y = 0; y < font->pixelHeight; y++) {
         for (UINT32 x = 0; x < font->pixelWidth; x++) {
             BOOLEAN bit = (character->points[y] >> (font->pixelWidth - 1 - x)) & 1; 

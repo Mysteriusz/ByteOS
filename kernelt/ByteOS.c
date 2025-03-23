@@ -93,7 +93,15 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t4->a = 0x11;
     t4->b = 0x11;
     t4->c[0x1000] = 0x11;
-    return (UINT64)t4;
+
+    // UINT32 index = 0;
+    // PhysicalPageToIndex(0x802000, &index);
+
+    // FONT bts = BTS_GetFont();
+    // PrintChar(&bts, &(FONT_CHAR)BTS_CAPITAL_B, fb, 1280);
+
+    // return (UINT64)GetPhysicalPage(index).allocation;
+    // return (UINT64)0;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {
