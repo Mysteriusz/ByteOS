@@ -1,16 +1,13 @@
 #include "Memory.h"
 
-UINT32 pageCount = 0;
 
 UINT32 closestPageIndex = 0;
 PHYSICAL_ADDRESS closestPageAddress = 0;
 
-MEMORY_SECTION pageSections[MAX_PAGE_SECTIONS]; // MEMORY_SECTION PER SECTION  
-UINT32 pageSectionCount = 0;
-
 UINT8 pageGroups[MAX_PAGE_GROUPS]; // BIT PER PAGE
-UINT8 flagMap[MAX_PAGES]; // BYTE PER PAGE
 UINT32 pageGroupCount = 0;
+UINT8 flagMap[MAX_PAGES]; // BYTE PER PAGE
+UINT32 pageCount = 0;
 
 MEMORY_PAGE_POOL_HEADER *tinyPool;
 MEMORY_PAGE_POOL_HEADER *smallPool;
@@ -46,29 +43,33 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap){
+    BOOLEAN first = TRUE;
+    pageCount = 0;
+
     for (UINTN i = 0; i < memMap->entryCount; i++){
         KERNEL_MEMORY_DESCRIPTOR desc = memMap->entries[i];
         
-        // EfiConventionalMemory || EfiBootServicesCode || EfiBootServicesData
-        if (desc.type == 7 || desc.type == 3 || desc.type == 4){
-            PHYSICAL_ADDRESS pos = desc.physicalStart;
-            PHYSICAL_ADDRESS end = pos + desc.size;
+        PHYSICAL_ADDRESS pos = desc.physicalStart;
+        PHYSICAL_ADDRESS end = pos + desc.size;
 
-            if (pageSectionCount == 0){
-                closestPageAddress = pos;
-                closestPageIndex = 0;
-            }
-
-            pageSections[pageSectionCount++] = (MEMORY_SECTION){.start = pos, .end = end};
-
-            while (pos + PAGE_SIZE <= end){
-                if (pageGroupCount >= MAX_PAGES) return BT_MEMORY_OVERFLOW;
-                
+        while (pos <= end){
+            if (pageCount >= MAX_PAGES) return BT_MEMORY_OVERFLOW;
+            
+            // EfiConventionalMemory || EfiBootServicesCode || EfiBootServicesData
+            if (desc.type == 7 || desc.type == 3 || desc.type == 4){
+                if (first){
+                    PhysicalGetClosest(pageCount, &closestPageIndex, &closestPageAddress);
+                    first = FALSE;
+                }
                 PAGE_DEALLOC(pageCount);
-                pageCount++;
-
-                pos += PAGE_SIZE;
             }
+            else{
+                flagMap[pageCount] = BT_MEMORY_KERNEL_RW;
+                PAGE_ALLOC(pageCount);
+            }
+            
+            pageCount++;
+            pos += PAGE_SIZE;
         }
     }
 
@@ -101,67 +102,60 @@ BT_STATUS ByteAPI InitializePhysicalPool(){
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
     UINTN allocPageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE;
     UINTN allocated = 0;
-
+    UINT32 firstPageIndex = 0;
+    BOOLEAN safe = FALSE;
     UINTN i = closestPageIndex;
-
+    
     if (allocPageCount > pageCount) return BT_NOT_ENOUGH_MEMORY;
     
-    UINT32 firstPageIndex = 0;
-
-    BOOLEAN safe = FALSE;
-
-    while (i < pageCount){
-        ALLOCATE:
-        if (safe){
-            PAGE_ALLOC(i);
-            flagMap[i] = flags;
-            
-            if (allocated == 0){
-                firstPageIndex = i;
-            }
-            allocated++;
-            
-            if (allocated == allocPageCount){
-                *buffer = (VOID*)PAGE_ADDRESS_FROM_INDEX(firstPageIndex);
-                *size = allocated * PAGE_SIZE;
-                
-                if (firstPageIndex == closestPageIndex){
-                    PAGE_UPDATE_CLOSEST();
-                }
-                
-                return BT_SUCCESS;
-            }
-        }
-        // SAFETY CHECK
-        else{
-            UINTN sfci = i;
-            UINTN sfcallocated = 0;
-            while (sfcallocated < allocPageCount){
-                if (PAGE_CHECK(sfci) == PAGE_ALLOCATED){
-                    goto SKIP_PAGE;
-                }  
-                sfci++;
-                sfcallocated++;
-                
-                if (sfcallocated == allocPageCount){
-                    safe = TRUE;
-                    goto ALLOCATE;
-                }
-            }
-        }
-        SKIP_PAGE:
+    // SAFETY CHECK
+    UINTN sfci = i;
+    UINTN sfcallocated = 0;
+    while (sfci < pageCount){
+        if (PAGE_CHECK(sfci) == PAGE_ALLOCATED){
+            i++;
+            sfci = i;
+            sfcallocated = 0;
+            continue;
+        }  
+        sfcallocated++;
         
+        if (sfcallocated == allocPageCount){
+            break;
+        }
+        sfci++;
+    }
+    
+    while (allocated < allocPageCount){
+        PAGE_ALLOC(i);
+        flagMap[i] = flags;
+        
+        if (allocated == 0){
+            firstPageIndex = i;
+        }
         i++;
+        allocated++;
     }
 
-    return BT_NOT_ENOUGH_MEMORY;
+    PHYSICAL_ADDRESS adr = 0;
+    PhysicalIndexToPage(firstPageIndex, &adr);
+    *buffer = (VOID*)adr;
+
+    *size = allocated * PAGE_SIZE;
+    
+    if (firstPageIndex == closestPageIndex){
+        PhysicalGetClosest(closestPageIndex, &closestPageIndex, &closestPageAddress);
+    }
+    
+    return BT_SUCCESS;
 }
 BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size){
     UINTN freePageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE;
     UINTN freed = 0;
 
     PHYSICAL_ADDRESS pageAddress = PAGE_PAD_ADDRESS(buffer);
-    PHYSICAL_ADDRESS pageIndex = PAGE_INDEX_FROM_ADDRESS(pageAddress);
+    UINT32 pageIndex = 0;
+    PhysicalPageToIndex(pageAddress, &pageIndex);
     UINTN i = pageIndex;
 
     if (freePageCount > pageCount) return BT_NOT_ENOUGH_MEMORY;
@@ -187,11 +181,6 @@ BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size){
                     closestPageIndex = pageIndex;
                     closestPageAddress = pageAddress;
                 }
-
-                BT_STATUS clStatus = ClearPhysicalPages((VOID*)pageAddress, freed);
-                if (BT_ERROR(clStatus)){
-                    return clStatus;
-                }
                 
                 return BT_SUCCESS;
             }
@@ -202,26 +191,13 @@ BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size){
 
     return BT_NOT_ENOUGH_MEMORY;
 }
-BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *buffer, IN UINTN size){
-    BYTE *ptr = (BYTE*)PAGE_PAD_ADDRESS((PHYSICAL_ADDRESS)buffer);
-
-    // PERMISSION CHECK
-    if ((flagMap[PAGE_INDEX_FROM_ADDRESS((PHYSICAL_ADDRESS)ptr)] & BT_MEMORY_WRITE) == FALSE){
-        return BT_MEMORY_NOT_WRITABLE;
-    }
-    
-    for (UINTN i = 0; i < size * PAGE_SIZE; i++) {
-        ptr[i] = 0x00;
-    }
-    return BT_SUCCESS;
-}
-MEMORY_PAGE ByteAPI GetPhysicalPage(UINT32 index){
+MEMORY_PAGE ByteAPI GetPhysicalPage(IN UINT32 index){
     MEMORY_PAGE page;
     page.allocation = PAGE_CHECK(index);
     page.flags = flagMap[index];
-    page.physicalAddress = PAGE_ADDRESS_FROM_INDEX(index);
+    PhysicalIndexToPage(index, &page.physicalAddress);
     page.attributes = 0;
-    page.index = PAGE_INDEX_FROM_ADDRESS(page.physicalAddress);
+    page.index = index;
 
     return page;
 }
@@ -343,73 +319,65 @@ BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size){
 
     return BT_INVALID_BUFFER;
 }
+MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolSize){
+    MEMORY_PAGE_POOL_HEADER pool;
+
+    return pool;
+}
+
+BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
+    BYTE *ptr = (BYTE*)buffer;
+
+    UINT32 index = 0;
+    PhysicalPageToIndex((PHYSICAL_ADDRESS)ptr, &index);
+
+    // PERMISSION CHECK
+    if ((flagMap[index] & BT_MEMORY_WRITE) == FALSE){
+        return BT_MEMORY_NOT_WRITABLE;
+    }
+    
+    for (UINTN i = 0; i < size * PAGE_SIZE; i++) {
+        ptr[i] = value;
+    }
+    return BT_SUCCESS;
+}
 
 // ==================================== |
 //           PHYSICAL HELPERS           |
 // ==================================== |
 
-PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT32 pageIndex){
-    UINTN sectionIndex = 0; 
-    UINTN currPageIndex = 0; 
-    
-    while(sectionIndex < pageSectionCount){
-        UINT32 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
+BT_STATUS ByteAPI PhysicalIndexToPage(IN UINT32 pageIndex, OUT PHYSICAL_ADDRESS *address){
+    if (pageIndex > pageCount){
+        return BT_INVALID_PAGE_INDEX;
+    }
 
-        if (pageIndex >= currPageIndex && pageIndex < currPageIndex + sectionPageCount){
-            // SECTION WITH PAGE FOUND
-            UINT32 offset = (pageIndex - currPageIndex) * PAGE_SIZE;
-            return pageSections[sectionIndex].start + offset;
+    if (pageIndex == 0){
+        return 0;
+    }
+
+    *address = PAGE_SIZE * pageIndex;  
+    return BT_SUCCESS;
+}
+BT_STATUS ByteAPI PhysicalPageToIndex(IN PHYSICAL_ADDRESS pageAddress, OUT UINT32 *index){
+    if (*index > pageCount){
+        return BT_INVALID_PAGE_INDEX;
+    }
+
+    *index = PAGE_PAD_ADDRESS(pageAddress) / PAGE_SIZE;  
+    return BT_SUCCESS;
+}
+BT_STATUS ByteAPI PhysicalGetClosest(IN UINT32 fromIndex, OUT UINT32 *index, OUT PHYSICAL_ADDRESS *address){
+    UINT32 i = fromIndex;
+    while (PAGE_CHECK(i) == PAGE_ALLOCATED){
+        i++;
+        if (i >= pageCount){
+            return BT_INVALID_PAGE_INDEX;
         }
-        
-        currPageIndex += sectionPageCount;
-        sectionIndex++;
     }
+    *index = i;
+    *address = PAGE_SIZE * i;
 
-    return UINT32_MAX;
-}
-UINT32 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS pageAddress){
-    UINTN sectionIndex = 0; 
-    UINTN currPageIndex = 0; 
-    
-    while(sectionIndex < pageSectionCount){
-        UINT32 sectionPageCount = (pageSections[sectionIndex].end - pageSections[sectionIndex].start) / PAGE_SIZE; 
-
-        if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end){
-            // SECTION WITH PAGE FOUND
-            UINT32 offset = pageAddress - pageSections[sectionIndex].start;
-            return currPageIndex + offset / PAGE_SIZE;
-        }
-
-        currPageIndex += sectionPageCount;
-        sectionIndex++;
-    }
-
-    return UINT32_MAX;
-}
-PHYSICAL_ADDRESS PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT32 sectionIndex){
-    if (pageAddress >= pageSections[sectionIndex].start && pageAddress < pageSections[sectionIndex].end) {
-        return pageAddress - pageSections[sectionIndex].start;
-    }
-
-    if (pageAddress < pageSections[sectionIndex].start) {
-        return pageSections[sectionIndex].start - pageAddress;
-    }
-    
-    return pageAddress - pageSections[sectionIndex].end;
-}
-UINT32 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress){
-    for (UINTN i = 0; i < pageSectionCount; i++){
-        if (pageAddress >= pageSections[i].start && pageAddress < pageSections[i].end){
-            return i;
-        }    
-    }
-    return UINT32_MAX;
-}
-VOID PAGE_UPDATE_CLOSEST(){
-    while (PAGE_CHECK(closestPageIndex) == PAGE_ALLOCATED){
-        closestPageIndex++;
-    }
-    closestPageAddress = PAGE_ADDRESS_FROM_INDEX(closestPageIndex);
+    return BT_SUCCESS;
 }
 
 // ==================================== |
@@ -421,21 +389,6 @@ VOID DEBUG_ALLOC(UINT32 index){
 }
 VOID DEBUG_FREE(UINT32 index){
     PAGE_DEALLOC(index);
-}
-MEMORY_SECTION DEBUG_SECTION(UINT32 index){
-    return pageSections[index];
-}
-UINT32 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address){
-    return PAGE_SECTION_INDEX(address);
-}
-PHYSICAL_ADDRESS DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT32 index){
-    return PAGE_SECTION_OFFSET(address, index);
-}
-PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT32 index){
-    return PAGE_ADDRESS_FROM_INDEX(index);
-}
-UINT32 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address){
-    return PAGE_INDEX_FROM_ADDRESS(address);
 }
 PHYSICAL_ADDRESS DEBUG_CLOSEST(){
     return closestPageAddress;

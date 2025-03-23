@@ -1,6 +1,5 @@
 #include "ByteOS.h"
 
-#define MAX_PAGE_SECTIONS 0x64 // 100 Sections
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
 #define MAX_PAGES 0x400000 // 16 GiB RAM
 #define PAGES_PER_GROUP 0x08 // 8 Pages
@@ -28,11 +27,6 @@ typedef UINT8 BT_MEMORY_PAGE_FLAGS;
 #define BT_MEMORY_USER_RWX (BT_MEMORY_USER | BT_MEMORY_RWX)
 #define BT_MEMORY_KERNEL_RWX (BT_MEMORY_KERNEL | BT_MEMORY_RWX)
 
-typedef struct MEMORY_SECTION{
-    PHYSICAL_ADDRESS start;
-    PHYSICAL_ADDRESS end;
-} MEMORY_SECTION;
-
 typedef struct MEMORY_PAGE{
     BT_MEMORY_PAGE_ALLOCATION allocation;
     BT_MEMORY_PAGE_FLAGS flags;
@@ -40,7 +34,6 @@ typedef struct MEMORY_PAGE{
     PHYSICAL_ADDRESS physicalAddress;
     UINT32 index;
 } MEMORY_PAGE;
-
 
 #define POOL_BLOCKS_PER_MAP 0x08 // 8 Bits
 #define MAX_MAP_SIZE 32 // 32 Maps
@@ -85,21 +78,21 @@ BT_STATUS ByteAPI InitializePhysicalPool();
 
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
 BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size);
-BT_STATUS ByteAPI ClearPhysicalPages(IN VOID *address, IN UINTN size);
-MEMORY_PAGE ByteAPI GetPhysicalPage(UINT32 index);
+MEMORY_PAGE ByteAPI GetPhysicalPage(IN UINT32 index);
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
 BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size);
+MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolSize);
+
+BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size);
 
 // ==================================== |
 //           PHYSICAL HELPERS           |
 // ==================================== |
 
-PHYSICAL_ADDRESS PAGE_ADDRESS_FROM_INDEX(UINT32 index);
-UINT32 PAGE_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address);
-PHYSICAL_ADDRESS PAGE_SECTION_OFFSET(PHYSICAL_ADDRESS pageAddress, UINT32 sectionIndex);
-UINT32 PAGE_SECTION_INDEX(PHYSICAL_ADDRESS pageAddress);
-VOID PAGE_UPDATE_CLOSEST();
+BT_STATUS ByteAPI PhysicalIndexToPage(IN UINT32 pageIndex, OUT PHYSICAL_ADDRESS *address);
+BT_STATUS ByteAPI PhysicalPageToIndex(IN PHYSICAL_ADDRESS pageAddress, OUT UINT32 *index);
+BT_STATUS ByteAPI PhysicalGetClosest(IN UINT32 fromIndex, OUT UINT32 *index, OUT PHYSICAL_ADDRESS *address);
 
 // ==================================== |
 //            PHYSICAL DEBUG            |
@@ -107,10 +100,4 @@ VOID PAGE_UPDATE_CLOSEST();
 
 VOID DEBUG_ALLOC(UINT32 index);
 VOID DEBUG_FREE(UINT32 index);
-MEMORY_SECTION DEBUG_SECTION(UINT32 index);
-UINT32 DEBUG_SECTION_INDEX(PHYSICAL_ADDRESS address);
-PHYSICAL_ADDRESS DEBUG_SECTION_OFFSET(PHYSICAL_ADDRESS address, UINT32 index);
-UINT32 DEBUG_INDEX_FROM_ADDRESS(PHYSICAL_ADDRESS address);
-PHYSICAL_ADDRESS DEBUG_ADDRESS_FROM_INDEX(UINT32 index);
 PHYSICAL_ADDRESS DEBUG_CLOSEST();
-MEMORY_PAGE_POOL_HEADER *DEBUG_GET_FREE_POOLS();
