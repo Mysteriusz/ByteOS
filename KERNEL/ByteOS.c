@@ -30,11 +30,36 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // }
     
     BT_STATUS status;
-    status = InitializePhysicalMemory(memMap);
+    status = InitializePhysicalPages(memMap);
     
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL);
+
+    status = InitializePhysicalPool(memMap);
+
+    BYTE *t6 = NULL;
+    UINTN s6 = sizeof(BYTE) * 16;
+
+    BYTE *t7 = NULL;
+    UINTN s7 = sizeof(BYTE) * 32;
+
+    status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    for (int i = 0; i < 16; i++) {
+        t6[i] = i;
+    }    
+    status = AllocPhysicalPool((VOID**)&t7, &s7, 0);
+    for (int i = 0; i < 32; i++) {
+        t7[i] = i;
+    }    
+
+    return (UINT64)t7;
+
+
+    // MEMORY_PAGE_POOL_HEADER *header = DEBUG_GET_FREE_POOLS()->next;
+
+    // return (UINT64)PAGE_ADDRESS_FROM_INDEX(header->dataPageIndex);
+    // return (UINT64)DEBUG_GET_FREE_POOLS()->next->dataSize;
 
     testa *t1 = NULL;
     UINTN s1 = sizeof(testa);    
@@ -51,47 +76,45 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     testb *t5 = NULL;
     UINTN s5 = sizeof(testb);    
     
-    BYTE *t6 = NULL;
-    UINTN s6 = sizeof(BYTE) * 16;
-    BYTE *t7 = NULL;
-    UINTN s7 = sizeof(BYTE) * 32;
+    // BYTE *t7 = NULL;
+    // UINTN s7 = sizeof(BYTE) * 32;
     FIRST_PAGE *t8 = NULL;
     UINTN s8 = sizeof(FIRST_PAGE);
 
-    status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
-    t1->a = 0x11;
-    t1->b = 0x11;
-    t1->c[0x1000] = 0x11;
-    status = AllocPhysicalPages((VOID**)&t2, &s2, 0);
-    t2->a = 0x22;
-    t2->b = 0x22;
-    t2->c[0x1000] = 0x22;
-    status = FreePhysicalPages(t1, &s1);
-    status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
-    t3->a = 0x33;
-    t3->b = 0x33;
-    t3->c[0x1000] = 0x33;
-    t3->d[0x1000] = 0x33;
-    status = AllocPhysicalPages((VOID**)&t4, &s4, 0);
-    t4->a = 0x44;
-    t4->b = 0x44;
-    t4->c[0x1000] = 0x44;
-    status = AllocPhysicalPages((VOID**)&t5, &s5, 0);
-    t5->a = 0xbb;
-    t5->b = 0xcc;
-    t5->c[0x1000] = 0xdd;
-    t5->d[0x1000] = 0xee;
+    // status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
+    // t1->a = 0x11;
+    // t1->b = 0x11;
+    // t1->c[0x1000] = 0x11;
+    // status = AllocPhysicalPages((VOID**)&t2, &s2, 0);
+    // t2->a = 0x22;
+    // t2->b = 0x22;
+    // t2->c[0x1000] = 0x22;
+    // status = FreePhysicalPages(t1, &s1);
+    // status = AllocPhysicalPages((VOID**)&t3, &s3, 0);
+    // t3->a = 0x33;
+    // t3->b = 0x33;
+    // t3->c[0x1000] = 0x33;
+    // t3->d[0x1000] = 0x33;
+    // status = AllocPhysicalPages((VOID**)&t4, &s4, 0);
+    // t4->a = 0x44;
+    // t4->b = 0x44;
+    // t4->c[0x1000] = 0x44;
+    // status = AllocPhysicalPages((VOID**)&t5, &s5, 0);
+    // t5->a = 0xbb;
+    // t5->b = 0xcc;
+    // t5->c[0x1000] = 0xdd;
+    // t5->d[0x1000] = 0xee;
     
-    status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
-    for (int i = 0; i < 16; i++) {
-        t6[i] = i;
-    }    
-    status = AllocPhysicalPool((VOID**)&t7, &s7, 0);
-    for (int i = 0; i < 16; i++) {
-        t7[i] = i;
-    }    
-    status = FreePhysicalPool(t7, &s7);
-    return (UINT64)DEBUG_GET_FREE_POOLS()->blockCount;
+    // status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    // for (int i = 0; i < 16; i++) {
+    //     t6[i] = i;
+    // }    
+    // status = AllocPhysicalPool((VOID**)&t7, &s7, 0);
+    // for (int i = 0; i < 16; i++) {
+    //     t7[i] = i;
+    // }    
+    // status = FreePhysicalPool(t7, &s7);
+    // return (UINT64)DEBUG_GET_FREE_POOLS()->blockCount;
     // return (UINT64)DEBUG_GET_FREE_POOLS()->blocks->size;
     
     // return (UINT64)GetPage(1).allocation;
