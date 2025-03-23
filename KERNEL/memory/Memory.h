@@ -81,7 +81,7 @@ typedef struct MEMORY_PAGE_POOL_HEADER{
 
 BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap);
 BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap);
-BT_STATUS ByteAPI InitializePhysicalPool(KERNEL_MEMORY_MAP *memMap);
+BT_STATUS ByteAPI InitializePhysicalPool();
 
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
 BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size);

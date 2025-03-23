@@ -24,9 +24,10 @@ UINT32 poolCount = 0;
 #define PAGE_DEALLOC(index)(pageGroups[((UINT32)index / PAGES_PER_GROUP)] &= ~(PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP)))
 #define PAGE_CHECK(index)((pageGroups[((UINT32)index / PAGES_PER_GROUP)] & (PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP))) != 0)
 
-#define POOL_BLOCK_ALLOC(poolMap, index)(((UINT8*)poolMap)[(UINT32)(index) / POOL_BLOCKS_PER_MAP] |= (BLOCK_ALLOCATED << ((UINT32)(index) % POOL_BLOCKS_PER_MAP)))
-// #define POOL_BLOCK_DEALLOC(poolMap, index)()
-#define POOL_BLOCK_CHECK(poolMap, index)(((((UINT8*)poolMap)[(UINT32)(index) / POOL_BLOCKS_PER_MAP] & (BLOCK_ALLOCATED << ((UINT32)(index) % POOL_BLOCKS_PER_MAP))) != 0))
+#define POOL_BLOCK_ALLOC(poolMap, index)(((UINT8*)poolMap)[(UINT32)index / POOL_BLOCKS_PER_MAP] |= (BLOCK_ALLOCATED << ((UINT32)index % POOL_BLOCKS_PER_MAP)))
+#define POOL_BLOCK_DEALLOC(poolMap, index)(((UINT8*)poolMap)[(UINT32)index / POOL_BLOCKS_PER_MAP] &= ~(BLOCK_ALLOCATED << ((UINT32)index % POOL_BLOCKS_PER_MAP)))
+#define POOL_BLOCK_CHECK(poolMap, index)(((((UINT8*)poolMap)[(UINT32)index / POOL_BLOCKS_PER_MAP] & (BLOCK_ALLOCATED << ((UINT32)index % POOL_BLOCKS_PER_MAP))) != 0))
+
 // ==================================== |
 //               PHYSICAL               |
 // ==================================== |
@@ -75,7 +76,7 @@ BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap){
 
     return BT_SUCCESS;
 }
-BT_STATUS ByteAPI InitializePhysicalPool(KERNEL_MEMORY_MAP *memMap){
+BT_STATUS ByteAPI InitializePhysicalPool(){
     smallPool = NULL;
     mediumPool = NULL;
     bigPool = NULL;
@@ -281,8 +282,66 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     if (prev != NULL){
         prev->next = curr; 
     }
+    else{
+        switch (blockSize)
+        {
+            case POOL_TINY_BLOCK_SIZE:
+                tinyPool = curr; break;
+            case POOL_SMALL_BLOCK_SIZE:
+                smallPool = curr; break;
+            case POOL_MEDIUM_BLOCK_SIZE:
+                mediumPool = curr; break;
+            case POOL_BIG_BLOCK_SIZE:
+                bigPool = curr; break;
+            case POOL_HUGE_BLOCK_SIZE:
+                hugePool = curr; break;
+            default:
+                return BT_INVALID_POOL_BLOCK_SIZE;
+        }
+    }
 
     goto ALLOC;
+}
+BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size){
+    MEMORY_PAGE_POOL_HEADER *curr = NULL;
+    UINT32 blockSize = POOL_BLOCK_SIZE(*size);
+    UINT32 blockCount = POOL_BLOCK_COUNT(blockSize);
+    
+    switch (blockSize)
+    {
+        case POOL_TINY_BLOCK_SIZE:
+            curr = tinyPool; break;
+        case POOL_SMALL_BLOCK_SIZE:
+            curr = smallPool; break;
+        case POOL_MEDIUM_BLOCK_SIZE:
+            curr = mediumPool; break;
+        case POOL_BIG_BLOCK_SIZE:
+            curr = bigPool; break;
+        case POOL_HUGE_BLOCK_SIZE:
+            curr = hugePool; break;
+        default:
+            return BT_INVALID_POOL_BLOCK_SIZE;
+    }
+
+    while ((PHYSICAL_ADDRESS)curr + PAGE_SIZE < (PHYSICAL_ADDRESS)buffer){
+        curr = curr->next;
+    }
+
+    UINT32 blockIndex = 0;
+    UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER);
+    while (blockIndex < blockCount){
+        if ((PHYSICAL_ADDRESS)buffer == (PHYSICAL_ADDRESS)curr + blockRva){
+            POOL_BLOCK_DEALLOC(curr->poolMap, blockIndex);
+            *size = blockSize;
+            
+            return BT_SUCCESS;
+        }
+
+        blockIndex++;
+        blockRva += blockSize;
+    }
+
+    return BT_INVALID_BUFFER;
 }
 
 // ==================================== |
