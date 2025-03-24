@@ -60,15 +60,16 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     BYTE *t8 = NULL;
     UINTN s8 = sizeof(BYTE) * 32;
     
-    // status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
-    // for (int i = 0; i < 16; i++) {
-    //     t6[i] = i;
-    // }    
-    // status = AllocPhysicalPool((VOID**)&t7, &s7, 0);    
-    // t7[0] = 0x01;
+    status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    for (int i = 0; i < 16; i++) {
+        t6[i] = i;
+    }    
     
-    // status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
-    // t8[0] = 0x0a;
+    status = AllocPhysicalPool((VOID**)&t7, &s7, 0);    
+    t7[0] = 0x01;
+    
+    status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
+    t8[0] = 0x0a;
 
     status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
     t1->a = 0x11;
@@ -90,9 +91,15 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t5->c[0x1000] = 0xdd;
     t5->d[0x1000] = 0xee;
     status = AllocPhysicalPages((VOID**)&t4, &s4, BT_MEMORY_WRITE);
-    t4->a = 0x11;
-    t4->b = 0x11;
-    t4->c[0x1000] = 0x11;
+    t4->a = 0x44;
+    t4->b = 0x44;
+    t4->c[0x1000] = 0x44;
+    status = FreePhysicalPool(t6, &s6);
+    status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    return (UINT64)t6;
+    for (int i = 0; i < 16; i++) {
+        t6[i] = i;
+    }  
 
     // UINT32 index = 0;
     // PhysicalPageToIndex(0x802000, &index);

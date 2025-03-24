@@ -41,7 +41,8 @@ typedef struct MEMORY_PAGE{
 typedef struct MEMORY_PAGE_POOL_HEADER MEMORY_PAGE_POOL_HEADER;
 typedef struct MEMORY_PAGE_POOL_HEADER{
     MEMORY_PAGE_POOL_HEADER *next;
-    UINT16 blockSize;
+    UINT8 blockSize;
+    UINT8 used;
     UINT8 poolMap[MAX_MAP_SIZE];
 } MEMORY_PAGE_POOL_HEADER;
 
