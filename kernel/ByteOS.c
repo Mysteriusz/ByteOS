@@ -95,8 +95,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     t4->b = 0x44;
     t4->c[0x1000] = 0x44;
     status = FreePhysicalPool(t6, &s6);
+    return (UINT64)GetPhysicalPage(1).allocation;
     status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
-    return (UINT64)t6;
     for (int i = 0; i < 16; i++) {
         t6[i] = i;
     }  

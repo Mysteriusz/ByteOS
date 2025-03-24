@@ -311,10 +311,12 @@ BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size){
 
                 UINTN s = PAGE_SIZE;
                 BT_STATUS status = FreePhysicalPages(*pPool, &s);
+                *pPool = NULL;
+                
                 if (BT_ERROR(status)){
                     return status;
                 }
-                return 1;
+                return BT_SUCCESS;
             }
 
             return BT_SUCCESS;
