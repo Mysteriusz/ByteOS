@@ -92,7 +92,6 @@ BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, I
     UINTN allocPageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE;
     UINTN allocated = 0;
     UINT32 firstPageIndex = 0;
-    BOOLEAN safe = FALSE;
     UINTN i = closestPageIndex;
     
     if (allocPageCount > pageCount) return BT_NOT_ENOUGH_MEMORY;
@@ -165,6 +164,7 @@ BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size){
             
             if (freed == freePageCount){
                 *size = freed * PAGE_SIZE;
+                SetPhysicalMemory((VOID*)pageAddress, 0, *size);
 
                 if (closestPageIndex > pageIndex){
                     closestPageIndex = pageIndex;
@@ -311,12 +311,15 @@ BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size){
 
                 UINTN s = PAGE_SIZE;
                 BT_STATUS status = FreePhysicalPages(*pPool, &s);
-                *pPool = NULL;
-                
                 if (BT_ERROR(status)){
                     return status;
                 }
+
+                *pPool = NULL;
                 return BT_SUCCESS;
+            }
+            else{
+                SetPhysicalMemory(buffer, 0, blockSize);
             }
 
             return BT_SUCCESS;
@@ -345,7 +348,7 @@ BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN siz
         return BT_MEMORY_NOT_WRITABLE;
     }
     
-    for (UINTN i = 0; i < size * PAGE_SIZE; i++) {
+    for (UINTN i = 0; i < size; i++) {
         ptr[i] = value;
     }
     return BT_SUCCESS;
