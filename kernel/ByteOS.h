@@ -5,15 +5,16 @@
 //              DEFINITIONS             |
 // ==================================== |
 
-#include "char.h"
-#include "nums.h"
-
 #define IN
 #define OUT
 #define NULL ((VOID*)0)
 #define OPTIONAL
 #define CONST const
 #define ByteAPI
+
+#include "char.h"
+#include "nums.h"
+#include "tasking/process.h"
 
 // ==================================== |
 //                 NUMS                 |
@@ -127,6 +128,9 @@ typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN horizontalRes;
     UINTN verticalRes;
 } KERNEL_GRAPHICAL_DEVICE_INFO;
+typedef struct KERNEL_IO_DEVICE_INFO{
+    UINTN pciBus;
+} KERNEL_IO_DEVICE_INFO;
 typedef struct KERNEL_CPU_DEVICE_INFO{
     CHAR8 *manufacturer;
 } KERNEL_CPU_DEVICE_INFO;
@@ -135,6 +139,8 @@ typedef struct KERNEL_DEVICE_INFO{
     UINT32 gpuiCount;
     KERNEL_CPU_DEVICE_INFO *cpui;
     UINT32 cpuiCount;
+    KERNEL_IO_DEVICE_INFO *ioi;
+    UINT32 ioiCount;
 } KERNEL_DEVICE_INFO;
 typedef struct KERNEL_MEMORY_DESCRIPTOR{
     UINT32 type;

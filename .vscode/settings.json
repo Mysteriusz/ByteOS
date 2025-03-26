@@ -21,6 +21,7 @@
         "pe32.h": "c",
         "efi.h": "c",
         "console.h": "c",
-        "font.h": "c"
+        "font.h": "c",
+        "process.h": "c"
     }
 }
