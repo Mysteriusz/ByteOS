@@ -1,4 +1,4 @@
-#include "EFITypes.h"
+#include "efi.h"
 
 // ==================================== |
 //              EFI_GLOBALS             |

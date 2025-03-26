@@ -1,4 +1,4 @@
-#include "Font.h"
+#include "font.h"
 
 VOID PrintChar(IN FONT *font, IN FONT_CHAR *character, IN UINT32 *frameBufferAddress, IN UINT32 frameBufferHorizontalSize) {
     for (UINT32 y = 0; y < font->pixelHeight; y++) {

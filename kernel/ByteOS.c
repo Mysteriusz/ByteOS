@@ -1,6 +1,6 @@
-#include "ByteOS.h"
-#include "fonts/BTS.h"
-#include "memory/Memory.h"
+#include "byteos.h"
+#include "graphics/fonts/bts.h"
+#include "memory/memory.h"
 
 // ==================================== |
 //                KERNEL                |

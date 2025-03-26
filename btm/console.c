@@ -1,5 +1,5 @@
-#include "BTMConsole.h"
-#include "PE32.h"
+#include "console.h"
+#include "pe32.h"
 
 EFI_STATUS BTM_StartConsole(){
     EFI_Print(L"STARTING BOOTMANAGER CONSOLE");

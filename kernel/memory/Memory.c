@@ -1,5 +1,4 @@
-#include "Memory.h"
-
+#include "memory.h"
 
 UINT32 closestPageIndex = 0;
 PHYSICAL_ADDRESS closestPageAddress = 0;
@@ -332,9 +331,36 @@ BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size){
     return BT_INVALID_BUFFER;
 }
 MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolSize){
-    MEMORY_PAGE_POOL_HEADER pool;
+    MEMORY_PAGE_POOL_HEADER *pPool = NULL;
+    UINT32 blockSize = POOL_BLOCK_SIZE(poolSize);
+    
+    switch (blockSize)
+    {
+        case POOL_TINY_BLOCK_SIZE:
+            pPool = tinyPool; break;
+        case POOL_SMALL_BLOCK_SIZE:
+            pPool = smallPool; break;
+        case POOL_MEDIUM_BLOCK_SIZE:
+            pPool = mediumPool; break;
+        case POOL_BIG_BLOCK_SIZE:
+            pPool = bigPool; break;
+        case POOL_HUGE_BLOCK_SIZE:
+            pPool = hugePool; break;
+        default:
+            return (MEMORY_PAGE_POOL_HEADER){0};
+    }   
 
-    return pool;
+    UINT32 i = 0;
+    while (i < index){
+        pPool = pPool->next;
+        i++;
+
+        if (pPool == NULL){
+            return (MEMORY_PAGE_POOL_HEADER){0};
+        }
+    }
+
+    return *pPool;
 }
 
 BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
@@ -405,3 +431,8 @@ VOID DEBUG_FREE(UINT32 index){
 PHYSICAL_ADDRESS DEBUG_CLOSEST(){
     return closestPageAddress;
 }
+
+// ==================================== |
+//                VIRTUAL               |
+// ==================================== |
+

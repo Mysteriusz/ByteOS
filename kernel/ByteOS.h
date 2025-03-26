@@ -5,8 +5,8 @@
 //              DEFINITIONS             |
 // ==================================== |
 
-#include "Char.h"
-#include "Nums.h"
+#include "char.h"
+#include "nums.h"
 
 #define IN
 #define OUT

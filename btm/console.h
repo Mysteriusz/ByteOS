@@ -1,7 +1,7 @@
 #ifndef BTM_CONSOLE
 #define BTM_CONSOLE
 
-#include "efi/EFITypes.h"
+#include "efi/efi.h"
 
 #define BTM_MAX_TOKENS 10
 

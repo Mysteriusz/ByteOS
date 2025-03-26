@@ -1,7 +1,7 @@
 #ifndef BYTEOS_NUMS_H
 #define BYTEOS_NUMS_H
 
-#include "ByteOS.h"
+#include "byteos.h"
 
 // ==================================== |
 //               INTIGERS               |

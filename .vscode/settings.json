@@ -18,6 +18,9 @@
         "char.h": "c",
         "memory.h": "c",
         "bts.h": "c",
-        "pe32.h": "c"
+        "pe32.h": "c",
+        "efi.h": "c",
+        "console.h": "c",
+        "font.h": "c"
     }
 }

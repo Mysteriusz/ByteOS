@@ -1,5 +1,5 @@
-#include "../efi/EFITypes.h"
-#include "../btm/BTMConsole.h"
+#include "../efi/efi.h"
+#include "../btm/console.h"
 
 EFI_STATUS EFI_MAIN(EFI_HANDLE imgHandle, EFI_SYSTEM_TABLE *sysTable){
     *imageHandle = imgHandle;

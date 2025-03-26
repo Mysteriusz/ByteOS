@@ -1,7 +1,7 @@
 #ifndef BYTEOS_CHAR_H
 #define BYTEOS_CHAR_H
 
-#include "ByteOS.h"
+#include "byteos.h"
 
 // ==================================== |
 //                 CHARS                |

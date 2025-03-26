@@ -1,4 +1,4 @@
-#include "ByteOS.h"
+#include "byteos.h"
 
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
 #define MAX_PAGES 0x400000 // 16 GiB RAM
@@ -102,3 +102,7 @@ BT_STATUS ByteAPI PhysicalGetClosest(IN UINT32 fromIndex, OUT UINT32 *index, OUT
 VOID DEBUG_ALLOC(UINT32 index);
 VOID DEBUG_FREE(UINT32 index);
 PHYSICAL_ADDRESS DEBUG_CLOSEST();
+
+// ==================================== |
+//                VIRTUAL               |
+// ==================================== |
