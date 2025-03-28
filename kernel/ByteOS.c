@@ -24,6 +24,7 @@ typedef struct FIRST_PAGE{
 } FIRST_PAGE;
 
 BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
+
     BT_STATUS status;
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
 
@@ -38,8 +39,16 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
     
-    UINT8 t = devInfo->ioi[0].pcie.msic.mid;
-    return (UINT64)&devInfo->ioi[0].pcie;
+    return (UINT64)devInfo->ioi[0].pcie.header.cc[2];
+    
+    for (UINTN i = 0; i < devInfo->ioiCount; i++){
+        for (UINT j = 0; j < 3; j++){
+            if (devInfo->ioi[i].pcie.header.cc[j] != 0){
+                return i;
+            }
+        }
+    }
+
 
     // for (UINT32 i = 0; i < devInfo->ioiCount; i++){
     //     IO_DISK disk;

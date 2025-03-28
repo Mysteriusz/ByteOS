@@ -441,6 +441,7 @@ EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInf
             EFI_Print(ConcatChar16(L"\r\nError reading PCI IO", UInt32ToChar16(status)));
             return status;
         }
+        EFI_Print(ConcatChar16(L"\r\nPCIe Device BCC: ", UInt8ToChar16Hex((*ioInfo)[i].pcie.header.cc[0])));
     }
 
     return EFI_SUCCESS;

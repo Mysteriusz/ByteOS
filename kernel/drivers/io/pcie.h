@@ -1,5 +1,73 @@
 #include "byteos.h"
 
+#define PCIE_BCC_UNCLASSIFIED 0x00
+
+#define PCIE_BCC_MASS_STORAGE_CONTROLLER 0x01 // Mass storage controller
+#define PCIE_SCC_0x01_SCSI 0x00 
+#define PCIE_PI_0x01_0x00_VS 0x00 // SCSI controller - vendor-specific interface
+#define PCIE_PI_0x01_0x00_SD 0x11 // SCSI storage device
+#define PCIE_PI_0x01_0x00_C 0x12 // SCSI controller
+#define PCIE_PI_0x01_0x00_SDC 0x13 // SCSI storage device and SCSI controller
+#define PCIE_PI_0x01_0x00_SDPCI 0x21 // SCSI storage device - SCSI over PCI Express
+
+#define PCIE_SCC_0x01_IDE 0x01
+#define PCIE_PI_0x01_0x01_C 0x00 // IDE controller
+
+#define PCIE_SCC_0x01_FLOPPY 0x02
+#define PCIE_PI_0x01_0x02_CVS 0x00 // Floppy disk controller - vendor-specific interface
+
+#define PCIE_SCC_0x01_IPI 0x03
+#define PCIE_PI_0x01_0x03_CVS 0x00 // IPI bus controller - vendor-specific interface
+
+#define PCIE_SCC_0x01_RAID 0x04
+#define PCIE_PI_0x01_0x04_CVS 0x00 // RAID controller - vendor-specific interface 
+
+#define PCIE_SCC_0x01_ATA 0x05
+#define PCIE_PI_0x01_0x05_CSS 0x20 // ATA controller with ADMA interface - single stepping
+#define PCIE_PI_0x01_0x05_CCO 0x30 // ATA controller with ADMA interface - continuous operation
+
+#define PCIE_SCC_0x01_SATA 0x06
+#define PCIE_PI_0x01_0x06_CVS 0x00 // Serial ATA controller - vendor-specific interface 
+#define PCIE_PI_0x01_0x06_CAHCI 0x01 // Serial ATA controller - AHCI interface
+#define PCIE_PI_0x01_0x06_CBUS 0x02 // Serial Storage Bus Interface 
+
+#define PCIE_SCC_0x01_SAS 0x07
+#define PCIE_PI_0x01_0x07_CVS 0x00 // Serial Attached SCSI (SAS) controller - vendor-specific interface
+#define PCIE_PI_0x01_0x07_OBS 0x01 // Obsolete
+
+#define PCIE_SCC_0x01_NVM 0x08
+#define PCIE_PI_0x01_0x08_NVMVS 0x00 // Non-volatile memory subsystem - vendor-specific interface 
+#define PCIE_PI_0x01_0x08_NVMI 0x01 // Non-volatile memory subsystem - NVMHCI interface
+#define PCIE_PI_0x01_0x08_NVMC 0x02 // NVM Express (NVMe) I/O controller
+#define PCIE_PI_0x01_0x08_NVMAC 0x03 // NVM Express (NVMe) administrative controller
+
+#define PCIE_SCC_0x01_UFS 0x09
+#define PCIE_PI_0x01_0x09_CVS 0x00 // Universal Flash Storage (UFS) controller - vendor-specific interface 
+#define PCIE_PI_0x01_0x09_C 0x01 // Universal Flash Storage (UFS) controller
+
+#define PCIE_SCC_0x01_UNKOWN 0x80
+#define PCIE_PI_0x01_0x80_CVS 0x00 // Other mass storage controller - vendor-specific interface
+
+#define PCIE_BCC_NETWORK_CONTROLLER 0x02
+#define PCIE_BCC_DISPLAY_CONTROLLER 0x03
+#define PCIE_BCC_MULTIMEDIA_CONTROLLER 0x04
+#define PCIE_BCC_MEMORY_CONTROLLER 0x05
+#define PCIE_BCC_BRIDGE_DEVICE 0x06
+#define PCIE_BCC_SIMPLE_COMM_CONTROLLER 0x07
+#define PCIE_BCC_BASE_SYSTEM_PERIPHERAL 0x08
+#define PCIE_BCC_INPUT_DEVICE_CONTROLLER 0x09
+#define PCIE_BCC_DOCKING_STATION 0x0a
+#define PCIE_BCC_PROCESSOR 0x0b
+#define PCIE_BCC_SERIAL_BUS_CONTROLLER 0x0c
+#define PCIE_BCC_WIRELESS_CONTROLLER 0x0d
+#define PCIE_BCC_INTELLIGENT_IO_CONTROLLER 0x0e
+#define PCIE_BCC_SATELLITE_COMM_CONTROLLER 0x0f
+#define PCIE_BCC_ENCRYPTION_CONTROLLER 0x10
+#define PCIE_BCC_DATA_ACQ_SIGNAL_PROC 0x11
+#define PCIE_BCC_RESERVED_START 0x12
+#define PCIE_BCC_RESERVED_END 0xfe
+#define PCIE_BCC_UNKNOWN 0xff
+
 #pragma pack(1)
 typedef struct PCI_HEADER { // PCI Header
     UINT32 id; // Identifiers
