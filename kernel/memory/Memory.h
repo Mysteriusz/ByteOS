@@ -1,4 +1,5 @@
 #include "byteos.h"
+#include "../tasking/process.h"
 
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
 #define MAX_PAGES 0x400000 // 16 GiB RAM
@@ -107,4 +108,4 @@ PHYSICAL_ADDRESS DEBUG_CLOSEST();
 //                VIRTUAL               |
 // ==================================== |
 
-BT_STATUS ByteAPI AllocVirtualPages(IN PROCESS_HANDLE *handle, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
+BT_STATUS ByteAPI AllocVirtualPages(IN PROCESS_HANDLE handle, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);

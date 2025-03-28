@@ -1,8 +1,8 @@
 CC=x86_64-w64-mingw32-gcc
 
 BOOTX64FLAGS= -std=c17 -Wall -Wextra -Wpedantic -mno-red-zone -ffreestanding -nostdlib -Wl,-subsystem,10 -e EFI_MAIN
-BOOTX64H=$(shell find /mnt/d/byteos -type d | sed 's/^/-I /')
-BOOTX64C=$(shell find /mnt/d/byteos -type f -name "*.c")
+BOOTX64H=$(shell find /mnt/d/byteos -type d -not -path '*/.git/*' | sed 's/^/-I /')
+BOOTX64C=$(shell find /mnt/d/byteos -type f -not -path '*/.git/*' -name "*.c")
 
 efimake:
 	$(CC) $(BOOTX64FLAGS) $(BOOTX64H) $(BOOTX64C) -o /mnt/d/byteos/boot/BOOTX64.EFI

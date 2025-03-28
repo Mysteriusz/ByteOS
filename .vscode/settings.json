@@ -22,6 +22,7 @@
         "efi.h": "c",
         "console.h": "c",
         "font.h": "c",
-        "process.h": "c"
+        "process.h": "c",
+        "fat32.h": "c"
     }
 }

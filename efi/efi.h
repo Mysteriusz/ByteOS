@@ -1,7 +1,7 @@
 #ifndef EFI_TYPES_H
 #define EFI_TYPES_H
 
-#include "../kernel/byteos.h"
+#include "byteos.h"
 
 #define EFIAPI
 
