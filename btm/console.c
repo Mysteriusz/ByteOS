@@ -436,7 +436,7 @@ EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInf
         
         status = systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, (VOID**)&pciIo);
         
-        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint64, 0x0, 1, &(*ioInfo)[i].pcie.header);
+        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint8, 0x0, sizeof(PCIE), &(*ioInfo)[i].pcie.header);
         if (EFI_ERROR(status)){
             EFI_Print(ConcatChar16(L"\r\nError reading PCI IO", UInt32ToChar16(status)));
             return status;

@@ -38,8 +38,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
     
-    UINT16 t = devInfo->ioi[0].pcie.header.id;
-    return (UINT64)t;
+    UINT8 t = devInfo->ioi[0].pcie.msic.mid;
+    return (UINT64)&devInfo->ioi[0].pcie;
 
     // for (UINT32 i = 0; i < devInfo->ioiCount; i++){
     //     IO_DISK disk;
