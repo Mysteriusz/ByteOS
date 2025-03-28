@@ -17,3 +17,4 @@ kernelmake:
 fullmake:
 	$(CC) $(BOOTX64FLAGS) $(BOOTX64H) $(BOOTX64C) -o /mnt/d/byteos/boot/BOOTX64.EFI
 	$(CC) $(KERNELFLAGS) $(KERNELH) $(KERNELC) -o /mnt/d/byteos/kernel/byteos.bin
+	/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -file D:/byteos/run.ps1

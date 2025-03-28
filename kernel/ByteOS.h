@@ -155,6 +155,8 @@ typedef union{
 
 #pragma region KERNEL
 
+#include "pcie.h"
+
 typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN framebufferAddress;
     UINTN frameBufferSize;
@@ -162,7 +164,7 @@ typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN verticalRes;
 } KERNEL_GRAPHICAL_DEVICE_INFO;
 typedef struct KERNEL_IO_DEVICE_INFO{
-    UINT32 bar[6];
+    PCIE pcie;
 } KERNEL_IO_DEVICE_INFO;
 typedef struct KERNEL_CPU_DEVICE_INFO{
     CHAR8 *manufacturer;

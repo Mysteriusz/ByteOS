@@ -37,13 +37,17 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
+    
+    UINT16 t = devInfo->ioi[0].pcie.header.id;
+    return (UINT64)t;
 
-    for (UINT32 i = 0; i < devInfo->ioiCount; i++){
-        IO_DISK disk;
-        RecognizeDisk(devInfo->ioi[i].bar, NULL, &disk);
-    }
-
-    return devInfo->ioi[0].bar[1];
+    // for (UINT32 i = 0; i < devInfo->ioiCount; i++){
+    //     IO_DISK disk;
+    //     RecognizeDisk(devInfo->ioi[i].pcie.header.cc, NULL, &disk);
+    // }
+    
+    // return devInfo->ioi[0].bar.x32.bs0;
+    // return (UINT64)devInfo->ioi[0];
 
     // testa *t1 = NULL;
     // UINTN s1 = sizeof(testa);    

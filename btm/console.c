@@ -423,20 +423,24 @@ EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInf
     UINTN handleCount;
     
     EFI_STATUS status = systemTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
-
     if (EFI_ERROR(status)){
         return status;
     }
-
-    EFI_AllocPool(EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)ioInfo);
+    
+    EFI_AllocPool(EfiLoaderData, sizeof(KERNEL_IO_DEVICE_INFO) * handleCount, (VOID**)ioInfo);
 
     *ioCount = handleCount;
-
+    
     for (UINT32 i = 0; i < handleCount; i++){
         EFI_PCI_IO_PROTOCOL *pciIo;
-
+        
         status = systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, (VOID**)&pciIo);
-        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciWidthUint32, 0x10, 2, &(*ioInfo)[i].bar);
+        
+        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint64, 0x0, 1, &(*ioInfo)[i].pcie.header);
+        if (EFI_ERROR(status)){
+            EFI_Print(ConcatChar16(L"\r\nError reading PCI IO", UInt32ToChar16(status)));
+            return status;
+        }
     }
 
     return EFI_SUCCESS;

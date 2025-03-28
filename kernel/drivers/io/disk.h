@@ -14,9 +14,13 @@ typedef struct IO_DISK{
     BOOLEAN initialized;
     UINTN size;
     CHAR8 symbol;
-    UINT32 bus[IO_MAX_BUS];
+    PCIE pcie;
     FS_TYPE fileSystem;
 } IO_DISK;
 
-BT_STATUS RecognizeDisk(IN UINT32 bus[IO_MAX_BUS], IN CHAR8 *symbol, OUT IO_DISK *disk);
-BT_STATUS SetupFileSystem(IO_DISK *disk, FS_TYPE type);
+// ==================================== |
+//                 SETUP                |
+// ==================================== |
+
+BT_STATUS RecognizeDisk(IN PCIE pcie, IN CHAR8 *symbol, OUT IO_DISK *disk);
+BT_STATUS SetupFileSystem(IN FS_TYPE type, IN OUT IO_DISK *disk);
