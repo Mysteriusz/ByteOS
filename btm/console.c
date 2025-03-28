@@ -6,10 +6,10 @@ EFI_STATUS BTM_StartConsole(){
     
     BTM_TOKENS tokens;
     CHAR16* bLoadCmd = L"load kernel\\byteos.bin 232000";
-    BTM_Tokenize(bLoadCmd, 29, &tokens);
+    BTM_Tokenize(bLoadCmd, 30, &tokens);
     BTM_Execute(&tokens);
-    CHAR16* bRunCmd = L"run 232000 raw gpui mm";
-    BTM_Tokenize(bRunCmd, 23, &tokens);
+    CHAR16* bRunCmd = L"run 232000 raw gpui mm ioi";
+    BTM_Tokenize(bRunCmd, 27, &tokens);
     BTM_Execute(&tokens);
     
     BTM_PrintDefaultString(L"\r\nBOOTMANAGER>");
@@ -64,31 +64,32 @@ EFI_STATUS BTM_CheckInput(OUT EFI_INPUT_KEY *input){
     return status;
 }
 EFI_STATUS BTM_Tokenize(IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTokens){
-    UINT32 i = 0, s = 0, t = 0;
+    UINT32 argIndex = 0, cmdIndex = 0;
     btmTokens->tokenCount = 0;
 
-    while (i < cmdLen){
-        while (i < cmdLen && cmd[i] == EFI_KEY_SPACE) {
-            i++;
+    while (cmdIndex < cmdLen || cmd[cmdIndex] == EFI_KEY_NULL){
+        while (cmdIndex < cmdLen && cmd[cmdIndex] == EFI_KEY_SPACE){
+            cmdIndex++;
         }
 
-        s = i;
-        UINT32 tokenLen = 0;
-
-        while (i < cmdLen && cmd[i] != EFI_KEY_SPACE) {
-            tokenLen++; i++;
+        UINT32 startIndex = cmdIndex;
+        while (cmdIndex < cmdLen && cmd[cmdIndex] != EFI_KEY_SPACE){
+            cmdIndex++;
         }
+        UINT32 tokenLen = cmdIndex - startIndex;
         
         if (tokenLen > 0){
-            EFI_AllocPool(EfiLoaderData, (tokenLen + 1) * sizeof(CHAR16), (VOID**)&btmTokens->tokens[t]);
-
-            for (UINT32 j = 0; j < tokenLen; j++) {
-                btmTokens->tokens[t][j] = cmd[s + j];
-            }
-            btmTokens->tokens[t][tokenLen] = L'\0';  
-
+            EFI_AllocPool(EfiLoaderData, sizeof(CHAR16) * (tokenLen + 1), (VOID**)&btmTokens->tokens[argIndex]);
+            for (UINT32 i = 0; i < tokenLen; i++) {
+                btmTokens->tokens[argIndex][i] = cmd[startIndex + i];
+            }    
+            btmTokens->tokens[argIndex][tokenLen] = EFI_KEY_NULL;
             btmTokens->tokenCount++;
-            t++;
+        }
+        argIndex++;
+
+        if (argIndex == BTM_MAX_TOKENS){
+            break;
         }
     }
 
@@ -96,6 +97,13 @@ EFI_STATUS BTM_Tokenize(IN CHAR16* cmd, IN UINT32 cmdLen, OUT BTM_TOKENS* btmTok
 }
 EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
     EFI_STATUS execStatus = 0;
+
+    EFI_Print(L"\r\nEXECUTING: ");
+    EFI_Print(L"\r\nCMD: ");
+    for (UINT32 i = 0; i < btmTokens->tokenCount; i++){
+        EFI_Print(ConcatChar16(btmTokens->tokens[i], L" "));
+    }
+    EFI_Print(ConcatChar16(L"\r\nARG COUNT: ", UInt16ToChar16(btmTokens->tokenCount)));
 
     // =============== HELP ===============
     if (CompareString16((STRING16)btmTokens->tokens[0], (STRING16)L"help") == TRUE){
@@ -186,15 +194,23 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
 
         BOOLEAN mm = FALSE;
         BOOLEAN gpui = FALSE;
+        BOOLEAN ioi = FALSE;
 
-        for (UINTN i = 0; i < BTM_MAX_TOKENS; i++){
+        for (UINTN i = 0; i < btmTokens->tokenCount; i++){
             if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"gpui") == TRUE){
                 GATHER_GPU_INFO(&devInfo.gpuiCount, &devInfo.gpui);       
                 gpui = TRUE;
             }
-            if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"mm") == TRUE){
+            else if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"mm") == TRUE){
                 GATHER_MEM_MAP(TRUE, &memMap);  
                 mm = TRUE;
+            }
+            else if (CompareString16((STRING16)btmTokens->tokens[i], (STRING16)L"ioi") == TRUE){
+                GATHER_IO_INFO(&devInfo.ioiCount, &devInfo.ioi);  
+                ioi = TRUE;
+            }
+            else{
+                continue;
             }
         }
 
@@ -212,6 +228,12 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         else{
             EFI_Print(L"\r\nGPUI: FALSE");
         }
+        if (ioi == TRUE){
+            EFI_Print(L"\r\nIOI: TRUE");
+        }
+        else{
+            EFI_Print(L"\r\nIOI: FALSE");
+        }
         if (mm == TRUE){
             EFI_Print(L"\r\nMM: TRUE");
             systemTable->bootServices->exitBootServices(imageHandle, memMap->mapKey);
@@ -219,7 +241,7 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         else{
             EFI_Print(L"\r\nMM: FALSE");
         }
-        
+
         EFI_Print(ConcatChar16(L"\r\nRETURN ADDRESS: ", UInt64ToChar16Hex(entryPoint(&devInfo, memMap))));
     } 
     // =============== ALLOC 'ADDRESS' 'SIZE' ===============
@@ -272,7 +294,6 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         BYTE *byteBuffer = (BYTE*)addressBuffer;
         CHAR8 *char8Buffer = (CHAR8*)addressBuffer;
         CHAR16 *char16Buffer = (CHAR16*)addressBuffer;
-        CHAR32 *char32Buffer = (CHAR32*)addressBuffer;
         
         EFI_Print(L"\r\n");
         if (CompareString16((STRING16)btmTokens->tokens[3], (STRING16)L"byte") == TRUE){
@@ -375,7 +396,11 @@ EFI_STATUS GATHER_GPU_INFO(OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INF
     EFI_HANDLE *handleBuffer;
     UINTN handleCount;
 
-    systemTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
+    EFI_STATUS status = systemTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
+
+    if (EFI_ERROR(status)){
+        return status;
+    }
 
     EFI_AllocPool(EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)gpuInfo);
 
@@ -394,6 +419,25 @@ EFI_STATUS GATHER_GPU_INFO(OUT UINT32 *gpuCount, OUT KERNEL_GRAPHICAL_DEVICE_INF
     return EFI_SUCCESS;
 }
 EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInfo){
-    return EFI_SUCCESS;
+    EFI_HANDLE *handleBuffer;
+    UINTN handleCount;
+    
+    EFI_STATUS status = systemTable->bootServices->locateHandleBuffer(ByProtocol, &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, NULL, &handleCount, &handleBuffer);
 
+    if (EFI_ERROR(status)){
+        return status;
+    }
+
+    EFI_AllocPool(EfiLoaderData, sizeof(KERNEL_GRAPHICAL_DEVICE_INFO) *handleCount, (VOID**)ioInfo);
+
+    *ioCount = handleCount;
+
+    for (UINT32 i = 0; i < handleCount; i++){
+        EFI_PCI_IO_PROTOCOL *pciIo;
+
+        status = systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, (VOID**)&pciIo);
+        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciWidthUint32, 0x10, 2, &(*ioInfo)[i].bar);
+    }
+
+    return EFI_SUCCESS;
 }

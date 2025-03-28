@@ -129,7 +129,7 @@ typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN verticalRes;
 } KERNEL_GRAPHICAL_DEVICE_INFO;
 typedef struct KERNEL_IO_DEVICE_INFO{
-    UINTN pciBus;
+    UINT32 bar[6];
 } KERNEL_IO_DEVICE_INFO;
 typedef struct KERNEL_CPU_DEVICE_INFO{
     CHAR8 *manufacturer;

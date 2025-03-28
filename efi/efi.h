@@ -37,6 +37,7 @@
 #define EFI_KEY_TABULATOR '\t'
 #define EFI_KEY_SPACE ' '
 #define EFI_KEY_DELETE '\x7f'
+#define EFI_KEY_NULL '\0'
 
 #define EFI_PAGE_SHIFT 12
 #define EFI_PAGE_MASK 0xFFF
