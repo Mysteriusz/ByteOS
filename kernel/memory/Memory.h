@@ -1,5 +1,7 @@
+#pragma once
+
 #include "byteos.h"
-#include "../tasking/process.h"
+#include "tasking/process.h"
 
 #define PAGE_SIZE 0x1000 // 4 KiB RAM
 #define MAX_PAGES 0x400000 // 16 GiB RAM

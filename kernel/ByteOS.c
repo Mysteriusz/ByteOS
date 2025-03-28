@@ -1,6 +1,7 @@
 #include "byteos.h"
 #include "graphics/fonts/bts.h"
 #include "memory/memory.h"
+#include "drivers/io/disk.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -37,7 +38,12 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
 
-    return devInfo->ioiCount;
+    for (UINT32 i = 0; i < devInfo->ioiCount; i++){
+        IO_DISK disk;
+        RecognizeDisk(devInfo->ioi[i].bar, NULL, &disk);
+    }
+
+    return devInfo->ioi[0].bar[1];
 
     // testa *t1 = NULL;
     // UINTN s1 = sizeof(testa);    

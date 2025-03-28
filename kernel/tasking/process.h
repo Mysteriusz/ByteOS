@@ -3,7 +3,7 @@
 #ifndef BYTEOS_PROCESS_H
 #define BYTEOS_PROCESS_H
 
-#include "../byteos.h"
+#include "byteos.h"
 
 typedef VOID* PROCESS_HANDLE;
 

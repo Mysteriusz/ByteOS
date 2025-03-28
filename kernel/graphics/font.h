@@ -1,7 +1,7 @@
 #ifndef BYTE_OS_FONT
 #define BYTE_OS_FONT
 
-#include "ByteOS.h"
+#include "byteos.h"
 
 #define FONT_BASE_POINT_COUNT 8
 #define FONT_BASE_WIDTH 8

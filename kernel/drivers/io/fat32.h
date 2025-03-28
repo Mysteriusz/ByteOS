@@ -1,4 +1,4 @@
-#include "../byteos.h"
+#include "byteos.h"
 
 typedef struct FAT32_INFORMATION_SECTOR{
     UINT32 signature0;

@@ -232,6 +232,9 @@ typedef UINT32 BT_STATUS;
 #define BT_INVALID_PAGE_INDEX 0x1006
 #define BT_INVALID_PAGE_ADDRESS 0x1007
 
+#define BT_IO_DISK_OVERFLOW 0x2000
+#define BT_IO_INVALID_SYMBOL 0x2001
+
 #pragma endregion INTERNAL
 
 #include "nums.h"
