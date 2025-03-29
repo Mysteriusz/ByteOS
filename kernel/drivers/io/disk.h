@@ -20,5 +20,5 @@ typedef struct IO_DISK{
 //                 SETUP                |
 // ==================================== |
 
-BT_STATUS MapDisks(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count);
-BT_STATUS RecognizeDisk(IN VOID *pcieAddress, IN CHAR8 *symbol, OUT IO_DISK *disk);
+BT_STATUS RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count);
+BT_STATUS RegisterDisk(IN VOID *pcieAddress, IN CHAR8 *symbol, OUT IO_DISK *disk);

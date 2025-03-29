@@ -1,5 +1,4 @@
-#ifndef EFI_TYPES_H
-#define EFI_TYPES_H
+#pragma once
 
 #include "byteos.h"
 
@@ -933,5 +932,3 @@ EFI_STATUS EFI_DeAllocPages(IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer);
 EFI_STATUS EFI_FindProtocol(IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer);
 
 CHAR16* EFI_GetStatus(IN EFI_STATUS status);
-
-#endif

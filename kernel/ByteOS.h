@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef BYTE_OS_H
-#define BYTE_OS_H
-
 // ==================================== |
 //              DEFINITIONS             |
 // ==================================== |
@@ -242,5 +239,3 @@ typedef UINT32 BT_STATUS;
 #include "nums.h"
 #include "char.h"
 #include "memory/memory.h"
-
-#endif

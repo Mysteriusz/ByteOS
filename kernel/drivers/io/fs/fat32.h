@@ -1,3 +1,5 @@
+#pragma once
+
 #include "byteos.h"
 
 typedef struct FAT32_INFORMATION_SECTOR{

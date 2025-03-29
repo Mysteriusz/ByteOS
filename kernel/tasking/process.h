@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef BYTEOS_PROCESS_H
-#define BYTEOS_PROCESS_H
-
 #include "byteos.h"
 
 typedef VOID* PROCESS_HANDLE;
@@ -22,5 +19,3 @@ typedef struct PROCESS_HEADER{
 } PROCESS_HEADER;
 
 BT_STATUS CreateProcess(IN STRING16 path, OUT PROCESS_HANDLE processHandle);
-    
-#endif

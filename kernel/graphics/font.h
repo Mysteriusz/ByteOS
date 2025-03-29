@@ -1,5 +1,4 @@
-#ifndef BYTE_OS_FONT
-#define BYTE_OS_FONT
+#pragma once
 
 #include "byteos.h"
 
@@ -21,5 +20,3 @@ typedef struct FONT{
 } FONT;
 
 VOID PrintChar(FONT *font, FONT_CHAR *character, UINT32 *frameBufferAddress, UINT32 frameBufferHorizontalSize);
-
-#endif

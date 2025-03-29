@@ -40,8 +40,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
 
     UINT32 ioCount = devInfo->ioiCount;
-    status = MapDisks(devInfo->ioi, &ioCount);
-    return (UINT64)ioCount;
+    status = RegisterDisksFromDevices(devInfo->ioi, &ioCount);
+    return (UINT64)status;
     
     // for (UINTN i = 0; i < devInfo->ioiCount; i++){
     //     for (UINT j = 0; j < 3; j++){
