@@ -110,4 +110,4 @@ PHYSICAL_ADDRESS DEBUG_CLOSEST();
 //                VIRTUAL               |
 // ==================================== |
 
-BT_STATUS ByteAPI AllocVirtualPages(IN PROCESS_HANDLE handle, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
+// BT_STATUS ByteAPI AllocVirtualPages(IN PROCESS_HANDLE handle, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);

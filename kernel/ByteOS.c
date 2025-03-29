@@ -1,6 +1,5 @@
 #include "byteos.h"
 #include "graphics/fonts/bts.h"
-#include "memory/memory.h"
 #include "drivers/io/disk.h"
 #include "drivers/io/pcie.h"
 
@@ -35,20 +34,14 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     status = InitializePhysicalPages(memMap);
     status = InitializePhysicalPool();
-    
+
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
-    
-    for (UINT32 i = 0; i < devInfo->ioiCount; i++){
-        IO_DISK disk;
-        BT_STATUS status = RecognizeDisk(devInfo->ioi[i].pcieAddress, NULL, &disk);
-        if (BT_ERROR(status) == FALSE){
-            return (UINT64)0; 
-        }
-    }
 
-    // return (UINT64)((PCIE*)devInfo->ioi[0].pcieAddress)->header.bcc;
+    UINT32 ioCount = devInfo->ioiCount;
+    status = MapDisks(devInfo->ioi, &ioCount);
+    return (UINT64)ioCount;
     
     // for (UINTN i = 0; i < devInfo->ioiCount; i++){
     //     for (UINT j = 0; j < 3; j++){

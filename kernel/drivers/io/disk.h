@@ -10,7 +10,6 @@ typedef enum FS_TYPE{
 } FS_TYPE;
 
 typedef struct IO_DISK{
-    BOOLEAN free;
     UINTN size;
     CHAR8 symbol;
     FS_TYPE fileSystem;
@@ -21,5 +20,5 @@ typedef struct IO_DISK{
 //                 SETUP                |
 // ==================================== |
 
+BT_STATUS MapDisks(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count);
 BT_STATUS RecognizeDisk(IN VOID *pcieAddress, IN CHAR8 *symbol, OUT IO_DISK *disk);
-BT_STATUS SetupFileSystem(IN FS_TYPE type, IN OUT IO_DISK *disk);
