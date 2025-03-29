@@ -1,5 +1,6 @@
 #include "console.h"
 #include "pe32.h"
+#include "pcie.h"
 
 EFI_STATUS BTM_StartConsole(){
     EFI_Print(L"STARTING BOOTMANAGER CONSOLE");
@@ -436,12 +437,16 @@ EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInf
         
         status = systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, (VOID**)&pciIo);
         
-        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint8, 0x0, sizeof(PCIE), &(*ioInfo)[i].pcie.header);
+        BYTE *pcieBuffer;
+        EFI_AllocPool(EfiLoaderData, 200, (VOID**)&pcieBuffer);
+        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint8, 0x0, 200, (VOID*)pcieBuffer);
+
+        (*ioInfo)[i].pcieAddress = (VOID*)pcieBuffer;
+
         if (EFI_ERROR(status)){
             EFI_Print(ConcatChar16(L"\r\nError reading PCI IO", UInt32ToChar16(status)));
             return status;
         }
-        EFI_Print(ConcatChar16(L"\r\nPCIe Device BCC: ", UInt8ToChar16Hex((*ioInfo)[i].pcie.header.cc[0])));
     }
 
     return EFI_SUCCESS;

@@ -1,4 +1,5 @@
 #include "disk.h"
+#include "pcie.h"
 
 UINT32 closestFree = 0;
 CHAR8 diskCharacters[IO_MAX_DISKS] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
@@ -8,44 +9,31 @@ IO_DISK disks[IO_MAX_DISKS];
 //                 SETUP                |
 // ==================================== |
 
-// BT_STATUS RecognizeDisk(IN PCIE pcie, OPTIONAL IN CHAR8 *symbol, OUT IO_DISK *io){
-//     if (closestFree == IO_MAX_DISKS){
-//         return BT_IO_DISK_OVERFLOW;
-//     }
+BT_STATUS RecognizeDisk(IN VOID *pcieAddress, OPTIONAL IN CHAR8 *symbol, OUT IO_DISK *io){
+    if (closestFree == IO_MAX_DISKS){
+        return BT_IO_DISK_OVERFLOW;
+    }
 
-//     UINT32 diskIndex = closestFree;
+    PCIE *pcie = (PCIE*)pcieAddress;
 
-//     for (UINT32 i = 0; i < IO_MAX_BUS; i++){
-//         disks[diskIndex] = bar;
-//     }
+    if (pcie->header.bcc != PCIE_BCC_MASS_STORAGE_CONTROLLER){
+        return BT_IO_INVALID_PCIE;
+    }
 
-//     if (symbol == NULL){
-//         disks[diskIndex].symbol = diskCharacters[closestFree];
-//     }
-//     else{
-//         UINT32 si = 0;
-//         while (si < IO_MAX_DISKS){
-//             if (disks[si].initialized == FALSE){
-//                 disks[diskIndex].symbol = *symbol;
-//                 break;
-//             }
-//         }
+    disks[closestFree].free = FALSE;
+    disks[closestFree].fileSystem = NONE;
+    disks[closestFree].size = 0;
+    disks[closestFree].symbol = diskCharacters[closestFree];
+    disks[closestFree].pcieAddress = pcieAddress;
 
-//         return BT_IO_DISK_OVERFLOW;
-//     }
+    while (disks[closestFree++].free == FALSE){
+        if (closestFree == IO_MAX_DISKS){
+            break;
+        }
+    }
 
-//     disks[diskIndex].initialized = TRUE;
-//     disks[diskIndex].fileSystem = NONE;
-//     *io = disks[diskIndex];
-
-//     while (disks[closestFree++].initialized == TRUE){
-//         if (closestFree == IO_MAX_DISKS){
-//             return BT_IO_DISK_OVERFLOW;
-//         }
-//     }
-
-//     return BT_SUCCESS;
-// }
+    return BT_SUCCESS;
+}
 BT_STATUS SetupFileSystem(IN FS_TYPE type, IN OUT IO_DISK *disk){
     return BT_SUCCESS;
 }

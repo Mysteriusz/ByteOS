@@ -2,6 +2,7 @@
 #include "graphics/fonts/bts.h"
 #include "memory/memory.h"
 #include "drivers/io/disk.h"
+#include "drivers/io/pcie.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -39,15 +40,23 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
     
-    return (UINT64)devInfo->ioi[0].pcie.header.cc[2];
-    
-    for (UINTN i = 0; i < devInfo->ioiCount; i++){
-        for (UINT j = 0; j < 3; j++){
-            if (devInfo->ioi[i].pcie.header.cc[j] != 0){
-                return i;
-            }
+    for (UINT32 i = 0; i < devInfo->ioiCount; i++){
+        IO_DISK disk;
+        BT_STATUS status = RecognizeDisk(devInfo->ioi[i].pcieAddress, NULL, &disk);
+        if (BT_ERROR(status) == FALSE){
+            return (UINT64)0; 
         }
     }
+
+    // return (UINT64)((PCIE*)devInfo->ioi[0].pcieAddress)->header.bcc;
+    
+    // for (UINTN i = 0; i < devInfo->ioiCount; i++){
+    //     for (UINT j = 0; j < 3; j++){
+    //         if (devInfo->ioi[i].pcie.header.cc[j] != 0){
+    //             return i;
+    //         }
+    //     }
+    // }
 
 
     // for (UINT32 i = 0; i < devInfo->ioiCount; i++){

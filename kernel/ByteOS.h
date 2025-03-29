@@ -155,8 +155,6 @@ typedef union{
 
 #pragma region KERNEL
 
-#include "pcie.h"
-
 typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN framebufferAddress;
     UINTN frameBufferSize;
@@ -164,7 +162,7 @@ typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN verticalRes;
 } KERNEL_GRAPHICAL_DEVICE_INFO;
 typedef struct KERNEL_IO_DEVICE_INFO{
-    PCIE pcie;
+    VOID* pcieAddress;
 } KERNEL_IO_DEVICE_INFO;
 typedef struct KERNEL_CPU_DEVICE_INFO{
     CHAR8 *manufacturer;
@@ -236,6 +234,7 @@ typedef UINT32 BT_STATUS;
 
 #define BT_IO_DISK_OVERFLOW 0x2000
 #define BT_IO_INVALID_SYMBOL 0x2001
+#define BT_IO_INVALID_PCIE 0x2002
 
 #pragma endregion INTERNAL
 

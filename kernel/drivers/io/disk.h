@@ -3,7 +3,6 @@
 #include "byteos.h"
 
 #define IO_MAX_DISKS 26
-#define IO_MAX_BUS 6
 
 typedef enum FS_TYPE{
     NONE,
@@ -11,16 +10,16 @@ typedef enum FS_TYPE{
 } FS_TYPE;
 
 typedef struct IO_DISK{
-    BOOLEAN initialized;
+    BOOLEAN free;
     UINTN size;
     CHAR8 symbol;
-    PCIE pcie;
     FS_TYPE fileSystem;
+    VOID *pcieAddress;
 } IO_DISK;
 
 // ==================================== |
 //                 SETUP                |
 // ==================================== |
 
-BT_STATUS RecognizeDisk(IN PCIE pcie, IN CHAR8 *symbol, OUT IO_DISK *disk);
+BT_STATUS RecognizeDisk(IN VOID *pcieAddress, IN CHAR8 *symbol, OUT IO_DISK *disk);
 BT_STATUS SetupFileSystem(IN FS_TYPE type, IN OUT IO_DISK *disk);

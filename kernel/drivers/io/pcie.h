@@ -111,7 +111,7 @@
 
 #define PCIE_SCC_0x03_VGA 0x00 
 #define PCIE_PI_0x03_0x00_C 0x00 // VGA-compatible controller
-#define PCIE_PI_0x03_0x00_C 0x01 // 8514-compatible controller 
+#define PCIE_PI_0x03_0x00_8514C 0x01 // 8514-compatible controller 
 
 #define PCIE_SCC_0x03_XGA 0x01 
 #define PCIE_PI_0x03_0x01_C 0x00 // XGA controller 
@@ -435,7 +435,9 @@ typedef struct PCI_HEADER { // PCI Header
     UINT16 cmd; // Command Register
     UINT16 sts; // Device Status
     UINT8 rid; // Revision ID
-    UINT8 cc[3]; // Class Codes
+    UINT8 picc; // Class Codes (Programming interface)
+    UINT8 scc; // Class Codes (Sub-class code)
+    UINT8 bcc; // Class Codes (Class code)
     UINT8 cls; // Cache Line Size
     UINT8 mlt; // Master Latency Timer
     UINT8 htype; // Header Type

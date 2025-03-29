@@ -25,6 +25,7 @@
         "process.h": "c",
         "fat32.h": "c",
         "filesystem.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "pcie.h": "c"
     }
 }
