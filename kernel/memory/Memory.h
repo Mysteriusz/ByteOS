@@ -44,7 +44,7 @@ typedef struct MEMORY_PAGE{
 typedef struct MEMORY_PAGE_POOL_HEADER MEMORY_PAGE_POOL_HEADER;
 typedef struct MEMORY_PAGE_POOL_HEADER{
     MEMORY_PAGE_POOL_HEADER *next;
-    UINT8 blockSize;
+    UINT16 blockSize;
     UINT8 used;
     UINT8 poolMap[MAX_MAP_SIZE];
 } MEMORY_PAGE_POOL_HEADER;
@@ -62,7 +62,7 @@ typedef struct MEMORY_PAGE_POOL_HEADER{
     ((UINT32)bytes) <= POOL_MEDIUM_BLOCK_SIZE ? POOL_MEDIUM_BLOCK_SIZE : \
     ((UINT32)bytes) <= POOL_BIG_BLOCK_SIZE ? POOL_BIG_BLOCK_SIZE : \
     ((UINT32)bytes) <= POOL_HUGE_BLOCK_SIZE ? POOL_HUGE_BLOCK_SIZE : \
-    ((UINT32)bytes) & ~0x0f \
+    ((UINT32)bytes) \
 )
 #define POOL_BLOCK_COUNT(blockSize) ((PAGE_SIZE - sizeof(MEMORY_PAGE_POOL_HEADER)) / (UINT32)blockSize)
 
@@ -81,11 +81,11 @@ BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap);
 BT_STATUS ByteAPI InitializePhysicalPool();
 
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
-BT_STATUS ByteAPI FreePhysicalPages(IN VOID *buffer, IN OUT UINTN *size);
+BT_STATUS ByteAPI FreePhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size);
 MEMORY_PAGE ByteAPI GetPhysicalPage(IN UINT32 index);
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags);
-BT_STATUS ByteAPI FreePhysicalPool(IN VOID *buffer, IN OUT UINTN *size);
+BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size);
 MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolSize);
 
 BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size);

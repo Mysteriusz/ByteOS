@@ -23,6 +23,10 @@ typedef struct FIRST_PAGE{
     BYTE d1[PAGE_SIZE];
 } FIRST_PAGE;
 
+typedef struct testc{
+    BYTE d1[0x512];
+} testc;
+
 BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
@@ -37,63 +41,64 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
-    status = AllocPhysicalPages((VOID**)&f, &fs, BT_MEMORY_KERNEL_RW);
+    status = AllocPhysicalPages((VOID**)&f, &fs, 0);
+    
+    testa *t1 = NULL;
+    UINTN s1 = sizeof(testa);    
+    testa *t2 = NULL;
+    UINTN s2 = sizeof(testa);
+    testb *t3 = NULL;
+    UINTN s3 = sizeof(testb);
+    FIRST_PAGE *t4 = NULL;
+    UINTN s4 = sizeof(FIRST_PAGE);
+    testb *t5 = NULL;
+    UINTN s5 = sizeof(testb);
 
-    UINT32 ioCount = devInfo->ioiCount;
-    status = RegisterDisksFromDevices(devInfo->ioi, &ioCount);
-    return (UINT64)status;
-    
-    // for (UINTN i = 0; i < devInfo->ioiCount; i++){
-    //     for (UINT j = 0; j < 3; j++){
-    //         if (devInfo->ioi[i].pcie.header.cc[j] != 0){
-    //             return i;
-    //         }
-    //     }
-    // }
+    BYTE *t6 = NULL;
+    UINTN s6 = sizeof(BYTE) * 16;    
+    BYTE *t7 = NULL;
+    UINTN s7 = sizeof(BYTE) * 32;
+    BYTE *t8 = NULL;
+    UINTN s8 = sizeof(BYTE) * 32;
 
+    testc *t9 = NULL;
+    UINTN s9 = sizeof(testc);
+    
+    testc *t10 = NULL;
+    UINTN s10 = sizeof(testc);
+    
+    testc *t11 = NULL;
+    UINTN s11 = sizeof(testc);
+    
+    testc *t12 = NULL;
+    UINTN s12 = sizeof(testc);
+    
+    testc *t13 = NULL;
+    UINTN s13 = sizeof(testc);
+    
+    status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    status = AllocPhysicalPool((VOID**)&t7, &s7, 0);    
+    status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
 
-    // for (UINT32 i = 0; i < devInfo->ioiCount; i++){
-    //     IO_DISK disk;
-    //     RecognizeDisk(devInfo->ioi[i].pcie.header.cc, NULL, &disk);
-    // }
-    
-    // return devInfo->ioi[0].bar.x32.bs0;
-    // return (UINT64)devInfo->ioi[0];
+    status = AllocPhysicalPool((VOID**)&t9, &s9, 0);
+    status = AllocPhysicalPool((VOID**)&t10, &s10, 0);
+    status = AllocPhysicalPool((VOID**)&t11, &s11, 0);
+    status = AllocPhysicalPool((VOID**)&t12, &s12, 0);
+    status = FreePhysicalPool((VOID**)&t9, &s9);
+    status = FreePhysicalPool((VOID**)&t10, &s10);
+    status = FreePhysicalPool((VOID**)&t11, &s11);
+    status = AllocPhysicalPool((VOID**)&t13, &s13, 0);
+    return (UINT64)t13;
+    // return (UINT64)GetPhysicalPool(0, s10).blockSize;
+    // return (UINT64)status;
+    status = AllocPhysicalPool((VOID**)&t13, &s13, 0);
+    // return (UINT64)((MEMORY_PAGE_POOL_HEADER*)0x3000)->blockSize;
+    // status = AllocPhysicalPool((VOID**)&t11, &s11, 0);
 
-    // testa *t1 = NULL;
-    // UINTN s1 = sizeof(testa);    
-    
-    // testa *t2 = NULL;
-    // UINTN s2 = sizeof(testa);
-    
-    // testb *t3 = NULL;
-    // UINTN s3 = sizeof(testb);
-    
-    // FIRST_PAGE *t4 = NULL;
-    // UINTN s4 = sizeof(FIRST_PAGE);
-    
-    // testb *t5 = NULL;
-    // UINTN s5 = sizeof(testb);    
-    
-    // BYTE *t6 = NULL;
-    // UINTN s6 = sizeof(BYTE) * 16;    
-    // BYTE *t9 = NULL;
-    // UINTN s9 = sizeof(BYTE) * 16;
-    // BYTE *t7 = NULL;
-    // UINTN s7 = sizeof(BYTE) * 32;
-    // BYTE *t8 = NULL;
-    // UINTN s8 = sizeof(BYTE) * 32;
-    
-    // status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
-    // for (int i = 0; i < 16; i++) {
-    //     t6[i] = i;
-    // }       
-    
-    // status = AllocPhysicalPool((VOID**)&t7, &s7, 0);    
-    // t7[0] = 0x01;
-    
-    // status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
-    // t8[0] = 0x0a;
+    // UINT32 blockCount = POOL_BLOCK_COUNT(s9);
+    // return (UINT64)blockCount;
+
+    // return GetPhysicalPool(0, s9).used;
 
     // status = AllocPhysicalPages((VOID**)&t1, &s1, BT_MEMORY_WRITE);
     // t1->a = 0x11;
@@ -118,7 +123,29 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     //     t9[i] = i;
     // }    
     // status = FreePhysicalPool(t6, &s6);
-    // return (UINT64)DEBUG_CLOSEST();
+
+    // UINT32 ioCount = devInfo->ioiCount;
+    // status = RegisterDisksFromDevices(devInfo->ioi, &ioCount);
+    // return (UINT64)status;
+    
+    // for (UINTN i = 0; i < devInfo->ioiCount; i++){
+    //     for (UINT j = 0; j < 3; j++){
+    //         if (devInfo->ioi[i].pcie.header.cc[j] != 0){
+    //             return i;
+    //         }
+    //     }
+    // }
+
+
+    // for (UINT32 i = 0; i < devInfo->ioiCount; i++){
+    //     IO_DISK disk;
+    //     RecognizeDisk(devInfo->ioi[i].pcie.header.cc, NULL, &disk);
+    // }
+    
+    // return devInfo->ioi[0].bar.x32.bs0;
+    // return (UINT64)devInfo->ioi[0];
+
+
     // status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
     // for (int i = 0; i < 16; i++) {
     //     t6[i] = i;
