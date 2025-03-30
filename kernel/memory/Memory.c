@@ -16,13 +16,21 @@ MEMORY_PAGE_POOL_HEADER *hugePool;
 MEMORY_PAGE_POOL_HEADER *customPool;
 UINT32 poolCount = 0;
 
+// Used for padding address to it`s page address
 #define PAGE_PAD_ADDRESS(address)(((PHYSICAL_ADDRESS)address & ~(PAGE_SIZE - 1)))
+
+// Used for allocating page using page bit map
 #define PAGE_ALLOC(index)(pageGroups[((UINT32)index / PAGES_PER_GROUP)] |= (PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP)))
+// Used for deallocating page using page bit map
 #define PAGE_DEALLOC(index)(pageGroups[((UINT32)index / PAGES_PER_GROUP)] &= ~(PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP)))
+// Used for checking page using page bit map (0 - not allocated; 1 - allocated)
 #define PAGE_CHECK(index)((pageGroups[((UINT32)index / PAGES_PER_GROUP)] & (PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP))) != 0)
 
+// Used for allocating pool block using pool`s bit map
 #define POOL_BLOCK_ALLOC(poolMap, index)(((UINT8*)poolMap)[(UINT32)index / POOL_BLOCKS_PER_MAP] |= (BLOCK_ALLOCATED << ((UINT32)index % POOL_BLOCKS_PER_MAP)))
+// Used for deallocating pool block using pool`s bit map
 #define POOL_BLOCK_DEALLOC(poolMap, index)(((UINT8*)poolMap)[(UINT32)index / POOL_BLOCKS_PER_MAP] &= ~(BLOCK_ALLOCATED << ((UINT32)index % POOL_BLOCKS_PER_MAP)))
+// Used for checking pool block using pool`s bit map (0 - not allocated; 1 - allocated)
 #define POOL_BLOCK_CHECK(poolMap, index)(((((UINT8*)poolMap)[(UINT32)index / POOL_BLOCKS_PER_MAP] & (BLOCK_ALLOCATED << ((UINT32)index % POOL_BLOCKS_PER_MAP))) != 0))
 
 // ==================================== |
@@ -43,6 +51,8 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap){
+    if (memMap == NULL) return BT_INVALID_ARGUMENT;
+
     BOOLEAN first = TRUE;
     pageCount = 0;
 
@@ -89,18 +99,19 @@ BT_STATUS ByteAPI InitializePhysicalPool(){
 }
 
 BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
-    UINTN allocPageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE;
-    UINTN allocated = 0;
-    UINT32 firstPageIndex = 0;
-    UINTN i = closestPageIndex;
+    UINTN allocPageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE; // Amount of pages to allocate
+    UINTN allocated = 0; // Amount of allocated pages
+    UINT32 firstPageIndex = 0; // Index of the first page to allocate
+    UINTN i = closestPageIndex; // Index of closest free page
     
-    if (allocPageCount > pageCount) return BT_NOT_ENOUGH_MEMORY;
+    if (allocPageCount > pageCount) return BT_NOT_ENOUGH_MEMORY; // If amount of pages to allocate is higher than overall page count
     
     // SAFETY CHECK
-    UINTN sfci = i;
-    UINTN sfcallocated = 0;
-    while (sfci < pageCount){
-        if (PAGE_CHECK(sfci) == PAGE_ALLOCATED){
+    UINTN sfci = i; // Safety check index
+    UINTN sfcallocated = 0;  // Safety check allocated pages
+    while (sfci < pageCount){ 
+        // If current page is allocated continue to another page and reset sfc
+        if (PAGE_CHECK(sfci) == PAGE_ALLOCATED){ 
             i++;
             sfci = i;
             sfcallocated = 0;
@@ -108,12 +119,19 @@ BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, I
         }  
         sfcallocated++;
         
+        // If there is enough free pages in line
         if (sfcallocated == allocPageCount){
             break;
         }
         sfci++;
+
+        // Return error if sfci failed to found linear page sector
+        if (sfci == pageCount){
+            return BT_NOT_ENOUGH_MEMORY;
+        }
     }
     
+    // Allocate in line from index 
     while (allocated < allocPageCount){
         PAGE_ALLOC(i);
         flagMap[i] = flags;
@@ -125,12 +143,14 @@ BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, I
         allocated++;
     }
 
+    // Retrieve and assign new buffer address
     PHYSICAL_ADDRESS adr = 0;
     PhysicalIndexToPage(firstPageIndex, &adr);
+    
     *buffer = (VOID*)adr;
-
     *size = allocated * PAGE_SIZE;
     
+    // Find new closest page
     if (firstPageIndex == closestPageIndex){
         PhysicalGetClosest(closestPageIndex, &closestPageIndex, &closestPageAddress);
     }
@@ -138,34 +158,39 @@ BT_STATUS ByteAPI AllocPhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size, I
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI FreePhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size){
-    UINTN freePageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE;
-    UINTN freed = 0;
+    UINTN freePageCount = (*size + PAGE_SIZE - 1) / PAGE_SIZE; // Amount of pages to free
+    UINTN freed = 0; // Amount of freed pages
 
-    PHYSICAL_ADDRESS pageAddress = PAGE_PAD_ADDRESS(*buffer);
-    UINT32 pageIndex = 0;
+    PHYSICAL_ADDRESS pageAddress = PAGE_PAD_ADDRESS(*buffer); // Address of buffer`s page
+    UINT32 pageIndex = 0; // Initial page index 
     PhysicalPageToIndex(pageAddress, &pageIndex);
-    UINTN i = pageIndex;
+    UINTN i = pageIndex;  // Current page index
 
-    if (freePageCount > pageCount) return BT_NOT_ENOUGH_MEMORY;
+    if (freePageCount > pageCount) return BT_NOT_ENOUGH_MEMORY; // If amount of pages to free is bigger than overall page count
     
     // PERMISSION CHECK
-    UINTN pi = i;
+    UINTN pi = i; // Permission check current index
     while (pi < freePageCount){
+        // If page is not writable
         if ((flagMap[pi++] & BT_MEMORY_WRITE) == FALSE){
             return BT_MEMORY_NOT_READABLE;
         }
     }
 
     while (i < pageCount){
+        freed++;
+
+        // If page is allocated process it
         if (PAGE_CHECK(i) == PAGE_ALLOCATED){   
             PAGE_DEALLOC(i);
-            
-            freed++;
-            
+                        
+            // If already freed required pages
             if (freed == freePageCount){
                 *size = freed * PAGE_SIZE;
+                // Clear out all freed pages from start address
                 SetPhysicalMemory((VOID*)pageAddress, 0, *size);
-
+                
+                // If closest free index is bigger than initial page index replace it 
                 if (closestPageIndex > pageIndex){
                     closestPageIndex = pageIndex;
                     closestPageAddress = pageAddress;
@@ -192,10 +217,11 @@ MEMORY_PAGE ByteAPI GetPhysicalPage(IN UINT32 index){
 }
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
-    MEMORY_PAGE_POOL_HEADER **pPool = NULL;
+    MEMORY_PAGE_POOL_HEADER **pPool = NULL; // Currently selected pool header
     UINT32 blockSize = POOL_BLOCK_SIZE(*size);
     UINT32 blockCount = POOL_BLOCK_COUNT(blockSize);
     
+    // Get the pool size that pPool should point to
     switch (blockSize)
     {
         case POOL_TINY_BLOCK_SIZE:
@@ -220,49 +246,56 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     ALLOC:
 
     while (*pPool != NULL){
-        UINT32 blockIndex = 0;
-        UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER);
+        UINT32 blockIndex = 0; // Index of current block
+        UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER); // Current RVA from pool header
          
         while (((*pPool)->used < blockCount) && blockIndex < blockCount){
+            // If current block is allocated continue
             if (POOL_BLOCK_CHECK((*pPool)->poolMap, blockIndex) == BLOCK_ALLOCATED){
                 blockIndex++;
                 blockRva += blockSize;
                 continue;
             }
             
+            // Allocate to current block and set buffer to pool and block RVA
             POOL_BLOCK_ALLOC((*pPool)->poolMap, blockIndex);
-            *buffer = (VOID*)((PHYSICAL_ADDRESS)(*pPool) + blockRva);
+            *buffer = (VOID*)((PHYSICAL_ADDRESS)*pPool + blockRva);
             *size = blockSize;
 
             (*pPool)->used++;
 
             return BT_SUCCESS;
         }
+        // Move to the next pool using current pointer
         pPool = &(*pPool)->next;
     }
-    
+
     MEMORY_PAGE_POOL_HEADER *newPool = NULL;
 
+    // Allocate new page for the pool
     UINTN poolSize = PAGE_SIZE;
     BT_STATUS status = AllocPhysicalPages((VOID**)&newPool, &poolSize, flags);
     if (BT_ERROR(status)){
         return status;
     }
-
+    
+    // Assign new pool`s values
     newPool->used = 0;
     newPool->blockSize = blockSize;
     (*pPool)->next = newPool;
-
+    
     *pPool = newPool;
-
+    
+    // Go back to allocation loop
     goto ALLOC;
 }
 BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
-    MEMORY_PAGE_POOL_HEADER **prev = NULL;
-    MEMORY_PAGE_POOL_HEADER **pPool = NULL;
+    MEMORY_PAGE_POOL_HEADER **prev = NULL; // Previously selected pool header
+    MEMORY_PAGE_POOL_HEADER **pPool = NULL; // Currently selected pool header
     UINT32 blockSize = POOL_BLOCK_SIZE(*size);
     UINT32 blockCount = POOL_BLOCK_COUNT(blockSize);
     
+    // Get the pool size that pPool should point to
     switch (blockSize)
     {
         case POOL_TINY_BLOCK_SIZE:
@@ -283,48 +316,57 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
                 pPool = &customPool; break;
             } 
     }
-
+    
+    // Get the pool that has the buffer`s address in its range
     while (*pPool != NULL && ((PHYSICAL_ADDRESS)*pPool + PAGE_SIZE) < (PHYSICAL_ADDRESS)*buffer){
         *prev = *pPool;
         pPool = &(*pPool)->next;
     }
     
+    // If buffer`s pool was not found
     if (*pPool == NULL){
         return BT_INVALID_BUFFER;
     }
-
-    UINT32 blockIndex = 0;
-    UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER);
+    
+    UINT32 blockIndex = 0; // Current block index
+    UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER); // Current block RVA from it`s header
 
     while (blockIndex < blockCount){
+        // If current block address is equal to buffer
         if ((PHYSICAL_ADDRESS)*buffer == (PHYSICAL_ADDRESS)*pPool + blockRva){
             POOL_BLOCK_DEALLOC((*pPool)->poolMap, blockIndex);
             *size = blockSize;
             (*pPool)->used--;
-
+            
+            // If pool has no blocks after removing the block
             if ((*pPool)->used == 0){
+                // If there is a previous pool assign it`s next to current next
                 if (prev != NULL){
                     (*prev)->next = (*pPool)->next; 
-                } else {
+                }
+                else {
                     *pPool = (*pPool)->next; 
                 }
-
+                
+                // Free current pool`s page
                 UINTN s = PAGE_SIZE;
                 BT_STATUS status = FreePhysicalPages((VOID**)pPool, &s);
                 if (BT_ERROR(status)){
                     return status;
                 }
-
+                
                 return BT_SUCCESS;
             }
             else{
+                // Clear out removed block
                 SetPhysicalMemory(*buffer, 0, blockSize);
             }
             
             *buffer = NULL;
             return BT_SUCCESS;
         }
-
+        
+        // Move to another block
         blockIndex++;
         blockRva += blockSize;
     }
