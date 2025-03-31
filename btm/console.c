@@ -1,6 +1,6 @@
 #include "console.h"
 #include "pe32.h"
-#include "pcie.h"
+#include "pci.h"
 
 EFI_STATUS BTM_StartConsole(){
     EFI_Print(L"STARTING BOOTMANAGER CONSOLE");
@@ -437,17 +437,18 @@ EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInf
         
         status = systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, (VOID**)&pciIo);
         
-        BYTE *pcieBuffer;
-        EFI_AllocPool(EfiLoaderData, sizeof(PCIE), (VOID**)&pcieBuffer);
-        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint8, 0x0, sizeof(PCIE), (VOID*)pcieBuffer);
+        BYTE *pciBuffer;
+        EFI_AllocPool(EfiLoaderData, sizeof(PCI), (VOID**)&pciBuffer);
+        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint8, 0x0, sizeof(PCI), (VOID*)pciBuffer);
 
-        (*ioInfo)[i].pcieAddress = (VOID*)pcieBuffer;
+        (*ioInfo)[i].pciAddress = (VOID*)pciBuffer;
 
         if (EFI_ERROR(status)){
             EFI_Print(ConcatChar16(L"\r\nError reading PCI IO: ", UInt32ToChar16(status)));
             return status;
         }
-        EFI_Print(ConcatChar16(L"\r\nPCI BCC: ", UInt32ToChar16(((PCIE*)pcieBuffer)->header.bcc)));
+        EFI_Print(ConcatChar16(L"\r\nPCI BCC: ", UInt32ToChar16(((PCI*)pciBuffer)->header.bcc)));
+        
     }
 
     return EFI_SUCCESS;

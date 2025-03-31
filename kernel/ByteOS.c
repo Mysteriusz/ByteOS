@@ -1,7 +1,7 @@
 #include "byteos.h"
 #include "graphics/fonts/bts.h"
-#include "drivers/io/disk.h"
-#include "drivers/io/pcie.h"
+#include "drivers/io/storage/disk.h"
+#include "drivers/pci.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -42,56 +42,58 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, 0);
-    
-    testa *t1 = NULL;
-    UINTN s1 = sizeof(testa);    
-    testa *t2 = NULL;
-    UINTN s2 = sizeof(testa);
-    testb *t3 = NULL;
-    UINTN s3 = sizeof(testb);
-    FIRST_PAGE *t4 = NULL;
-    UINTN s4 = sizeof(FIRST_PAGE);
-    testb *t5 = NULL;
-    UINTN s5 = sizeof(testb);
 
-    BYTE *t6 = NULL;
-    UINTN s6 = sizeof(BYTE) * 16;    
-    BYTE *t7 = NULL;
-    UINTN s7 = sizeof(BYTE) * 32;
-    BYTE *t8 = NULL;
-    UINTN s8 = sizeof(BYTE) * 32;
+    return sizeof(PCI_HEADER_2);
+    
+    // testa *t1 = NULL;
+    // UINTN s1 = sizeof(testa);    
+    // testa *t2 = NULL;
+    // UINTN s2 = sizeof(testa);
+    // testb *t3 = NULL;
+    // UINTN s3 = sizeof(testb);
+    // FIRST_PAGE *t4 = NULL;
+    // UINTN s4 = sizeof(FIRST_PAGE);
+    // testb *t5 = NULL;
+    // UINTN s5 = sizeof(testb);
 
-    testc *t9 = NULL;
-    UINTN s9 = sizeof(testc);
-    
-    testc *t10 = NULL;
-    UINTN s10 = sizeof(testc);
-    
-    testc *t11 = NULL;
-    UINTN s11 = sizeof(testc);
-    
-    testc *t12 = NULL;
-    UINTN s12 = sizeof(testc);
-    
-    testc *t13 = NULL;
-    UINTN s13 = sizeof(testc);
-    
-    status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
-    status = AllocPhysicalPool((VOID**)&t7, &s7, 0);    
-    status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
+    // BYTE *t6 = NULL;
+    // UINTN s6 = sizeof(BYTE) * 16;    
+    // BYTE *t7 = NULL;
+    // UINTN s7 = sizeof(BYTE) * 32;
+    // BYTE *t8 = NULL;
+    // UINTN s8 = sizeof(BYTE) * 32;
 
-    status = AllocPhysicalPool((VOID**)&t9, &s9, 0);
-    status = AllocPhysicalPool((VOID**)&t10, &s10, 0);
-    status = AllocPhysicalPool((VOID**)&t11, &s11, 0);
-    status = AllocPhysicalPool((VOID**)&t12, &s12, 0);
-    status = FreePhysicalPool((VOID**)&t9, &s9);
-    status = FreePhysicalPool((VOID**)&t10, &s10);
-    status = FreePhysicalPool((VOID**)&t11, &s11);
-    status = AllocPhysicalPool((VOID**)&t13, &s13, 0);
-    return (UINT64)t13;
+    // testc *t9 = NULL;
+    // UINTN s9 = sizeof(testc);
+    
+    // testc *t10 = NULL;
+    // UINTN s10 = sizeof(testc);
+    
+    // testc *t11 = NULL;
+    // UINTN s11 = sizeof(testc);
+    
+    // testc *t12 = NULL;
+    // UINTN s12 = sizeof(testc);
+    
+    // testc *t13 = NULL;
+    // UINTN s13 = sizeof(testc);
+    
+    // status = AllocPhysicalPool((VOID**)&t6, &s6, 0);
+    // status = AllocPhysicalPool((VOID**)&t7, &s7, 0);    
+    // status = AllocPhysicalPool((VOID**)&t8, &s8, 0);
+
+    // status = AllocPhysicalPool((VOID**)&t9, &s9, 0);
+    // status = AllocPhysicalPool((VOID**)&t10, &s10, 0);
+    // status = AllocPhysicalPool((VOID**)&t11, &s11, 0);
+    // status = AllocPhysicalPool((VOID**)&t12, &s12, 0);
+    // status = FreePhysicalPool((VOID**)&t9, &s9);
+    // status = FreePhysicalPool((VOID**)&t10, &s10);
+    // status = FreePhysicalPool((VOID**)&t11, &s11);
+    // status = AllocPhysicalPool((VOID**)&t13, &s13, 0);
+    // status = AllocPhysicalPool((VOID**)&t13, &s13, 0);
+    // return (UINT64)t13;
     // return (UINT64)GetPhysicalPool(0, s10).blockSize;
     // return (UINT64)status;
-    status = AllocPhysicalPool((VOID**)&t13, &s13, 0);
     // return (UINT64)((MEMORY_PAGE_POOL_HEADER*)0x3000)->blockSize;
     // status = AllocPhysicalPool((VOID**)&t11, &s11, 0);
 

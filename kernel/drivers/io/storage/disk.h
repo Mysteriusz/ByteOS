@@ -13,7 +13,7 @@ typedef struct IO_DISK{
     UINTN size;
     CHAR8 symbol;
     FS_TYPE fileSystem;
-    VOID *pcieAddress;
+    VOID *pciAddress;
 } IO_DISK;
 
 // ==================================== |
