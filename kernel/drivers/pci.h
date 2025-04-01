@@ -2,6 +2,7 @@
 
 #include "byteos.h"
 
+
 #pragma region PCI_CC_DEFINES
 
 // ==================================== |
@@ -429,19 +430,79 @@
 
 #pragma endregion PCI_CC_DEFINES
 
-typedef struct PCI_HEADER_0 { // PCI Header 0x00
+#define PCI_SIZE 0x48
+
+#define PCI_HEADER_TYPE_STANDARD 0x00
+#define PCI_HEADER_TYPE_PCI2PCI 0x01
+#define PCI_HEADER_TYPE_CARDBUS 0x02
+
+#pragma pack(1)
+typedef struct PCI_STATUS_REGISTER{
+    UINT8 reserved0 : 2;
+    UINT8 interruptStatus : 1;
+    UINT8 capabilitiesList : 1;
+    UINT8 ssCapable : 1;
+    UINT8 reserved1 : 1;
+    UINT8 fastB2BCapable : 1;
+    UINT8 masterDataParityError : 1;
+    UINT8 devselTiming : 2;
+    UINT8 signaledTargetAbort : 1;
+    UINT8 receivedMasterAbort : 1;
+    UINT8 signaledSystemError : 1;
+    UINT8 detectedParityError : 1;
+} PCI_STATUS_REGISTER;
+typedef struct PCI_COMMAND_REGISTER{
+    UINT8 ioSpace : 1;
+    UINT8 memorySpace : 1;
+    UINT8 busMaster : 1;
+    UINT8 specialCycles : 1;
+    UINT8 memoryWrite : 1;
+    UINT8 vgaSnoop : 1;
+    UINT8 parityErrorResponse : 1;
+    UINT8 reserved0 : 1;
+    UINT8 serrEnable : 1;
+    UINT8 fastB2BEnable : 1;
+    UINT8 interruptDisable : 1;
+    UINT8 reserved1 : 5;
+} PCI_COMMAND_REGISTER;
+typedef struct PCI_HEADER_TYPE{
+    UINT8 headerType : 7;
+    UINT8 multipleFunctions : 1;
+} PCI_HEADER_TYPE;
+typedef struct PCI_BIST_REGISTER{
+    UINT8 completionCode : 3;
+    UINT8 reserved : 2;
+    UINT8 startBist : 1;
+    UINT8 bistCapable : 1;
+} PCI_BIST_REGISTER;
+typedef struct PCI_MEMORY_BAR_LAYOUT{
+    UINT32 always0 : 1;
+    UINT32 type : 2;
+    UINT32 prefetchable : 1;
+    UINT32 baseAddress : 28;
+} PCI_MEMORY_BAR_LAYOUT;
+typedef struct PCI_IO_BAR_LAYOUT{
+    UINT32 always1 : 1;
+    UINT32 reserved : 1;
+    UINT32 baseAddress : 30;
+} PCI_IO_BAR_LAYOUT;
+
+typedef struct PCI_HEADER_COMMON { // PCI Common Fields 0x00
     UINT16 vendorId;
     UINT16 deviceId;
-    UINT16 command;
-    UINT16 status;
+    PCI_COMMAND_REGISTER command;
+    PCI_STATUS_REGISTER status;
     UINT8 revisionId;
     UINT8 pi;
     UINT8 scc;
     UINT8 bcc;
     UINT8 cacheLineSize;
     UINT8 latencyTimer;
-    UINT8 headerType;
-    UINT8 bist;
+    PCI_HEADER_TYPE headerType;
+    PCI_BIST_REGISTER bist;
+} PCI_HEADER_COMMON;
+typedef struct PCI_HEADER_0 { // PCI Header Type 0x00 (Standard)
+    PCI_HEADER_COMMON common;
     UINT32 bar0;
     UINT32 bar1;
     UINT32 bar2;
@@ -459,19 +520,8 @@ typedef struct PCI_HEADER_0 { // PCI Header 0x00
     UINT8 minGrant;
     UINT8 maxLatency;
 } PCI_HEADER_0;
-typedef struct PCI_HEADER_1 { // PCI Header 0x01
-    UINT16 vendorId;
-    UINT16 deviceId;
-    UINT16 command;
-    UINT16 status;
-    UINT8 revisionId;
-    UINT8 pi;
-    UINT8 scc;
-    UINT8 bcc;
-    UINT8 cacheLineSize;
-    UINT8 latencyTimer;
-    UINT8 headerType;
-    UINT8 bist;
+typedef struct PCI_HEADER_1 { // Header Type 0x1 (PCI-to-PCI bridge)
+    PCI_HEADER_COMMON common;
     UINT32 bar0;
     UINT32 bar1;
     UINT8 primaryBusNumber;
@@ -496,19 +546,8 @@ typedef struct PCI_HEADER_1 { // PCI Header 0x01
     UINT8 interruptPin;
     UINT16 bridgeControl;
 } PCI_HEADER_1;
-typedef struct PCI_HEADER_2 { // PCI Header 0x01
-    UINT16 vendorId;
-    UINT16 deviceId;
-    UINT16 command;
-    UINT16 status;
-    UINT8 revisionId;
-    UINT8 pi;
-    UINT8 scc;
-    UINT8 bcc;
-    UINT8 cacheLineSize;
-    UINT8 latencyTimer;
-    UINT8 headerType;
-    UINT8 bist;
+typedef struct PCI_HEADER_2 { // Header Type 0x2 (PCI-to-CardBus bridge)
+    PCI_HEADER_COMMON common;
     UINT32 cardBusSocket;
     UINT8 offsetOfCapabilitiesList;
     UINT8 reserved;
@@ -517,13 +556,13 @@ typedef struct PCI_HEADER_2 { // PCI Header 0x01
     UINT8 cardBusNumber;
     UINT8 subordinateBusNumber;
     UINT8 cardBusTimer;
-    UINT32 memoryBaseAddress0;
+    PCI_MEMORY_BAR_LAYOUT memoryBaseAddress0;
     UINT32 memoryBaseLimit0;
-    UINT32 memoryBaseAddress1;
+    PCI_MEMORY_BAR_LAYOUT memoryBaseAddress1;
     UINT32 memoryBaseLimit1;
-    UINT32 ioBaseAddress0;
+    PCI_IO_BAR_LAYOUT ioBaseAddress0;
     UINT32 ioLimit0;
-    UINT32 ioBaseAddress1;
+    PCI_IO_BAR_LAYOUT ioBaseAddress1;
     UINT32 ioLimit1;
     UINT8 interruptLine;
     UINT8 interruptPin;
@@ -532,6 +571,13 @@ typedef struct PCI_HEADER_2 { // PCI Header 0x01
     UINT16 subsystemVendorId;
     UINT32 legacyModeBaseAddress;
 } PCI_HEADER_2;
+typedef union PCI_HEADER{
+    PCI_HEADER_COMMON common; // 0x00 - 0x10
+    PCI_HEADER_0 h0; // 0x00 - 0x40
+    PCI_HEADER_1 h1; // 0x00 - 0x40
+    PCI_HEADER_2 h2; // 0x00 - 0x48
+} PCI_HEADER;
 typedef struct PCI{ // TODO
-    PCI_HEADER_0 header; 
+    PCI_HEADER header;
 } PCI;
+#pragma pack()

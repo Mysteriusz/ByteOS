@@ -43,7 +43,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, 0);
 
-    return sizeof(PCI_HEADER_2);
+    return ((PCI_HEADER*)devInfo->ioi[0].pciAddress)->h0.common.bcc;
     
     // testa *t1 = NULL;
     // UINTN s1 = sizeof(testa);    

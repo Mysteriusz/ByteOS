@@ -1,7 +1,6 @@
 #include "sata.h"
 #include "../pci.h"
 
-
 BT_STATUS SATA_Setup(IN IO_DISK *disk, IN UINT8 pi){
     if (disk == NULL){
         return 23;

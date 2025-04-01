@@ -13,7 +13,7 @@ BT_STATUS RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UIN
     UINT32 msu = 0;
     for (UINT32 i = 0; i < *count; i++){
         IO_DISK *disk = NULL;
-        BT_STATUS status = RegisterDisk(devices[i].pciAddress, NULL, disk);
+        BT_STATUS status = RegisterDisk((PCI*)devices[i].pciAddress, NULL, disk);
 
         if (status == BT_IO_INVALID_PCIE){
             continue;
@@ -29,18 +29,16 @@ BT_STATUS RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UIN
 
     return BT_SUCCESS;
 }
-BT_STATUS RegisterDisk(IN VOID *pciAddress, OPTIONAL IN CHAR8 *symbol, OUT IO_DISK *io){
+BT_STATUS RegisterDisk(IN PCI *pci, OPTIONAL IN CHAR8 *symbol, OUT IO_DISK *io){
     if (closestFree >= IO_MAX_DISKS){
         return BT_IO_DISK_OVERFLOW;
-    }
+    } 
 
-    if (pciAddress == NULL){
+    if (pci == NULL){
         return BT_INVALID_ARGUMENT;
     }
 
-    PCI *pci = (PCI*)pciAddress;
-
-    if (pci->header.bcc != PCI_BCC_MASS_STORAGE_CONTROLLER){
+    if (pci->header.common.bcc != PCI_BCC_MASS_STORAGE_CONTROLLER){
         return BT_IO_INVALID_PCIE;
     }
 
@@ -73,7 +71,7 @@ BT_STATUS RegisterDisk(IN VOID *pciAddress, OPTIONAL IN CHAR8 *symbol, OUT IO_DI
     (*disks)[diskIndex].symbol = diskSymbols[diskIndex];
     (*disks)[diskIndex].fileSystem = NONE;
     (*disks)[diskIndex].size = 0;
-    (*disks)[diskIndex].pciAddress = pciAddress;
+    (*disks)[diskIndex].pci = pci;
 
     while (disks[closestFree] != NULL){
         if (closestFree == IO_MAX_DISKS){
