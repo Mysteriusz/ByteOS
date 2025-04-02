@@ -47,7 +47,25 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // return (PHYSICAL_ADDRESS)&pci->header.common.status;
     // return (PHYSICAL_ADDRESS)pci->header.common.status.capabilitiesList;
     PCI *pci = (PCI*)devInfo->ioi[3].pciAddress;
-    return pci->header.common.status.capabilitiesList;
+    PCI_HBA_GENERIC_HOST_CONTROL *hba = (PCI_HBA_GENERIC_HOST_CONTROL*)((VOID*)pci->header.h0.bar5);
+    PCI_HBA_PORT_REGISTER *port0 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(0));
+    PCI_HBA_PORT_REGISTER *port1 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(1));
+    PCI_HBA_PORT_REGISTER *port2 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(2));
+    // return (PHYSICAL_ADDRESS)port1->commandListBaseAddress;
+    return (PHYSICAL_ADDRESS)port2;
+    // return (PHYSICAL_ADDRESS)sizeof(PCI_HBA_PORT_REGISTER);
+
+    // PHYSICAL_ADDRESS alin = (hba->port0.commandListBaseAddress + 0x3ff) & ~0x3ff;
+    // return (PHYSICAL_ADDRESS)hba->port0.commandListBaseAddress;
+    // return (PHYSICAL_ADDRESS)hba->ghc.majorVersionNumber;
+    // PCI_HBA_PORT_REGISTER r = hba->ghc.
+    // offset += cap0->nextCapabilityPointer;    
+    // PCI_CAPABILITY *cap1 = (PCI_CAPABILITY*)(offset);
+    // offset += cap1->nextCapabilityPointer;
+    // PCI_CAPABILITY *cap2 = (PCI_CAPABILITY*)(offset);
+    // offset += cap2->nextCapabilityPointer;
+
+    // return ((PCI_PM*)cap0).;
     
     // testa *t1 = NULL;
     // UINTN s1 = sizeof(testa);    

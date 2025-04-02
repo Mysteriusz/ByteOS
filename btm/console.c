@@ -438,8 +438,8 @@ EFI_STATUS GATHER_IO_INFO(OUT UINT32 *ioCount, OUT KERNEL_IO_DEVICE_INFO **ioInf
         status = systemTable->bootServices->handleProtocol(handleBuffer[i], &(EFI_GUID)EFI_PCI_IO_PROTOCOL_GUID, (VOID**)&pciIo);
         
         BYTE *pciBuffer;
-        EFI_AllocPool(EfiLoaderData, PCI_SIZE, (VOID**)&pciBuffer);
-        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciIoWidthUint8, 0x0, PCI_SIZE, (VOID*)pciBuffer);
+        EFI_AllocPool(EfiLoaderData, 0x100, (VOID**)&pciBuffer);
+        status = pciIo->pci.read(pciIo, (EFI_PCI_IO_PROTOCOL_WIDTH)EfiPciWidthUint8, 0x0, 0x100, (VOID*)pciBuffer);
 
         (*ioInfo)[i].pciAddress = (VOID*)pciBuffer;
 
