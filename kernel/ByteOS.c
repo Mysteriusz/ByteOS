@@ -1,6 +1,7 @@
 #include "byteos.h"
 #include "graphics/fonts/bts.h"
-#include "drivers/io/storage/disk.h"
+#include "drivers/io/disk.h"
+#include "drivers/io/interfaces/ahci.h"
 #include "drivers/pci.h"
 
 // ==================================== |
@@ -51,13 +52,22 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     PCI_HBA_PORT_REGISTER *port0 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(0));
     PCI_HBA_PORT_REGISTER *port1 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(1));
     PCI_HBA_PORT_REGISTER *port2 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(2));
-    UINT64 commandHeaderAddress = ((UINT64)port0->commandListBaseAddressUpper << 32) | (port0->commandListBaseAddress << 10);
-    PCI_HBA_AHCI_COMMAND_LIST *commandList = (PCI_HBA_AHCI_COMMAND_LIST*)commandHeaderAddress;
+    
+    UINT64 commandListAddress = ((UINT64)port0->commandListBaseAddressUpper << 32) | (port0->commandListBaseAddress << 10);
+    PCI_HBA_AHCI_COMMAND_LIST *commandList = (PCI_HBA_AHCI_COMMAND_LIST*)commandListAddress;
+
     UINT64 commandTableAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     PCI_HBA_AHCI_COMMAND_TABLE *commandTable = (PCI_HBA_AHCI_COMMAND_TABLE*)commandTableAddress;
-    return (PHYSICAL_ADDRESS)commandTable->entries->dataBaseAddress;
+    
+    UINT64 dataBaseAddress = ((UINT64)commandTable->entries[0].dataBaseAddressUpper << 32) | (commandTable->entries[0].dataBaseAddress << 1);
+    
+    HBA_START_DMA(port0);
+    HBA_STOP_DMA(port0);
+
+    return (PHYSICAL_ADDRESS)port0->command.commandListRunning;
+    // return (PHYSICAL_ADDRESS)port0->rawFisControlAndStatus.transmitterReceivedStatus;
+    // return (PHYSICAL_ADDRESS)port0->rawFisControlAndStatus;
     // return (PHYSICAL_ADDRESS)(pci->header.common.latencyTimer);
-    // return (PHYSICAL_ADDRESS)sizeof(PCI_HBA_PORT_REGISTER);
     // return (PHYSICAL_ADDRESS)sizeof(PCI_HBA_PORT_REGISTER);
 
     // PHYSICAL_ADDRESS alin = (hba->port0.commandListBaseAddress + 0x3ff) & ~0x3ff;

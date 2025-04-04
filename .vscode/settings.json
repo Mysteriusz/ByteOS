@@ -26,6 +26,7 @@
         "fat32.h": "c",
         "filesystem.h": "c",
         "disk.h": "c",
-        "pcie.h": "c"
+        "pcie.h": "c",
+        "pci.h": "c"
     }
 }

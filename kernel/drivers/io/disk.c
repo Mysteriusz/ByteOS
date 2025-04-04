@@ -15,7 +15,7 @@ BT_STATUS RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UIN
         IO_DISK *disk = NULL;
         BT_STATUS status = RegisterDisk((PCI*)devices[i].pciAddress, NULL, disk);
 
-        if (status == BT_IO_INVALID_PCIE){
+        if (status == BT_IO_INVALID_PCI){
             continue;
         }
         else if (BT_ERROR(status)){
@@ -39,7 +39,7 @@ BT_STATUS RegisterDisk(IN PCI *pci, OPTIONAL IN CHAR8 *symbol, OUT IO_DISK *io){
     }
 
     if (pci->header.common.bcc != PCI_BCC_MASS_STORAGE_CONTROLLER){
-        return BT_IO_INVALID_PCIE;
+        return BT_IO_INVALID_PCI;
     }
 
     UINTN s = sizeof(IO_DISK);

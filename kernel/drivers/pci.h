@@ -917,52 +917,11 @@ typedef struct PCI_HBA_PORT_REGISTER{
 
 #pragma endregion PCI_HBA
 
-#pragma region PCI_AHCI
-
-#define PCI_HBA_AHCI_COMMAND_TABLE_MAX_ENTRY_COUNT 0xffff
-#define PCI_HBA_AHCI_COMMAND_TABLE_ENTRY_OFFSET 0x80
-typedef struct PCI_HBA_AHCI_COMMAND_TABLE_ENTRY{
-    UINT32 reserved0 : 1;
-    UINT32 dataBaseAddress : 31;
-    UINT32 dataBaseAddressUpper;
-    UINT32 reserved1;
-    UINT32 dataByteCount : 22;
-    UINT32 reserved : 9;
-    UINT32 interruptOnCompletion : 1;
-} PCI_HBA_AHCI_COMMAND_TABLE_ENTRY;
-
-typedef struct PCI_HBA_AHCI_COMMAND_TABLE{
-    UINT8 commandFis[0x40];
-    UINT8 atapiCommand[0x10];
-    UINT8 reserved0[0x30];
-    PCI_HBA_AHCI_COMMAND_TABLE_ENTRY entries[1];
-} PCI_HBA_AHCI_COMMAND_TABLE;
-
-typedef struct PCI_HBA_AHCI_COMMAND_LIST_HEADER{
-    UINT16 commandFisLength : 5;
-    UINT16 atapi : 1;
-    UINT16 write : 1;
-    UINT16 prefetchable : 1;
-    UINT16 reset : 1;
-    UINT16 bist : 1;
-    UINT16 clearBusUponR_OK : 1;
-    UINT16 reserved0 : 1;
-    UINT16 portMultiplierPort : 4;
-    UINT16 physicalRegionDescriptorTableLength;
-    UINT32 physicalRegionDescriptorByteCount;
-    UINT32 reserved1 : 7;
-    UINT32 commandTableDescriptorBaseAddress : 25;
-    UINT32 commandTableDescriptorBaseAddressUpper;
-} PCI_HBA_AHCI_COMMAND_LIST_HEADER;
-
-typedef struct PCI_HBA_AHCI_COMMAND_LIST{
-    PCI_HBA_AHCI_COMMAND_LIST_HEADER commandHeader;
-} PCI_HBA_AHCI_COMMAND_LIST;
-
-#pragma endregion PCI_AHCI
-
 typedef struct PCI{ // TODO
     PCI_HEADER header;
 } PCI;
+
+BT_STATUS HBA_START_DMA(IN PCI_HBA_PORT_REGISTER *port);
+BT_STATUS HBA_STOP_DMA(IN PCI_HBA_PORT_REGISTER *port);
 
 #pragma pack()
