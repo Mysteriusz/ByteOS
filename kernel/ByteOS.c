@@ -47,12 +47,17 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // return (PHYSICAL_ADDRESS)&pci->header.common.status;
     // return (PHYSICAL_ADDRESS)pci->header.common.status.capabilitiesList;
     PCI *pci = (PCI*)devInfo->ioi[3].pciAddress;
-    PCI_HBA_GENERIC_HOST_CONTROL *hba = (PCI_HBA_GENERIC_HOST_CONTROL*)((VOID*)pci->header.h0.bar5);
+    PCI_HBA_GENERIC_HOST_CONTROL *hba = (PCI_HBA_GENERIC_HOST_CONTROL*)(pci->header.h0.bar5);
     PCI_HBA_PORT_REGISTER *port0 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(0));
     PCI_HBA_PORT_REGISTER *port1 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(1));
     PCI_HBA_PORT_REGISTER *port2 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(2));
-    // return (PHYSICAL_ADDRESS)port1->commandListBaseAddress;
-    return (PHYSICAL_ADDRESS)port2;
+    UINT64 commandHeaderAddress = ((UINT64)port0->commandListBaseAddressUpper << 32) | (port0->commandListBaseAddress << 10);
+    PCI_HBA_AHCI_COMMAND_LIST *commandList = (PCI_HBA_AHCI_COMMAND_LIST*)commandHeaderAddress;
+    UINT64 commandTableAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    PCI_HBA_AHCI_COMMAND_TABLE *commandTable = (PCI_HBA_AHCI_COMMAND_TABLE*)commandTableAddress;
+    return (PHYSICAL_ADDRESS)commandTable->entries->dataBaseAddress;
+    // return (PHYSICAL_ADDRESS)(pci->header.common.latencyTimer);
+    // return (PHYSICAL_ADDRESS)sizeof(PCI_HBA_PORT_REGISTER);
     // return (PHYSICAL_ADDRESS)sizeof(PCI_HBA_PORT_REGISTER);
 
     // PHYSICAL_ADDRESS alin = (hba->port0.commandListBaseAddress + 0x3ff) & ~0x3ff;

@@ -884,13 +884,13 @@ typedef struct PCI_HBA_PORT_REGISTER_SATA_ERROR{
 #define PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL_TRS_3 0x03 // Transmission complete, R_OK returned by device
 #define PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL_TRS_4 0x04 // Transmission complete, R_ERR returned by device 
 typedef struct PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL{
-    UINT32 enableRawFisMode : 1;
-    UINT32 receiverReturnR_OK : 1;
-    UINT32 receiverReturnR_ERR : 1;
-    UINT32 reserved0 : 1;
-    UINT32 transmitterReceivedStatus : 3;
-    UINT32 reserved1 : 9;
-    UINT32 lastReceivedFixLength : 17;
+    UINT16 enableRawFisMode : 1;
+    UINT16 receiverReturnR_OK : 1;
+    UINT16 receiverReturnR_ERR : 1;
+    UINT16 reserved0 : 1;
+    UINT16 transmitterReceivedStatus : 3;
+    UINT16 reserved1 : 9;
+    UINT16 lastReceivedFixLength;
 } PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL;
 
 typedef struct PCI_HBA_PORT_REGISTER{
@@ -903,6 +903,7 @@ typedef struct PCI_HBA_PORT_REGISTER{
     PCI_HBA_PORT_REGISTER_INTERRUPT_STATUS interruptStatus;
     PCI_HBA_PORT_REGISTER_INTERRUPT_ENABLE interruptEnable;
     PCI_HBA_PORT_REGISTER_COMMAND command;
+    UINT32 padding0;
     PCI_HBA_PORT_REGISTER_TASK_FILE taskFileData;
     PCI_HBA_PORT_REGISTER_SIGNATURE signature;
     PCI_HBA_PORT_REGISTER_SATA_STATUS sstatus;
@@ -910,10 +911,55 @@ typedef struct PCI_HBA_PORT_REGISTER{
     PCI_HBA_PORT_REGISTER_SATA_ERROR serror;
     UINT32 deviceStatus;
     UINT32 commandIssued;
+    UINT32 padding1;
     PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL rawFisControlAndStatus;
 } PCI_HBA_PORT_REGISTER;
 
 #pragma endregion PCI_HBA
+
+#pragma region PCI_AHCI
+
+#define PCI_HBA_AHCI_COMMAND_TABLE_MAX_ENTRY_COUNT 0xffff
+#define PCI_HBA_AHCI_COMMAND_TABLE_ENTRY_OFFSET 0x80
+typedef struct PCI_HBA_AHCI_COMMAND_TABLE_ENTRY{
+    UINT32 reserved0 : 1;
+    UINT32 dataBaseAddress : 31;
+    UINT32 dataBaseAddressUpper;
+    UINT32 reserved1;
+    UINT32 dataByteCount : 22;
+    UINT32 reserved : 9;
+    UINT32 interruptOnCompletion : 1;
+} PCI_HBA_AHCI_COMMAND_TABLE_ENTRY;
+
+typedef struct PCI_HBA_AHCI_COMMAND_TABLE{
+    UINT8 commandFis[0x40];
+    UINT8 atapiCommand[0x10];
+    UINT8 reserved0[0x30];
+    PCI_HBA_AHCI_COMMAND_TABLE_ENTRY entries[1];
+} PCI_HBA_AHCI_COMMAND_TABLE;
+
+typedef struct PCI_HBA_AHCI_COMMAND_LIST_HEADER{
+    UINT16 commandFisLength : 5;
+    UINT16 atapi : 1;
+    UINT16 write : 1;
+    UINT16 prefetchable : 1;
+    UINT16 reset : 1;
+    UINT16 bist : 1;
+    UINT16 clearBusUponR_OK : 1;
+    UINT16 reserved0 : 1;
+    UINT16 portMultiplierPort : 4;
+    UINT16 physicalRegionDescriptorTableLength;
+    UINT32 physicalRegionDescriptorByteCount;
+    UINT32 reserved1 : 7;
+    UINT32 commandTableDescriptorBaseAddress : 25;
+    UINT32 commandTableDescriptorBaseAddressUpper;
+} PCI_HBA_AHCI_COMMAND_LIST_HEADER;
+
+typedef struct PCI_HBA_AHCI_COMMAND_LIST{
+    PCI_HBA_AHCI_COMMAND_LIST_HEADER commandHeader;
+} PCI_HBA_AHCI_COMMAND_LIST;
+
+#pragma endregion PCI_AHCI
 
 typedef struct PCI{ // TODO
     PCI_HEADER header;
