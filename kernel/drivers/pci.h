@@ -445,7 +445,7 @@
 
 #pragma region PCI_HEADER
 
-typedef struct PCI_STATUS_REGISTER{
+typedef volatile struct PCI_STATUS_REGISTER{
     UINT16 reserved0 : 3;
     UINT16 interruptStatus : 1;
     UINT16 capabilitiesList : 1;
@@ -460,7 +460,7 @@ typedef struct PCI_STATUS_REGISTER{
     UINT16 signaledSystemError : 1;
     UINT16 detectedParityError : 1;
 } PCI_STATUS_REGISTER;
-typedef struct PCI_COMMAND_REGISTER{
+typedef volatile struct PCI_COMMAND_REGISTER{
     UINT16 ioSpace : 1;
     UINT16 memorySpace : 1;
     UINT16 busMaster : 1;
@@ -474,29 +474,29 @@ typedef struct PCI_COMMAND_REGISTER{
     UINT16 interruptDisable : 1;
     UINT16 reserved1 : 5;
 } PCI_COMMAND_REGISTER;
-typedef struct PCI_HEADER_TYPE{
+typedef volatile struct PCI_HEADER_TYPE{
     UINT8 headerType : 7;
     UINT8 multipleFunctions : 1;
 } PCI_HEADER_TYPE;
-typedef struct PCI_BIST_REGISTER{
+typedef volatile struct PCI_BIST_REGISTER{
     UINT8 completionCode : 3;
     UINT8 reserved : 2;
     UINT8 startBist : 1;
     UINT8 bistCapable : 1;
 } PCI_BIST_REGISTER;
-typedef struct PCI_MEMORY_BAR_LAYOUT{
+typedef volatile struct PCI_MEMORY_BAR_LAYOUT{
     UINT32 always0 : 1;
     UINT32 type : 2;
     UINT32 prefetchable : 1;
     UINT32 baseAddress : 28;
 } PCI_MEMORY_BAR_LAYOUT;
-typedef struct PCI_IO_BAR_LAYOUT{
+typedef volatile struct PCI_IO_BAR_LAYOUT{
     UINT32 always1 : 1;
     UINT32 reserved : 1;
     UINT32 baseAddress : 30;
 } PCI_IO_BAR_LAYOUT;
 
-typedef struct PCI_HEADER_COMMON { // PCI Common Fields 0x00
+typedef volatile struct PCI_HEADER_COMMON { // PCI Common Fields 0x00
     UINT16 vendorId;
     UINT16 deviceId;
     PCI_COMMAND_REGISTER command;
@@ -510,7 +510,7 @@ typedef struct PCI_HEADER_COMMON { // PCI Common Fields 0x00
     PCI_HEADER_TYPE headerType;
     PCI_BIST_REGISTER bist;
 } PCI_HEADER_COMMON;
-typedef struct PCI_HEADER_0 { // PCI Header Type 0x00 (Standard)
+typedef volatile struct PCI_HEADER_0 { // PCI Header Type 0x00 (Standard)
     PCI_HEADER_COMMON common;
     UINT32 bar0;
     UINT32 bar1;
@@ -529,7 +529,7 @@ typedef struct PCI_HEADER_0 { // PCI Header Type 0x00 (Standard)
     UINT8 minGrant;
     UINT8 maxLatency;
 } PCI_HEADER_0;
-typedef struct PCI_HEADER_1 { // Header Type 0x1 (PCI-to-PCI bridge)
+typedef volatile struct PCI_HEADER_1 { // Header Type 0x1 (PCI-to-PCI bridge)
     PCI_HEADER_COMMON common;
     UINT32 bar0;
     UINT32 bar1;
@@ -555,7 +555,7 @@ typedef struct PCI_HEADER_1 { // Header Type 0x1 (PCI-to-PCI bridge)
     UINT8 interruptPin;
     UINT16 bridgeControl;
 } PCI_HEADER_1;
-typedef struct PCI_HEADER_2 { // Header Type 0x2 (PCI-to-CardBus bridge)
+typedef volatile struct PCI_HEADER_2 { // Header Type 0x2 (PCI-to-CardBus bridge)
     PCI_HEADER_COMMON common;
     UINT32 cardBusSocket;
     UINT8 offsetOfCapabilitiesList;
@@ -590,11 +590,11 @@ typedef union PCI_HEADER{ // Universal Header
 #pragma endregion PCI_HEADER
 #pragma region PCI_PM
 
-typedef struct PCI_PM_CAPABILITY_ID{
+typedef volatile struct PCI_PM_CAPABILITY_ID{
     UINT8 nextCapability;
     UINT8 cid;
 } PCI_PM_CAPABILITY_ID;
-typedef struct PCI_PM_CAPABILITIES{
+typedef volatile struct PCI_PM_CAPABILITIES{
     UINT16 version : 3;
     UINT16 pmeClock : 1;
     UINT16 reserved : 1;
@@ -604,7 +604,7 @@ typedef struct PCI_PM_CAPABILITIES{
     UINT16 d2Support : 1;
     UINT16 pmeSupport : 5;
 } PCI_PM_CAPABILITIES;
-typedef struct PCI_PM_CONTROL_AND_STATUS{
+typedef volatile struct PCI_PM_CONTROL_AND_STATUS{
     UINT16 powerState : 2;
     UINT16 reserved0 : 6;
     UINT16 pmeEnable : 1;
@@ -612,7 +612,7 @@ typedef struct PCI_PM_CONTROL_AND_STATUS{
     UINT16 pmeStatus : 1;
 } PCI_PM_CONTROL_AND_STATUS;
 
-typedef struct PCI_PM{
+typedef volatile struct PCI_PM{
     PCI_PM_CAPABILITY_ID pid;
     PCI_PM_CAPABILITIES pc;
     PCI_PM_CONTROL_AND_STATUS pmcs;
@@ -621,7 +621,7 @@ typedef struct PCI_PM{
 #pragma endregion PCI_PM
 #pragma region PCI_MSI
 
-typedef struct PCI_MSI_MESSAGE_CONTROL{
+typedef volatile struct PCI_MSI_MESSAGE_CONTROL{
     UINT16 enable : 1;
     UINT16 multipleMessageCapable : 3;
     UINT16 multipleMessageEnable : 3;
@@ -629,18 +629,18 @@ typedef struct PCI_MSI_MESSAGE_CONTROL{
     UINT16 perVectorMasking : 1;
     UINT16 reserved : 6;
 } PCI_MSI_MESSAGE_CONTROL;
-typedef struct PCI_MSIX_MESSAGE_CONTROL{
+typedef volatile struct PCI_MSIX_MESSAGE_CONTROL{
     UINT16 tableSize : 10;
     UINT16 reserved : 3;
     UINT16 functionMask : 1;
     UINT16 enable : 1;
 } PCI_MSIX_MESSAGE_CONTROL;
 
-typedef struct PCI_MSI_COMMON{ // Common Message Signaled Interrupts
+typedef volatile struct PCI_MSI_COMMON{ // Common Message Signaled Interrupts
     UINT8 capabilityId;
     UINT8 nextPointer;
 } PCI_MSI_COMMON;
-typedef struct PCI_MSI{ // Message Signaled Interrupts 0x05
+typedef volatile struct PCI_MSI{ // Message Signaled Interrupts 0x05
     PCI_MSI_COMMON common;
     PCI_MSI_MESSAGE_CONTROL messageControl;
     UINT32 messageAddressL;
@@ -650,7 +650,7 @@ typedef struct PCI_MSI{ // Message Signaled Interrupts 0x05
     UINT32 mask;
     UINT32 pending;
 } PCI_MSI;
-typedef struct PCI_MSIX{ // Message Signaled Interrupts eXtended 0x11
+typedef volatile struct PCI_MSIX{ // Message Signaled Interrupts eXtended 0x11
     PCI_MSI_COMMON common;
     PCI_MSIX_MESSAGE_CONTROL messageControl;
     UINT32 bir : 8;
@@ -666,7 +666,7 @@ typedef union PCI_MS{ // Universal Message Signaling
 
 #pragma endregion PCI_MSI
 #pragma region PCI_CAPABILITY
-typedef struct PCI_CAPABILITY{
+typedef volatile struct PCI_CAPABILITY{
     UINT8 capabilitiesId;
     UINT8 nextCapabilityPointer;
     UINT16 versionId : 3;
@@ -693,7 +693,7 @@ typedef struct PCI_CAPABILITY{
 #pragma endregion PCI_CAPABILITY
 #pragma region PCI_HBA
 
-typedef struct PCI_HBA_HOST_CAPABILITIES{
+typedef volatile struct PCI_HBA_HOST_CAPABILITIES{
     UINT32 numberOfPorts : 5;
     UINT32 reserved0 : 3;
     UINT32 numeberOfSlots : 5;
@@ -714,13 +714,13 @@ typedef struct PCI_HBA_HOST_CAPABILITIES{
     UINT32 supportsCmdQueueAcceleration : 1;
     UINT32 supports64Addressing : 1;
 } PCI_HBA_HOST_CAPABILITIES;
-typedef struct PCI_HBA_GLOBAL_HOST_CONTROL{
+typedef volatile struct PCI_HBA_GLOBAL_HOST_CONTROL{
     UINT32 ahciEnable : 1;
     UINT32 reserved0 : 29;
     UINT32 interruptEnable : 1;
     UINT32 hbaReset : 1;
 } PCI_HBA_GLOBAL_HOST_CONTROL;
-typedef struct PCI_HBA_GENERIC_HOST_CONTROL{
+typedef volatile struct PCI_HBA_GENERIC_HOST_CONTROL{
     PCI_HBA_HOST_CAPABILITIES hostCapabilities;
     PCI_HBA_GLOBAL_HOST_CONTROL globalHostControl;
     UINT32 interruptPendingStatus;
@@ -729,7 +729,7 @@ typedef struct PCI_HBA_GENERIC_HOST_CONTROL{
     UINT16 majorVersionNumber;
 } PCI_HBA_GENERIC_HOST_CONTROL;
 
-typedef struct PCI_HBA_PORT_REGISTER_INTERRUPT_STATUS{
+typedef volatile struct PCI_HBA_PORT_REGISTER_INTERRUPT_STATUS{
     UINT32 deviceToHostRegisterInterrupt : 1;
     UINT32 pioSetupFisInterrupt : 1;
     UINT32 dmaSetupFisInterrupt : 1;
@@ -749,7 +749,7 @@ typedef struct PCI_HBA_PORT_REGISTER_INTERRUPT_STATUS{
     UINT32 taskFileErrorStatus : 1;
     UINT32 coldPortDetectStatus : 1;
 } PCI_HBA_PORT_REGISTER_INTERRUPT_STATUS;
-typedef struct PCI_HBA_PORT_REGISTER_INTERRUPT_ENABLE{
+typedef volatile struct PCI_HBA_PORT_REGISTER_INTERRUPT_ENABLE{
     UINT32 deviceToHostRegisterInterruptEnable : 1;
     UINT32 pioSetupFisInterruptEnable : 1;
     UINT32 dmaSetupFisInterruptEnable : 1;
@@ -774,7 +774,7 @@ typedef struct PCI_HBA_PORT_REGISTER_INTERRUPT_ENABLE{
 #define PCI_HBA_PORT_REGISTER_COMMAND_ICC_PR 0x01 // Partial
 #define PCI_HBA_PORT_REGISTER_COMMAND_ICC_AC 0x02 // Active
 #define PCI_HBA_PORT_REGISTER_COMMAND_ICC_NI 0x06 // No-Op / Idle
-typedef struct PCI_HBA_PORT_REGISTER_COMMAND{
+typedef volatile struct PCI_HBA_PORT_REGISTER_COMMAND{
     UINT32 start : 1;
     UINT32 spinUpDevice : 1;
     UINT32 powerOnDevice : 1;
@@ -801,13 +801,13 @@ typedef struct PCI_HBA_PORT_REGISTER_COMMAND{
 #define PCI_HBA_PORT_REGISTER_TFD_BUSY 0x80 // Indicates the interface is busy
 #define PCI_HBA_PORT_REGISTER_TFD_REQ 0x08 // Indicates a data transfer is requested
 #define PCI_HBA_PORT_REGISTER_TFD_ERR 0x01 // Indicates an error during the transfer
-typedef struct PCI_HBA_PORT_REGISTER_TASK_FILE{
+typedef volatile struct PCI_HBA_PORT_REGISTER_TASK_FILE{
     UINT8 status;
     UINT8 error;
     UINT16 reserved;
 } PCI_HBA_PORT_REGISTER_TASK_FILE;
 
-typedef struct PCI_HBA_PORT_REGISTER_SIGNATURE{
+typedef volatile struct PCI_HBA_PORT_REGISTER_SIGNATURE{
     UINT32 sectorCountRegister : 8;
     UINT32 lbaLowRegister : 8;
     UINT32 lbaMidRegister : 8;
@@ -827,7 +827,7 @@ typedef struct PCI_HBA_PORT_REGISTER_SIGNATURE{
 #define PCI_HBA_PORT_REGISTER_SSTATUS_IPM_IA 0x01 // Interface in active state  
 #define PCI_HBA_PORT_REGISTER_SSTATUS_IPM_IPA 0x02 // Interface in PARTIAL power management state
 #define PCI_HBA_PORT_REGISTER_SSTATUS_IPM_ISA 0x06 // Interface in SLUMBER power management state
-typedef struct PCI_HBA_PORT_REGISTER_SATA_STATUS{
+typedef volatile struct PCI_HBA_PORT_REGISTER_SATA_STATUS{
     UINT32 deviceDetection : 4;
     UINT32 currentInterfaceSpeed : 4;
     UINT32 interfacePowerManagement : 4;
@@ -846,7 +846,7 @@ typedef struct PCI_HBA_PORT_REGISTER_SATA_STATUS{
 #define PCI_HBA_PORT_REGISTER_SCONTROL_IPM_TPOF 0x01 // Transitions to the PARTIAL state disabled
 #define PCI_HBA_PORT_REGISTER_SCONTROL_IPM_TSOF 0x02 // Transitions to the SLUMBER state disabled
 #define PCI_HBA_PORT_REGISTER_SCONTROL_IPM_TPSOF 0x03 // Transitions to both PARTIAL and SLUMBER states disabled
-typedef struct PCI_HBA_PORT_REGISTER_SATA_CONTROL{
+typedef volatile struct PCI_HBA_PORT_REGISTER_SATA_CONTROL{
     UINT32 deviceDetection : 12;
     UINT32 PortMultiplierPort : 4;
     UINT32 selectPowerManagement : 4;
@@ -873,7 +873,7 @@ typedef struct PCI_HBA_PORT_REGISTER_SATA_CONTROL{
 #define PCI_HBA_PORT_REGISTER_SERROR_DIAG_T 0x0100 // Transport state transition error (T)
 #define PCI_HBA_PORT_REGISTER_SERROR_DIAG_F 0x0200 // Unrecognized FIS Type (F)
 #define PCI_HBA_PORT_REGISTER_SERROR_DIAG_X 0x0400 // Exchanged (X)
-typedef struct PCI_HBA_PORT_REGISTER_SATA_ERROR{
+typedef volatile struct PCI_HBA_PORT_REGISTER_SATA_ERROR{
     UINT32 error : 16;
     UINT32 diagnostics : 16;
 } PCI_HBA_PORT_REGISTER_SATA_ERROR;
@@ -883,7 +883,7 @@ typedef struct PCI_HBA_PORT_REGISTER_SATA_ERROR{
 #define PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL_TRS_2 0x02 // Transmission complete, X_RDY/X_RDY collision encountered
 #define PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL_TRS_3 0x03 // Transmission complete, R_OK returned by device
 #define PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL_TRS_4 0x04 // Transmission complete, R_ERR returned by device 
-typedef struct PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL{
+typedef volatile struct PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL{
     UINT16 enableRawFisMode : 1;
     UINT16 receiverReturnR_OK : 1;
     UINT16 receiverReturnR_ERR : 1;
@@ -893,7 +893,7 @@ typedef struct PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL{
     UINT16 lastReceivedFixLength;
 } PCI_HBA_PORT_REGISTER_RAW_FIS_CONTROL;
 
-typedef struct PCI_HBA_PORT_REGISTER{
+typedef volatile struct PCI_HBA_PORT_REGISTER{
     UINT32 reserved0 : 10;
     UINT32 commandListBaseAddress : 22;
     UINT32 commandListBaseAddressUpper;
@@ -917,11 +917,11 @@ typedef struct PCI_HBA_PORT_REGISTER{
 
 #pragma endregion PCI_HBA
 
-typedef struct PCI{ // TODO
+typedef volatile struct PCI{ // TODO
     PCI_HEADER header;
 } PCI;
 
-BT_STATUS HBA_START_DMA(IN PCI_HBA_PORT_REGISTER *port);
-BT_STATUS HBA_STOP_DMA(IN PCI_HBA_PORT_REGISTER *port);
+BT_STATUS PCI_HBA_START_DMA_ENGINE(IN PCI_HBA_PORT_REGISTER *port);
+BT_STATUS PCI_HBA_STOP_DMA_ENGINE(IN PCI_HBA_PORT_REGISTER *port);
 
 #pragma pack()
