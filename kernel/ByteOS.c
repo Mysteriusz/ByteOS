@@ -48,7 +48,7 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     // return (PHYSICAL_ADDRESS)&pci->header.common.status;
     // return (PHYSICAL_ADDRESS)pci->header.common.status.capabilitiesList;
     PCI *pci = (PCI*)devInfo->ioi[3].pciAddress;
-    PCI_HBA_GENERIC_HOST_CONTROL *hba = (PCI_HBA_GENERIC_HOST_CONTROL*)(pci->header.h0.bar5);
+    PCI_HBA_GENERIC_HOST_CONTROL *hba = (PCI_HBA_GENERIC_HOST_CONTROL*)((UINT64)pci->header.h0.bar5);
     PCI_HBA_PORT_REGISTER *port0 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(0));
 
     pci->header.common.command.interruptDisable = FALSE;
@@ -58,25 +58,23 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     hba->globalHostControl.hbaReset = TRUE;
     hba->globalHostControl.interruptEnable = TRUE;
 
-    PCI_HBA_AHCI_COMMAND_SESSION *session;
-    UINTN ss = sizeof(PCI_HBA_AHCI_COMMAND_SESSION);
+    AHCI_COMMAND_SESSION *session;
+    UINTN ss = sizeof(AHCI_COMMAND_SESSION);
 
     status = AllocPhysicalPool((VOID**)&session, &ss, BT_MEMORY_KERNEL_RW);
     session->port = port0;
     session->portIndex = 0;
 
-    BYTE *buffer;
-    UINTN s = 0x200;
-    status = AllocPhysicalPool((VOID**)&buffer, &s, BT_MEMORY_KERNEL_RW);
-    
     status = PCI_HBA_START_DMA_ENGINE(session->port);
-    status = AHCI_IDENTIFY_DEVICE(session, buffer);
-    PCI_HBA_ISSUE_PORT(session->port->commandIssued, session->portIndex);
-    return (PHYSICAL_ADDRESS)status;
+
+    BYTE *buffer = NULL;
+    status = AHCI_IDENTIFY_DEVICE(session, &buffer);
+    return (PHYSICAL_ADDRESS)buffer;    
     
+    PCI_HBA_ISSUE_PORT(session->port->commandIssued, session->portIndex);
 
     status = PCI_HBA_STOP_DMA_ENGINE(session->port);
-    
+
     
     // return (PHYSICAL_ADDRESS)buffer;
 

@@ -444,6 +444,9 @@
 #define PCI_HBA_ISSUE_PORT(commandIssued, portIndex)((commandIssued) |= (1 << (portIndex)))
 #define PCI_HBA_DEISSUE_PORT(commandIssued, portIndex)((commandIssued) &= ~(1 << (portIndex)))
 
+#define PCI_HBA_COMMAND_LIST_ADDRESS(port) \
+    (((UINT64)((PCI_HBA_PORT_REGISTER*)port)->commandListBaseAddressUpper) << 32) | (((UINT64)((PCI_HBA_PORT_REGISTER*)port)->commandListBaseAddress) << 10)
+
 #pragma pack(1)
 
 #pragma region PCI_HEADER

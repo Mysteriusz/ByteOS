@@ -10,7 +10,6 @@ BT_STATUS PCI_HBA_START_DMA_ENGINE(IN PCI_HBA_PORT_REGISTER *port){
     }
     
     port->command.start = 1;
-    port->command.fisReceiveEnable = 1;
     return BT_SUCCESS;
 }
 BT_STATUS PCI_HBA_STOP_DMA_ENGINE(IN PCI_HBA_PORT_REGISTER *port){
