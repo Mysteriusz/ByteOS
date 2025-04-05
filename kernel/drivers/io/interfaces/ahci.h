@@ -1,3 +1,5 @@
+#pragma once
+
 #include "byteos.h"
 #include "pci.h"
 
@@ -5,8 +7,6 @@
 
 #define AHCI_COMMAND_TABLE_MAX_ENTRY_COUNT 0xffff
 #define AHCI_COMMAND_TABLE_ENTRY_OFFSET 0x80
-
-#define AHCI_FIS_IDENTIFY_DEVICE_SIZE 0x200
 
 typedef enum AHCI_FIS_COMMAND{
     CHECK_POWER_MODE = 0xe5,
@@ -222,16 +222,5 @@ typedef volatile struct AHCI_COMMAND_LIST_HEADER{
 typedef volatile struct AHCI_COMMAND_LIST{
     AHCI_COMMAND_LIST_HEADER commandHeader;
 } AHCI_COMMAND_LIST;
-typedef volatile struct AHCI_COMMAND_SESSION{
-    PCI_HBA_PORT_REGISTER *port;
-    UINT32 portIndex;
-} AHCI_COMMAND_SESSION;
 
 #pragma endregion STRUCTURES
-#pragma region COMMANDS
-
-BT_STATUS AHCI_REBASE(IN PCI_HBA_GENERIC_HOST_CONTROL *hba);
-BT_STATUS AHCI_IDENTIFY_DEVICE(IN AHCI_COMMAND_SESSION *cmd, IN OUT BYTE **buffer);
-BT_STATUS AHCI_READ_SECTORS(IN AHCI_COMMAND_SESSION *cmd, IN OUT BYTE **buffer, OUT UINT32 *size);
-
-#pragma endregion COMMANDS
