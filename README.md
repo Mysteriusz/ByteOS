@@ -1,17 +1,17 @@
 - Current BTM state
-  - Memory map gathering       :heavy_check_mark:
-  - Framebuffer info gathering :heavy_check_mark:
-  - PCI device info gathering  :heavy_check_mark:
-  - Other device info gathering:heavy_multiplication_x: (To do)
-  - PE32+ header run support   :heavy_check_mark:
-  - PE32 header run support    :heavy_minus_sign: (To finish)
-  - ELF header run support     :heavy_multiplication_x: (To do)
+  - Memory map gathering        :heavy_check_mark:
+  - Framebuffer info gathering  :heavy_check_mark:
+  - PCI device info gathering   :heavy_check_mark:
+  - Other device info gathering :heavy_multiplication_x: (To do)
+  - PE32+ header run support    :heavy_check_mark:
+  - PE32 header run support     :heavy_minus_sign: (To finish)
+  - ELF header run support      :heavy_multiplication_x: (To do)
 - Current Kernel state
-  - Physical memory allocation :heavy_check_mark:
-  - SATA/AHCI disk driver      :heavy_minus_sign:       (In progress | Working device comms)
-  - File system                :heavy_minus_sign:       (In progress | Awaiting disk driver)
-  - Disk management            :heavy_minus_sign:       (In progress)
-  - Virtual memory allocation  :heavy_multiplication_x: (Awaiting Filesystem)
-  - Multitasking               :heavy_multiplication_x: (Awaiting Virtual memory)
-  - Other necessary drivers    :heavy_multiplication_x: (Awaiting All above)
-  - Basic UI                   :heavy_multiplication_x: (Awaiting All above)
+  - Physical memory allocation  :heavy_check_mark:
+  - SATA/AHCI disk driver       :heavy_minus_sign:       (In progress | Working device comms)
+  - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver)
+  - Disk management             :heavy_minus_sign:       (In progress)
+  - Virtual memory allocation   :heavy_multiplication_x: (Awaiting Filesystem)
+  - Multitasking                :heavy_multiplication_x: (Awaiting Virtual memory)
+  - Other necessary drivers     :heavy_multiplication_x: (Awaiting All above)
+  - Basic UI                    :heavy_multiplication_x: (Awaiting All above)
