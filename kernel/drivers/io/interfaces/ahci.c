@@ -1,8 +1,10 @@
 #include "ahci.h"
 
-BT_STATUS AHCI_IDENTIFY_DEVICE(IN PCI_HBA_AHCI_COMMAND_SESSION *cmd, IN OUT BYTE *buffer){   
+BT_STATUS AHCI_IDENTIFY_DEVICE(IN PCI_HBA_AHCI_COMMAND_SESSION *cmd, IN BYTE *buffer){   
     BT_STATUS status;
     
+    (*(UINT32*)&cmd->port->interruptStatus) = (UINT32)-1;
+
     UINT64 commandListAddress = ((UINT64)cmd->port->commandListBaseAddressUpper << 32) | (cmd->port->commandListBaseAddress << 10);
     PCI_HBA_AHCI_COMMAND_LIST *commandList = (PCI_HBA_AHCI_COMMAND_LIST*)commandListAddress;
 
@@ -14,23 +16,24 @@ BT_STATUS AHCI_IDENTIFY_DEVICE(IN PCI_HBA_AHCI_COMMAND_SESSION *cmd, IN OUT BYTE
     commandList->commandHeader.physicalRegionDescriptorTableLength = 1;
 
     commandList->commandHeader.commandTableDescriptorBaseAddress = (UINT32)(commandTableAddress >> 7);
-    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)(commandTableAddress >> 39);    
+    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)(commandTableAddress >> 32);
+    
+    PHYSICAL_ADDRESS bufferAddress = (PHYSICAL_ADDRESS)buffer;
 
-    commandTable->entries[0].dataBaseAddress = (UINT32)buffer;
-    commandTable->entries[0].dataByteCount = 511;
-    commandTable->entries[0].interruptOnCompletion = 1;
-
-    PCI_HBA_AHCI_FIS_H2D *fis = (PCI_HBA_AHCI_FIS_H2D*)commandTable->commandFis;
-    fis->fisType = 0x27;
-    fis->commandControl = 1;
-    fis->command = 0xec;
-
-    status = PCI_HBA_START_DMA_ENGINE(cmd->port);
-    if (BT_ERROR(status)){
-        return status;
+    for (UINT32 i = 0; i < commandList->commandHeader.physicalRegionDescriptorTableLength; i++){
+        commandTable->entries[0].dataBaseAddress = (UINT32)(bufferAddress >> 1);
+        commandTable->entries[0].dataBaseAddressUpper = (UINT32)(bufferAddress >> 32);
+        commandTable->entries[0].dataByteCount = 0x200 - 1;
+        commandTable->entries[0].interruptOnCompletion = 1;        
     }
 
-    cmd->port->commandIssued |= 1 << cmd->portIndex;
-
+    PCI_HBA_AHCI_FIS_H2D *fis = (PCI_HBA_AHCI_FIS_H2D*)(&commandTable->commandFis);
+    SetPhysicalMemory((VOID*)fis, 0, sizeof(PCI_HBA_AHCI_FIS_H2D));
+    fis->fisType = FIS_TYPE_REG_H2D;
+    fis->command = 0xec;
+    fis->commandControl = 1;
+        
+    UINT64 d = ((UINT64)commandTable->entries[0].dataBaseAddressUpper << 32) | (commandTable->entries[0].dataBaseAddress << 1);
+    return d;
     return BT_SUCCESS;
 }

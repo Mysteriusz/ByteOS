@@ -50,35 +50,35 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     PCI *pci = (PCI*)devInfo->ioi[3].pciAddress;
     PCI_HBA_GENERIC_HOST_CONTROL *hba = (PCI_HBA_GENERIC_HOST_CONTROL*)(pci->header.h0.bar5);
     PCI_HBA_PORT_REGISTER *port0 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(0));
-    // PCI_HBA_PORT_REGISTER *port1 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(1));
-    // PCI_HBA_PORT_REGISTER *port2 = (PCI_HBA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + PCI_HBA_PORT_OFFSET(2));
-    
-    UINT64 commandListAddress = ((UINT64)port0->commandListBaseAddressUpper << 32) | (port0->commandListBaseAddress << 10);
-    PCI_HBA_AHCI_COMMAND_LIST *commandList = (PCI_HBA_AHCI_COMMAND_LIST*)commandListAddress;
 
-    UINT64 commandTableAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
-    PCI_HBA_AHCI_COMMAND_TABLE *commandTable = (PCI_HBA_AHCI_COMMAND_TABLE*)commandTableAddress;
-    
-    UINT64 dataBaseAddress = ((UINT64)commandTable->entries[0].dataBaseAddressUpper << 32) | (commandTable->entries[0].dataBaseAddress << 1);
+    pci->header.common.command.interruptDisable = FALSE;
+    pci->header.common.command.memorySpace = TRUE;
+    pci->header.common.command.busMaster = TRUE;
+
+    hba->globalHostControl.hbaReset = TRUE;
+    hba->globalHostControl.interruptEnable = TRUE;
 
     PCI_HBA_AHCI_COMMAND_SESSION *session;
     UINTN ss = sizeof(PCI_HBA_AHCI_COMMAND_SESSION);
-    
+
     status = AllocPhysicalPool((VOID**)&session, &ss, BT_MEMORY_KERNEL_RW);
     session->port = port0;
     session->portIndex = 0;
+
+    BYTE *buffer;
+    UINTN s = 0x200;
+    status = AllocPhysicalPool((VOID**)&buffer, &s, BT_MEMORY_KERNEL_RW);
     
-    session->port->commandIssued |= 1 << session->portIndex;
     status = PCI_HBA_START_DMA_ENGINE(session->port);
-    if (BT_ERROR(status)){
-        return status;
-    }
+    status = AHCI_IDENTIFY_DEVICE(session, buffer);
+    PCI_HBA_ISSUE_PORT(session->port->commandIssued, session->portIndex);
+    return (PHYSICAL_ADDRESS)status;
     
-    while (session->port->commandIssued & (1 << session->portIndex));
+
+    status = PCI_HBA_STOP_DMA_ENGINE(session->port);
     
-    return session->port->commandIssued;
     
-    // return (PHYSICAL_ADDRESS)status;
+    // return (PHYSICAL_ADDRESS)buffer;
 
     // return (PHYSICAL_ADDRESS)port0->rawFisControlAndStatus.transmitterReceivedStatus;
     // return (PHYSICAL_ADDRESS)port0->rawFisControlAndStatus;

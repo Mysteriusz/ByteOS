@@ -441,6 +441,9 @@
 #define PCI_HBA_PORT_BASE_ALIGNMENT 0x80
 #define PCI_HBA_PORT_OFFSET(portIndex)(PCI_HBA_PORT_BASE_OFFSET + ((UINT32)portIndex * PCI_HBA_PORT_BASE_ALIGNMENT))
 
+#define PCI_HBA_ISSUE_PORT(commandIssued, portIndex)((commandIssued) |= (1 << (portIndex)))
+#define PCI_HBA_DEISSUE_PORT(commandIssued, portIndex)((commandIssued) &= ~(1 << (portIndex)))
+
 #pragma pack(1)
 
 #pragma region PCI_HEADER
@@ -715,10 +718,10 @@ typedef volatile struct PCI_HBA_HOST_CAPABILITIES{
     UINT32 supports64Addressing : 1;
 } PCI_HBA_HOST_CAPABILITIES;
 typedef volatile struct PCI_HBA_GLOBAL_HOST_CONTROL{
-    UINT32 ahciEnable : 1;
-    UINT32 reserved0 : 29;
-    UINT32 interruptEnable : 1;
     UINT32 hbaReset : 1;
+    UINT32 interruptEnable : 1;
+    UINT32 reserved0 : 29;
+    UINT32 ahciEnable : 1;
 } PCI_HBA_GLOBAL_HOST_CONTROL;
 typedef volatile struct PCI_HBA_GENERIC_HOST_CONTROL{
     PCI_HBA_HOST_CAPABILITIES hostCapabilities;
@@ -730,7 +733,7 @@ typedef volatile struct PCI_HBA_GENERIC_HOST_CONTROL{
 } PCI_HBA_GENERIC_HOST_CONTROL;
 
 typedef volatile struct PCI_HBA_PORT_REGISTER_INTERRUPT_STATUS{
-    UINT32 deviceToHostRegisterInterrupt : 1;
+    UINT32 d2hRegisterInterrupt : 1;
     UINT32 pioSetupFisInterrupt : 1;
     UINT32 dmaSetupFisInterrupt : 1;
     UINT32 setDeviceBitsInterrupt : 1;
@@ -798,8 +801,8 @@ typedef volatile struct PCI_HBA_PORT_REGISTER_COMMAND{
     UINT32 interfaceCommunicationControl : 4;
 } PCI_HBA_PORT_REGISTER_COMMAND;
 
-#define PCI_HBA_PORT_REGISTER_TFD_BUSY 0x80 // Indicates the interface is busy
-#define PCI_HBA_PORT_REGISTER_TFD_REQ 0x08 // Indicates a data transfer is requested
+#define PCI_HBA_PORT_REGISTER_TFD_BSY 0x80 // Indicates the interface is busy
+#define PCI_HBA_PORT_REGISTER_TFD_DRQ 0x08 // Indicates a data transfer is requested
 #define PCI_HBA_PORT_REGISTER_TFD_ERR 0x01 // Indicates an error during the transfer
 typedef volatile struct PCI_HBA_PORT_REGISTER_TASK_FILE{
     UINT8 status;

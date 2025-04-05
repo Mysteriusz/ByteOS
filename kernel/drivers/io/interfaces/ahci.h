@@ -6,9 +6,6 @@
 #define PCI_HBA_AHCI_COMMAND_TABLE_MAX_ENTRY_COUNT 0xffff
 #define PCI_HBA_AHCI_COMMAND_TABLE_ENTRY_OFFSET 0x80
 
-#define PCI_HBA_AHCI_FIS_H2D_TYPE 0x27
-#define PCI_HBA_AHCI_FIS_D2H_TYPE 0x34
-
 typedef enum PCI_FIS_TYPE{
 	FIS_TYPE_REG_H2D = 0x27,
 	FIS_TYPE_REG_D2H = 0x34,
@@ -21,7 +18,7 @@ typedef enum PCI_FIS_TYPE{
 } PCI_FIS_TYPE;
 
 typedef volatile struct PCI_HBA_AHCI_FIS_H2D{
-    PCI_FIS_TYPE fisType;
+    UINT8 fisType;
     UINT8 portMultiplier : 4;
     UINT8 reserved0 : 3;
     UINT8 commandControl : 1;
@@ -42,7 +39,7 @@ typedef volatile struct PCI_HBA_AHCI_FIS_H2D{
     UINT8 reserved1[4];
 } PCI_HBA_AHCI_FIS_H2D;
 typedef volatile struct PCI_HBA_AHCI_FIS_D2H{
-    PCI_FIS_TYPE fisType;
+    UINT8 fisType;
     UINT8 portMultiplier : 4;
     UINT8 reserved0 : 2;
     UINT8 interrupt : 1;
@@ -63,14 +60,14 @@ typedef volatile struct PCI_HBA_AHCI_FIS_D2H{
     UINT8 reserved4[4];
 } PCI_HBA_AHCI_FIS_D2H;
 typedef volatile struct PCI_HBA_AHCI_FIS_DATA{
-    PCI_FIS_TYPE fisType;
+    UINT8 fisType;
     UINT8 portMultiplier : 4;
     UINT8 reserved0 : 4;
     UINT8 reserved1[2];
     UINT32 data[1];
 } PCI_HBA_AHCI_FIS_DATA;
 typedef volatile struct PCI_HBA_AHCI_FIS_PIO{
-    PCI_FIS_TYPE fisType;
+    UINT8 fisType;
     UINT8 portMultiplier : 4;
     UINT8 reserved0 : 1;
     UINT8 dataDirection : 1;
@@ -94,7 +91,7 @@ typedef volatile struct PCI_HBA_AHCI_FIS_PIO{
     UINT8 reserved4[2];
 } PCI_HBA_AHCI_FIS_PIO;
 typedef volatile struct PCI_HBA_AHCI_FIS_DMA{
-    PCI_FIS_TYPE fisType;
+    UINT8 fisType;
     UINT8 portMultiplier : 4;
     UINT8 reserved0 : 1;
     UINT8 dataDirection : 1;
@@ -107,6 +104,17 @@ typedef volatile struct PCI_HBA_AHCI_FIS_DMA{
     UINT32 transferCount;
     UINT32 reserved3;
 } PCI_HBA_AHCI_FIS_DMA;
+typedef volatile struct PCI_HBA_AHCI_FIS{
+    PCI_HBA_AHCI_FIS_DMA dmaSetup;
+    UINT8 reserved0[0x04];
+    PCI_HBA_AHCI_FIS_PIO pioSetup;
+    UINT8 reserved1[0x0c];
+    PCI_HBA_AHCI_FIS_D2H d2hSetup;
+    UINT8 reserved2[0x04];
+    UINT8 setBits[0x02];
+    UINT8 unknownFis[0x40];
+    UINT8 reserved3[0x100 - 0xa0];
+} PCI_HBA_AHCI_FIS;
 
 typedef volatile struct PCI_HBA_AHCI_COMMAND_TABLE_ENTRY{
     UINT32 reserved0 : 1;
@@ -150,6 +158,6 @@ typedef volatile struct PCI_HBA_AHCI_COMMAND_SESSION{
 #pragma endregion STRUCTURES
 #pragma region COMMANDS
 
-BT_STATUS AHCI_IDENTIFY_DEVICE(IN PCI_HBA_AHCI_COMMAND_SESSION *cmd, IN OUT BYTE *buffer);
+BT_STATUS AHCI_IDENTIFY_DEVICE(IN PCI_HBA_AHCI_COMMAND_SESSION *cmd, IN BYTE *buffer);
 
 #pragma endregion COMMANDS
