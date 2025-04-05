@@ -1,7 +1,8 @@
 - Current BTM state
   - Memory map gathering       :heavy_check_mark:
-  - Gpu device info gathering  :heavy_check_mark:
+  - Framebuffer info gathering :heavy_check_mark:
   - PCI device info gathering  :heavy_check_mark:
+  - Other device info gathering:heavy_multiplication_x: (To do)
   - PE32+ header run support   :heavy_check_mark:
   - PE32 header run support    :heavy_minus_sign: (To finish)
   - ELF header run support     :heavy_multiplication_x: (To do)
