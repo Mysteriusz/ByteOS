@@ -33,7 +33,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
-
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
     //     fb[i] = 0x000000;
     // }
@@ -54,19 +53,24 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
 
-    hba->globalHostControl.hbaReset = TRUE;
     hba->globalHostControl.interruptEnable = TRUE;
 
     status = SATA_START_DMA_ENGINE(port);
-
+    
     SATA_IDENTIFY_DEVICE_DATA *idfData = NULL;
     status = SATA_IDENTIFY_DEVICE(port, &idfData);
     SATA_ISSUE_PORT(port->commandIssued, 0);
     
+    while (SATA_PORT_FREE(port) == FALSE);
+
+    BYTE *data = NULL;
+    status = SATA_READ_DMA_EXT(port, 2, &data);
+    SATA_ISSUE_PORT(port->commandIssued, 0);
+    
+    return (PHYSICAL_ADDRESS)data;    
     status = SATA_STOP_DMA_ENGINE(port);
     
-    // return (PHYSICAL_ADDRESS)sizeof(SATA_IDENTIFY_DEVICE_DATA);    
-    return (PHYSICAL_ADDRESS)idfData->logicalPerDrq;    
+    // return (PHYSICAL_ADDRESS)idfData->logicalPerDrq;    
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

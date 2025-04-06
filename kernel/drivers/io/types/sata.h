@@ -231,7 +231,10 @@ typedef volatile struct SATA_PORT_REGISTER{
 #define SATA_PORT_BASE_ALIGNMENT 0x80
 
 #define SATA_PORT_OFFSET(portIndex)(SATA_PORT_BASE_OFFSET + ((UINT32)portIndex * SATA_PORT_BASE_ALIGNMENT))
-#define SATA_PORT_FREE(port)((((SATA_PORT_REGISTER*)port)->command.fisReceiveRunning == 0) && (((SATA_PORT_REGISTER*)port)->command.commandListRunning == 0))
+#define SATA_PORT_FREE(port) \
+    (((((SATA_PORT_REGISTER*)port)->taskFileData.status & SATA_PORT_REGISTER_TFD_BSY) == 0) && \
+    ((((SATA_PORT_REGISTER*)port)->taskFileData.status & SATA_PORT_REGISTER_TFD_DRQ) == 0))
+
 #define SATA_PORT_COMMAND_LIST_ADDRESS(port)(((UINT64)((SATA_PORT_REGISTER*)port)->commandListBaseAddressUpper) << 32) | (((UINT64)((SATA_PORT_REGISTER*)port)->commandListBaseAddress) << 10)
 
 #define SATA_ISSUE_PORT(commandIssued, portIndex)((commandIssued) |= (1 << (portIndex)))
@@ -244,6 +247,7 @@ BT_STATUS SATA_STOP_DMA_ENGINE(IN SATA_PORT_REGISTER *port);
 #pragma region COMMANDS
 
 #pragma pack(1)
+
 #define SATA_FIS_IDENTIFY_DEVICE_SIZE 0x200
 typedef struct SATA_IDENTIFY_DEVICE_DATA_GENERAL{
     UINT16 reserved0 : 1;
@@ -292,7 +296,6 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA_MULTIWORD{
     UINT16 multiwordDma2Selected : 1;
     UINT16 reserved1 : 5;
 } SATA_IDENTIFY_DEVICE_DATA_MULTIWORD;
-
 typedef struct SATA_IDENTIFY_DEVICE_DATA{
     // W 0-46
     SATA_IDENTIFY_DEVICE_DATA_GENERAL general;
@@ -329,17 +332,22 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA{
     // W 63
     SATA_IDENTIFY_DEVICE_DATA_MULTIWORD multiwordDmaTransfer;
     // W 64
-    UINT16 pioTransferModes : 2;
+    UINT16 pioTransferModes;
     // W 65-68
     UINT16 minMultiwordTransferCycle;
     UINT16 recMultiwordTransferCycleDma;
     UINT16 minPioTransferCycle;
     UINT16 minPioTransferCycleIordy;
     // W 69-255
-    UINT16 unk[0xff - 69];
+    UINT16 unk[0xff - 68];
 } SATA_IDENTIFY_DEVICE_DATA;
-#pragma pack(0)
 
 BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DEVICE_DATA **buffer);
+
+#define SATA_FIS_READ_DMA_EXT_SIZE 0x200
+
+BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT16 count, OUT BYTE **buffer);
+
+#pragma pack(0)
 
 #pragma endregion COMMANDS

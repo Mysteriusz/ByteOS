@@ -85,3 +85,47 @@ BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DE
         
     return BT_SUCCESS;
 }
+BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT16 count, OUT BYTE **buffer){
+    BT_STATUS status;
+    
+    (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
+
+    PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
+    AHCI_COMMAND_LIST *commandList = (AHCI_COMMAND_LIST*)clAddress;
+    PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
+
+    // Setup command`s header
+    commandList->commandHeader.commandFisLength = sizeof(AHCI_FIS_H2D) / 4;
+    commandList->commandHeader.write = 0;
+    commandList->commandHeader.physicalRegionDescriptorTableLength = count;
+    commandList->commandHeader.commandTableDescriptorBaseAddress = (UINT32)(ctAddress >> 7);
+    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)(ctAddress >> 32);
+    
+    // Allocate buffer pool
+    UINTN s = count * SATA_FIS_READ_DMA_EXT_SIZE;
+    status = AllocPhysicalPool((VOID**)buffer, &s, BT_MEMORY_KERNEL_RW);
+    PHYSICAL_ADDRESS bufferAddress = (PHYSICAL_ADDRESS)*buffer;
+    
+    // Setup entries
+    for (UINT32 i = 0; i < commandList->commandHeader.physicalRegionDescriptorTableLength; i++){
+        commandTable->entries[i].dataBaseAddress = (UINT32)(bufferAddress >> 1);
+        commandTable->entries[i].dataBaseAddressUpper = (UINT32)(bufferAddress >> 32);
+        commandTable->entries[i].dataByteCount = SATA_FIS_IDENTIFY_DEVICE_SIZE - 1;
+        commandTable->entries[i].interruptOnCompletion = 1;        
+
+        bufferAddress += SATA_FIS_READ_DMA_EXT_SIZE;
+    }
+
+    // Queue READ_DMA_EXT
+    AHCI_FIS_H2D *fis = (AHCI_FIS_H2D*)&commandTable->commandFis;
+    SetPhysicalMemory((VOID*)fis, 0, sizeof(AHCI_FIS_H2D));
+    fis->fisType = REG_H2D;
+    fis->command = READ_DMA_EXT;
+    fis->commandControl = 1;
+    
+    fis->count0 = count & 0xff;
+    fis->count1 = (count >> 8) & 0xff;
+
+    return BT_SUCCESS;
+}
