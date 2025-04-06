@@ -1,11 +1,17 @@
 - Current BTM state
-  - Memory map gathering       :heavy_check_mark:
-  - Gpu device info gathering  :heavy_check_mark:
-  - PCI device info gathering  :heavy_check_mark:
-  - PE32 header run support    :heavy_check_mark:
+  - Memory map gathering        :heavy_check_mark:
+  - Framebuffer info gathering  :heavy_check_mark:
+  - PCI device info gathering   :heavy_check_mark:
+  - Other device info gathering :heavy_multiplication_x: (To do)
+  - PE32+ header run support    :heavy_check_mark:
+  - PE32 header run support     :heavy_minus_sign:       (To finish)
+  - ELF header run support      :heavy_multiplication_x: (To do)
 - Current Kernel state
-  - Physical memory allocation :heavy_check_mark:
-  - Virtual memory allocation  :heavy_multiplication_x: (Awaiting file system)
-  - File system                :heavy_minus_sign:       (In progress | Awaiting disk driver)
-  - SATA/AHCI disk driver      :heavy_minus_sign:       (In progress | Working device comms)
-  - Disk management            :heavy_minus_sign:       (In progress)
+  - Physical memory allocation  :heavy_check_mark:
+  - SATA/AHCI storage driver    :heavy_minus_sign:       (In progress | Working device comms) (1 - 2 weeks)
+  - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver) (1 week)
+  - Disk management             :heavy_minus_sign:       (In progress) (few days)
+  - Virtual memory allocation   :heavy_multiplication_x: (Awaiting Filesystem)
+  - Multitasking                :heavy_multiplication_x: (Awaiting Virtual memory)
+  - Other necessary drivers     :heavy_multiplication_x: (Awaiting All above)
+  - Basic UI                    :heavy_multiplication_x: (Awaiting All above)
