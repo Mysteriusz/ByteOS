@@ -59,13 +59,14 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     status = SATA_START_DMA_ENGINE(port);
 
-    BYTE *buffer = NULL;
-    status = SATA_IDENTIFY_DEVICE(port, &buffer);
+    SATA_IDENTIFY_DEVICE_DATA *idfData = NULL;
+    status = SATA_IDENTIFY_DEVICE(port, &idfData);
     SATA_ISSUE_PORT(port->commandIssued, 0);
     
     status = SATA_STOP_DMA_ENGINE(port);
     
-    return (PHYSICAL_ADDRESS)buffer;    
+    // return (PHYSICAL_ADDRESS)sizeof(SATA_IDENTIFY_DEVICE_DATA);    
+    return (PHYSICAL_ADDRESS)idfData->logicalPerDrq;    
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

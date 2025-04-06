@@ -243,9 +243,103 @@ BT_STATUS SATA_STOP_DMA_ENGINE(IN SATA_PORT_REGISTER *port);
 
 #pragma region COMMANDS
 
+#pragma pack(1)
 #define SATA_FIS_IDENTIFY_DEVICE_SIZE 0x200
+typedef struct SATA_IDENTIFY_DEVICE_DATA_GENERAL{
+    UINT16 reserved0 : 1;
+    UINT16 retired0 : 1;
+    UINT16 incompleteResponse : 1;
+    UINT16 retired1 : 3;
+    UINT16 obselete0 : 3;
+    UINT16 retired2 : 6;
+    UINT16 ataDevice : 1;
+    UINT16 obselete1;
+    UINT16 specificConfiguration;
+    UINT16 obselete2;
+    UINT32 retired3;
+    UINT16 obselete3;
+    UINT32 reserved1;
+    UINT16 retired4;
+    CHAR8 serialNumber[20];
+    UINT32 retired5;
+    UINT16 obselete4;
+    CHAR8 firmwareRevision[8];
+    CHAR8 modelNumber[40];
+} SATA_IDENTIFY_DEVICE_DATA_GENERAL;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_CAPABILITIES{
+    UINT16 retired0 : 8;
+    UINT16 dmaSupported : 1;
+    UINT16 lbaSupported : 1;
+    UINT16 alwaysOne1 : 1;
+    UINT16 alwaysOne2 : 1;
+    UINT16 reserved1 : 1;
+    UINT16 standby : 1;
+    UINT16 reserved2 : 2;
+} SATA_IDENTIFY_DEVICE_DATA_CAPABILITIES;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_VALIDITY{
+    UINT16 obselete0 : 1;
+    UINT16 w64_70valid : 1;
+    UINT16 w88valid : 1;
+    UINT16 reserved0 : 13;
+} SATA_IDENTIFY_DEVICE_DATA_VALIDITY;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_MULTIWORD{
+    UINT16 multiwordDma0Supported : 1;
+    UINT16 multiwordDma1Supported : 1;
+    UINT16 multiwordDma2Supported : 1;
+    UINT16 reserved0 : 5;
+    UINT16 multiwordDma0Selected : 1;
+    UINT16 multiwordDma1Selected : 1;
+    UINT16 multiwordDma2Selected : 1;
+    UINT16 reserved1 : 5;
+} SATA_IDENTIFY_DEVICE_DATA_MULTIWORD;
 
-BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT BYTE **buffer);
-BT_STATUS SATA_READ_SECTORS(IN SATA_PORT_REGISTER *port, OUT BYTE **buffer, OUT UINT32 *size);
+typedef struct SATA_IDENTIFY_DEVICE_DATA{
+    // W 0-46
+    SATA_IDENTIFY_DEVICE_DATA_GENERAL general;
+    // W 47
+    UINT16 reserved0 : 8;
+    UINT16 maxLogicalPerDrq : 8;
+    // W 48
+    UINT16 trustedComputingFeatureSupported : 1;
+    UINT16 trustedComputingFeatureGroup : 13;
+    UINT16 alwaysOne0 : 1;
+    UINT16 alwaysZero0 : 1;
+    // W 49
+    SATA_IDENTIFY_DEVICE_DATA_CAPABILITIES capabilities;
+    // W 50
+    UINT16 alwaysOne1 : 1;
+    UINT16 obselete0 : 1;
+    UINT16 reserved1 : 12;
+    UINT16 alwaysOne2 : 1;
+    UINT16 alwaysZero1 : 1;
+    // W 51-52
+    UINT16 obselete1[2];
+    // W 53
+    SATA_IDENTIFY_DEVICE_DATA_VALIDITY fieldValidity;
+    // W 54-58
+    UINT16 obselete2[5];
+    // W 59
+    UINT16 logicalPerDrq : 8;
+    UINT16 multipleSectorSettingValid : 1;
+    UINT16 reserved2 : 7;
+    // W 60-61
+    UINT32 logicalCount;
+    // W 62
+    UINT16 obselete3;
+    // W 63
+    SATA_IDENTIFY_DEVICE_DATA_MULTIWORD multiwordDmaTransfer;
+    // W 64
+    UINT16 pioTransferModes : 2;
+    // W 65-68
+    UINT16 minMultiwordTransferCycle;
+    UINT16 recMultiwordTransferCycleDma;
+    UINT16 minPioTransferCycle;
+    UINT16 minPioTransferCycleIordy;
+    // W 69-255
+    UINT16 unk[0xff - 69];
+} SATA_IDENTIFY_DEVICE_DATA;
+#pragma pack(0)
+
+BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DEVICE_DATA **buffer);
 
 #pragma endregion COMMANDS
