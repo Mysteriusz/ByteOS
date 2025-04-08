@@ -62,13 +62,15 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     SATA_ISSUE_PORT(port->commandIssued, 0);
     
     while (SATA_PORT_FREE(port) == FALSE);
-
-    BYTE *data = NULL;
-    status = SATA_READ_DMA_EXT(port, 2, &data);
-    SATA_ISSUE_PORT(port->commandIssued, 0);
     
-    return (PHYSICAL_ADDRESS)data;    
+    BYTE *data = NULL;
+    status = SATA_READ_DMA_EXT(port, 2, 1, &data);
+    SATA_ISSUE_PORT(port->commandIssued, 0);    
+    while (SATA_PORT_FREE(port) == FALSE);
+    return (PHYSICAL_ADDRESS)status;    
+    
     status = SATA_STOP_DMA_ENGINE(port);
+    // return (PHYSICAL_ADDRESS)port->taskFileData.status;    
     
     // return (PHYSICAL_ADDRESS)idfData->logicalPerDrq;    
 }

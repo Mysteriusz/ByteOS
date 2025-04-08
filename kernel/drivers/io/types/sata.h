@@ -274,18 +274,60 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA_CAPABILITIES{
     UINT16 retired0 : 8;
     UINT16 dmaSupported : 1;
     UINT16 lbaSupported : 1;
-    UINT16 alwaysOne1 : 1;
-    UINT16 alwaysOne2 : 1;
+    UINT16 shallOne1 : 1;
+    UINT16 shallOne2 : 1;
     UINT16 reserved1 : 1;
     UINT16 standby : 1;
     UINT16 reserved2 : 2;
 } SATA_IDENTIFY_DEVICE_DATA_CAPABILITIES;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_SCAPABILITIES{
+    UINT16 shallZero0 : 1;
+    UINT16 gen1 : 1;
+    UINT16 gen2 : 1;
+    UINT16 gen3 : 1;
+    UINT16 reserved0 : 4;
+    UINT16 supportsNativeCommand : 1;
+    UINT16 supportsPowerInterfaceReq : 1;
+    UINT16 supportsPhy : 1;
+    UINT16 supportsUnloadNcq : 1;
+    UINT16 supportsNativeCommandPriority : 1;
+    UINT16 supportsHostToSlumberTransition : 1;
+    UINT16 supportsDeviceToSlumberTransition : 1;
+    UINT16 supportsRldeAsRle : 1;
+} SATA_IDENTIFY_DEVICE_DATA_SCAPABILITIES;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_ADDT_SCAPABILITIES{
+    UINT16 shallZero0 : 1;
+    UINT16 currentSignalSpeed : 3;
+    UINT16 supportsNcqStream : 1;
+    UINT16 supportsNcqQueueCommand : 1;
+    UINT16 supportsRfqToSfq : 1;
+    UINT16 reserved0 : 9;
+} SATA_IDENTIFY_DEVICE_DATA_ADDT_SCAPABILITIES;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_SFEATURES{
+    UINT16 shallZero0 : 1;
+    UINT16 supportsNonZeroOffsets : 1;
+    UINT16 supportsDmaSetupOptimization : 1;
+    UINT16 supportsPowerManagementInit : 1;
+    UINT16 supportsInOrderDataDelivery : 1;
+    UINT16 supportsFeatureControl : 1;
+    UINT16 supportsSoftwarePreservation : 1;
+    UINT16 supportsNcqAutosense : 1;
+    UINT16 reserved0 : 8;
+} SATA_IDENTIFY_DEVICE_DATA_SFEATURES;
 typedef struct SATA_IDENTIFY_DEVICE_DATA_VALIDITY{
     UINT16 obselete0 : 1;
     UINT16 w64_70valid : 1;
     UINT16 w88valid : 1;
     UINT16 reserved0 : 13;
 } SATA_IDENTIFY_DEVICE_DATA_VALIDITY;
+typedef struct SATA_IDENTIFY_DEVICE_DATA_SECTORS{
+    UINT16 logicalPerPhysicalSector : 4;
+    UINT16 reserved0 : 8;
+    UINT16 logicalLongerThan256W : 1;
+    UINT16 multipleLogicalPerPhysical : 1;
+    UINT16 shallOne0 : 1;
+    UINT16 shallZero0 : 1;
+} SATA_IDENTIFY_DEVICE_DATA_SECTORS;
 typedef struct SATA_IDENTIFY_DEVICE_DATA_MULTIWORD{
     UINT16 multiwordDma0Supported : 1;
     UINT16 multiwordDma1Supported : 1;
@@ -305,16 +347,16 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA{
     // W 48
     UINT16 trustedComputingFeatureSupported : 1;
     UINT16 trustedComputingFeatureGroup : 13;
-    UINT16 alwaysOne0 : 1;
-    UINT16 alwaysZero0 : 1;
+    UINT16 shallOne0 : 1;
+    UINT16 shallZero0 : 1;
     // W 49
     SATA_IDENTIFY_DEVICE_DATA_CAPABILITIES capabilities;
     // W 50
-    UINT16 alwaysOne1 : 1;
+    UINT16 shallOne1 : 1;
     UINT16 obselete0 : 1;
     UINT16 reserved1 : 12;
-    UINT16 alwaysOne2 : 1;
-    UINT16 alwaysZero1 : 1;
+    UINT16 shallOne2 : 1;
+    UINT16 shallZero1 : 1;
     // W 51-52
     UINT16 obselete1[2];
     // W 53
@@ -338,15 +380,77 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA{
     UINT16 recMultiwordTransferCycleDma;
     UINT16 minPioTransferCycle;
     UINT16 minPioTransferCycleIordy;
-    // W 69-255
-    UINT16 unk[0xff - 68];
+    // W 69-70
+    UINT16 reserved3[2];
+    // W 71-74
+    UINT16 idfPacket[4];
+    // W 75
+    UINT16 queueDepth : 5;
+    UINT16 reserved4 : 11;
+    // W 76
+    SATA_IDENTIFY_DEVICE_DATA_SCAPABILITIES sCapabilities;
+    // W 77
+    SATA_IDENTIFY_DEVICE_DATA_ADDT_SCAPABILITIES addCapabilities;
+    // W 78
+    SATA_IDENTIFY_DEVICE_DATA_SFEATURES sFeaturesSupported;
+    // W 79
+    SATA_IDENTIFY_DEVICE_DATA_SFEATURES sFeaturesEnabled;
+    // W 80
+    UINT16 majorRevisionNumber;
+    // W 81
+    UINT16 minorRevisionNumber;
+    // W 82-88
+    UINT16 commandSetSupported;
+    UINT16 commandSetsSupported;
+    UINT16 commandFeatureSupported;
+    UINT16 commandFeatureEnabled0;
+    UINT16 commandFeatureEnabled1;
+    UINT16 commandFeatureEnabled2;
+    UINT16 ultraDmaModes;
+    // W 89-92
+    UINT16 timeReqForSecurity;
+    UINT16 timeReqForEnchancedSecurity;
+    UINT16 currentPowerManagementValue;
+    UINT16 masterPasswordIdentifier;
+    // W 93 
+    UINT16 comresetResult;
+    // W 94
+    UINT16 currentAutomaticAcousticValue;
+    UINT16 recommendedAutomaticAcousticValue;
+    // W 95-105
+    UINT16 streamMinimumReqSize;
+    UINT16 streamTransferTimeDma;
+    UINT16 streamAccessLatencyDmaPio;
+    UINT32 streamPerformaceGranularity;
+    UINT16 totalNumberOf48bitAddressSectors[4];
+    UINT16 streamingTransferTimePio;
+    UINT16 reserved5;
+    // W 106
+    SATA_IDENTIFY_DEVICE_DATA_SECTORS sectorInfo;
+    // W 107
+    UINT16 innerSeekDelay;
+    // W 108
+    UINT16 ieeeOuiHigh : 12;
+    UINT16 naa : 4;
+    // W 109
+    UINT16 uniqueIdHigh : 4;
+    UINT16 ieeeOuiLow : 12;
+    // W 110-111
+    UINT16 uniqueIdMid;
+    UINT16 uniqueIdLow;
+    // W 112-116
+    UINT16 reserved6[4];
+    UINT16 reserved7;
+    // W 117-118
+    UINT32 wordsPerLogicalSector;
+    // UINT16 unk[0xff - 68];
 } SATA_IDENTIFY_DEVICE_DATA;
 
 BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DEVICE_DATA **buffer);
 
-#define SATA_FIS_READ_DMA_EXT_SIZE 0x200
+#define SATA_BASE_SECTOR_SIZE 0x200
 
-BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT16 count, OUT BYTE **buffer);
+BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN PHYSICAL_ADDRESS address, IN UINT32 count, OUT BYTE **buffer);
 
 #pragma pack(0)
 

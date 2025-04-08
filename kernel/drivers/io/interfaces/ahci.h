@@ -188,13 +188,17 @@ typedef volatile struct AHCI_FIS{
     UINT8 reserved3[0x100 - 0xa0];
 } AHCI_FIS;
 
+#define AHCI_PRDTL_TABLE_SIZE 0xffff
+#define AHCI_PRDTL_TABLE_ENTRY_CAPACITY 0x2000
+#define AHCI_PRDTL_TABLE_ENTRY_SECTORS 0x10
+
 typedef volatile struct AHCI_COMMAND_TABLE_ENTRY{
     UINT32 reserved0 : 1;
     UINT32 dataBaseAddress : 31;
     UINT32 dataBaseAddressUpper;
     UINT32 reserved1;
     UINT32 dataByteCount : 22;
-    UINT32 reserved : 9;
+    UINT32 reserved2 : 9;
     UINT32 interruptOnCompletion : 1;
 } AHCI_COMMAND_TABLE_ENTRY;
 typedef volatile struct AHCI_COMMAND_TABLE{
