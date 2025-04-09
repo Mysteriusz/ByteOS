@@ -2,18 +2,14 @@
 
 #include "byteos.h"
 #include "drivers/pci.h"
+#include "drivers/pci.h"
 
 #define IO_MAX_DISKS 26
-
-typedef enum FS_TYPE{
-    NONE,
-    FAT32,
-} FS_TYPE;
 
 typedef struct IO_DISK{
     UINTN size;
     CHAR8 symbol;
-    FS_TYPE fileSystem;
+    UINT8 filesystem;
     PCI *pci;
 } IO_DISK;
 

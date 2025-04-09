@@ -69,7 +69,7 @@ BT_STATUS RegisterDisk(IN PCI *pci, OPTIONAL IN CHAR8 *symbol, OUT IO_DISK *io){
     *disks[diskIndex] = *io;
 
     (*disks)[diskIndex].symbol = diskSymbols[diskIndex];
-    (*disks)[diskIndex].fileSystem = NONE;
+    (*disks)[diskIndex].filesystem = 0;
     (*disks)[diskIndex].size = 0;
     (*disks)[diskIndex].pci = pci;
 

@@ -4,6 +4,7 @@
 #include "drivers/io/interfaces/ahci.h"
 #include "drivers/pci.h"
 #include "drivers/io/types/sata.h"
+#include "drivers/io/filesystems/filesystem.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -45,42 +46,14 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     status = AllocPhysicalPages((VOID**)&f, &fs, 0);
 
     PCI *pci = (PCI*)devInfo->ioi[3].pciAddress;
-    SATA_GENERIC_HOST_CONTROL *hba = (SATA_GENERIC_HOST_CONTROL*)((UINT64)pci->header.h0.bar5);
-    SATA_PORT_REGISTER *port = NULL;
-    SATA_FIND_PORT(hba, &port);
 
     pci->header.common.command.interruptDisable = FALSE;
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
 
-    hba->globalHostControl.interruptEnable = TRUE;
+    status = SetupFilesystem(pci, 0, FAT32);
 
-    status = SATA_START_DMA_ENGINE(port);
-    
-    SATA_IDENTIFY_DEVICE_DATA *idfData = NULL;
-    UINTN idfDataSize = 0;
-    AllocPhysicalPool((VOID**)&idfData, &idfDataSize, 0);
-    status = SATA_IDENTIFY_DEVICE(port, &idfData);
-    SATA_ISSUE_PORT(port->commandIssued, 0);
-    
-    while (SATA_PORT_FREE(port) == FALSE);
-    
-    BYTE* ndata = NULL;
-    UINTN ns = 0x600;
-    AllocPhysicalPool((VOID**)&ndata, &ns, 0);
-    status = SATA_READ_DMA_EXT(port, 0, 3, (VOID**)&ndata);
-    SATA_ISSUE_PORT(port->commandIssued, 0);
-
-    while (SATA_PORT_FREE(port) == FALSE);
-
-    MBR_MODERN* mbr = (MBR_MODERN*)ndata;
-
-    return (PHYSICAL_ADDRESS)mbr->diskSignature;
-    
-    status = SATA_STOP_DMA_ENGINE(port);
-    // return (PHYSICAL_ADDRESS)port->taskFileData.status;    
-    
-    // return (PHYSICAL_ADDRESS)idfData->logicalPerDrq;    
+    return (PHYSICAL_ADDRESS)status;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

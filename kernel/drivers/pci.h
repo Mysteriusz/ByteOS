@@ -688,7 +688,7 @@ typedef volatile struct PCI_CAPABILITY{
 } PCI_CAPABILITY;
 #pragma endregion PCI_CAPABILITY
 
-typedef volatile struct PCI{ // TODO
+typedef struct PCI{ // TODO
     PCI_HEADER header;
 } PCI;
 

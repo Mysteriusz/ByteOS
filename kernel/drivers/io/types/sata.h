@@ -4,6 +4,7 @@
 #include "disk.h"
 #include "ahci.h"
 #include "mbr.h"
+#include "gpt.h"
 
 typedef volatile struct SATA_HOST_CAPABILITIES{
     UINT32 numberOfPorts : 5;
@@ -241,7 +242,7 @@ typedef volatile struct SATA_PORT_REGISTER{
 #define SATA_ISSUE_PORT(commandIssued, portIndex)((commandIssued) |= (1 << (portIndex)))
 #define SATA_DEISSUE_PORT(commandIssued, portIndex)((commandIssued) &= ~(1 << (portIndex)))
 
-BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port);
+BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port, OUT UINT32 *index);
 BT_STATUS SATA_START_DMA_ENGINE(IN SATA_PORT_REGISTER *port);
 BT_STATUS SATA_STOP_DMA_ENGINE(IN SATA_PORT_REGISTER *port);
 
@@ -455,6 +456,7 @@ BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT3
 BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer);
 
 BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port);
+BT_STATUS SATA_SAFE_PORT_RUN(IN SATA_PORT_REGISTER *port, IN UINT32 portIndex);
 
 #pragma pack(0)
 

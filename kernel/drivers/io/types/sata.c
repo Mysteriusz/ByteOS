@@ -1,6 +1,6 @@
 #include "sata.h"
 
-BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port){
+BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port, OUT UINT32 *index){
     for (UINT32 i = 0; i < SATA_PORT_BASE_COUNT; i++){
         if ((hba->portsImplemented & (1 << i)) == TRUE){
             SATA_PORT_REGISTER *temp = (SATA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + SATA_PORT_OFFSET(i));
@@ -10,6 +10,7 @@ BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGIST
             }
 
             *port = temp;
+            *index = i;
             break;
         }
 
@@ -220,6 +221,15 @@ BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port){
     fis->fisType = REG_H2D;
     fis->command = DEVICE_RESET;
     fis->commandControl = 1;
+
+    return BT_SUCCESS;
+}
+BT_STATUS SATA_SAFE_PORT_RUN(IN SATA_PORT_REGISTER *port, IN UINT32 portIndex){
+    SATA_ISSUE_PORT(port->commandIssued, portIndex);
+
+    UINT32 sfc = 0x100000;
+    while (SATA_PORT_FREE(port) == FALSE && --sfc > 0);
+    if (sfc == 0) return BT_IO_INVALID_PCI;
 
     return BT_SUCCESS;
 }
