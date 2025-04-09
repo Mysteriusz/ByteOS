@@ -8,7 +8,7 @@
   - ELF header run support      :heavy_multiplication_x: (To do)
 - Current Kernel state
   - Physical memory allocation  :heavy_check_mark:
-  - SATA/AHCI storage driver    :heavy_minus_sign:       (In progress | Working device comms) (1 - 2 weeks)
+  - SATA/AHCI storage driver    :heavy_minus_sign:       (In progress | Working basic commands) (To extend)
   - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver) (1 week)
   - Disk management             :heavy_minus_sign:       (In progress) (few days)
   - Virtual memory allocation   :heavy_multiplication_x: (Awaiting Filesystem)
