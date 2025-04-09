@@ -3,6 +3,7 @@
 #include "byteos.h"
 #include "disk.h"
 #include "ahci.h"
+#include "mbr.h"
 
 typedef volatile struct SATA_HOST_CAPABILITIES{
     UINT32 numberOfPorts : 5;
@@ -451,7 +452,9 @@ BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DE
 #define SATA_BASE_SECTOR_SIZE 0x200
 
 BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer);
-BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID **buffer);
+BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer);
+
+BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port);
 
 #pragma pack(0)
 

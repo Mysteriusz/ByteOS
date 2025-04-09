@@ -1,7 +1,6 @@
 #pragma once
 
 #include "byteos.h"
-#include "pci.h"
 
 #pragma region STRUCTURES
 
@@ -64,7 +63,7 @@ typedef enum AHCI_FIS_COMMAND{
     WRITE_BUFFER = 0xe8,
     WRITE_BUFFER_DMA = 0xeb,
     WRITE_DMA = 0xca,
-    WRITE_DMA_EXT = 0x35,
+    WRITE_DMA_EXT = 0x35, // SATA implemented
     WRITE_DMA_FUA_EXT = 0x3d,
     WRITE_FPDMA_QUEUED = 0x61,
     WRITE_LOG_EXT = 0x3f,

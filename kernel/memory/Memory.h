@@ -88,6 +88,7 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
 BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size);
 MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolSize);
 
+BT_STATUS ByteAPI ForceSetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size);
 BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size);
 
 // ==================================== |

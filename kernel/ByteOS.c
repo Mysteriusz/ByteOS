@@ -65,28 +65,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     while (SATA_PORT_FREE(port) == FALSE);
     
-    BYTE *dataBuffer = NULL;
-    UINTN s = 0x600;
-    AllocPhysicalPool((VOID**)&dataBuffer, &s, 0);
-
-    status = SATA_READ_DMA_EXT(port, 0, 3, (VOID**)&dataBuffer);
-    SATA_ISSUE_PORT(port->commandIssued, 0);
-
-    while (SATA_PORT_FREE(port) == FALSE);
-    
-    dataBuffer[0] = 0xaa;
-    dataBuffer[1] = 0xbb;
-    dataBuffer[2] = 0xcc;
-    dataBuffer[3] = 0xdd;
-    dataBuffer[0x400 - 1] = 0xaa;
-    dataBuffer[0x400 - 2] = 0xbb;
-    dataBuffer[0x400 - 3] = 0xcc;
-    
-    status = SATA_WRITE_DMA_EXT(port, 0, 3, (VOID**)&dataBuffer);
-    SATA_ISSUE_PORT(port->commandIssued, 0);
-    
-    while (SATA_PORT_FREE(port) == FALSE);
-    
     BYTE* ndata = NULL;
     UINTN ns = 0x600;
     AllocPhysicalPool((VOID**)&ndata, &ns, 0);
@@ -94,7 +72,10 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     SATA_ISSUE_PORT(port->commandIssued, 0);
 
     while (SATA_PORT_FREE(port) == FALSE);
-    return (PHYSICAL_ADDRESS)ndata;
+
+    MBR_MODERN* mbr = (MBR_MODERN*)ndata;
+
+    return (PHYSICAL_ADDRESS)mbr->diskSignature;
     
     status = SATA_STOP_DMA_ENGINE(port);
     // return (PHYSICAL_ADDRESS)port->taskFileData.status;    

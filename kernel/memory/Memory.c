@@ -411,6 +411,17 @@ MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolS
     return **pPool;
 }
 
+BT_STATUS ByteAPI ForceSetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
+    BYTE *ptr = (BYTE*)buffer;
+
+    UINT32 index = 0;
+    PhysicalPageToIndex((PHYSICAL_ADDRESS)ptr, &index);
+    
+    for (UINTN i = 0; i < size; i++) {
+        ptr[i] = value;
+    }
+    return BT_SUCCESS;
+}
 BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
     BYTE *ptr = (BYTE*)buffer;
 
