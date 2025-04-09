@@ -414,9 +414,6 @@ MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolS
 BT_STATUS ByteAPI ForceSetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
     BYTE *ptr = (BYTE*)buffer;
 
-    UINT32 index = 0;
-    PhysicalPageToIndex((PHYSICAL_ADDRESS)ptr, &index);
-    
     for (UINTN i = 0; i < size; i++) {
         ptr[i] = value;
     }
@@ -429,12 +426,36 @@ BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN siz
     PhysicalPageToIndex((PHYSICAL_ADDRESS)ptr, &index);
 
     // PERMISSION CHECK
-    if ((flagMap[index] & BT_MEMORY_WRITE) == FALSE){
-        return BT_MEMORY_NOT_WRITABLE;
+    UINTN pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    for (UINTN i = index; i < pageCount; i++){
+        if ((flagMap[i] & BT_MEMORY_WRITE) == FALSE){
+            return BT_MEMORY_NOT_WRITABLE;
+        }
     }
     
-    for (UINTN i = 0; i < size; i++) {
+    for (UINTN i = 0; i < size; i++){
         ptr[i] = value;
+    }
+    return BT_SUCCESS;
+}
+
+BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *to){
+    BYTE *fptr = (BYTE*)from;
+    BYTE *tptr = (BYTE*)to;
+
+    UINT32 index = 0;
+    PhysicalPageToIndex((PHYSICAL_ADDRESS)fptr, &index);
+
+    // PERMISSION CHECK
+    UINTN pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    for (UINTN i = index; i < pageCount; i++){
+        if ((flagMap[i] & BT_MEMORY_READ) == FALSE){
+            return BT_MEMORY_NOT_READABLE;
+        }
+    }
+    
+    for (UINTN i = 0; i < size; i++){
+        tptr[i] = fptr[i];
     }
     return BT_SUCCESS;
 }

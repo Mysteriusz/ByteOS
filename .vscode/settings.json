@@ -30,6 +30,8 @@
         "pci.h": "c",
         "ahci.h": "c",
         "ata.h": "c",
-        "sata.h": "c"
+        "sata.h": "c",
+        "charconv": "c",
+        "xmemory": "c"
     }
 }

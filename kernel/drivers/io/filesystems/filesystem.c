@@ -90,5 +90,7 @@ BT_STATUS SetupSataFilesystemAhci(IN PCI *diskDevice, IN UINT8 partitionIndex, I
 
     // TODO: FAT32 BOOT SECTOR INFORMATION WRITING TO FIRST SECTOR
 
+    SATA_STOP_DMA_ENGINE(port);
+
     return BT_SUCCESS;
 }

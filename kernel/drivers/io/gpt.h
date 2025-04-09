@@ -27,5 +27,5 @@ typedef struct GPT_PARTITON_ENTRY{
     UINT64 firstLba;
     UINT64 lastLba;
     UINT64 attributeFlags;
-    CHAR16 partitionName[72];
+    CHAR16 partitionName[36];
 } GPT_PARTITON_ENTRY;
