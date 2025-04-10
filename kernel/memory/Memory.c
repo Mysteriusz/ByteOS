@@ -243,9 +243,18 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
             }
     }
 
+    UINT32 pageIndex = 0;
+    
     ALLOC:
-
+    PhysicalPageToIndex(PAGE_PAD_ADDRESS((PHYSICAL_ADDRESS)*pPool), &pageIndex);
+    
     while (*pPool != NULL){
+        if (flagMap[pageIndex] != flags){
+            pPool = &(*pPool)->next;
+            pageIndex++;
+            continue;
+        }
+
         UINT32 blockIndex = 0; // Index of current block
         UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER); // Current RVA from pool header
          
@@ -268,6 +277,7 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
         }
         // Move to the next pool using current pointer
         pPool = &(*pPool)->next;
+        pageIndex++;
     }
 
     MEMORY_PAGE_POOL_HEADER *newPool = NULL;

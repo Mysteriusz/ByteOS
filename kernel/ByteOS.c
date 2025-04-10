@@ -51,21 +51,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
 
-    
-    BYTE *t;
-    UINTN ts = 4;
-    AllocPhysicalPool((VOID**)&t, &ts, BT_MEMORY_KERNEL_RW);
-    
-    t[0] = 0xaa; 
-    t[1] = 0xbb; 
-    t[2] = 0xcc; 
-    t[3] = 0xdd; 
-
-    BYTE *buf;
-    UINTN bufs = 4;
-    AllocPhysicalPool((VOID**)&buf, &bufs, 0);
-    status = CopyPhysicalMemory(t, 3, buf);
-
     return (PHYSICAL_ADDRESS)status;
     status = SetupFilesystem(pci, 0, FAT32);
 
