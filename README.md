@@ -12,7 +12,7 @@
   - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver) (1 week)
   - Disk management             :heavy_minus_sign:       (In progress) (few days)
   - Framebuffer writing (CPU)   :heavy_multiplication_x: (Awaiting Filesystem)
-  - Simple debugger (CPU)       :heavy_multiplication_x: (Awaiting Filesystem)
+  - Simple debugger             :heavy_multiplication_x: (Awaiting Filesystem)
   - Virtual memory allocation   :heavy_multiplication_x: (Awaiting Debugger)
   - Multitasking                :heavy_multiplication_x: (Awaiting Virtual memory)
   - Other necessary drivers     :heavy_multiplication_x: (Awaiting All above)
