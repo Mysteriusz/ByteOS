@@ -3,7 +3,7 @@
 #include "drivers/io/disk.h"
 #include "drivers/io/interfaces/ahci.h"
 #include "drivers/pci.h"
-#include "drivers/io/types/sata.h"
+#include "drivers/io/protocols/sata.h"
 #include "drivers/io/filesystems/filesystem.h"
 
 // ==================================== |
@@ -25,7 +25,7 @@ typedef struct testb{
 typedef struct FIRST_PAGE{
     BYTE d1[PAGE_SIZE];
 } FIRST_PAGE;
-
+    
 typedef struct testc{
     BYTE d1[0x512];
 } testc;
@@ -51,9 +51,22 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
 
-    return (PHYSICAL_ADDRESS)status;
     status = SetupFilesystem(pci, 0, FAT32);
 
+    VOID *firstSector = NULL;
+    UINTN firstSectorSize = SATA_BASE_SECTOR_SIZE;
+    status = AllocPhysicalPool(&firstSector, &firstSectorSize, BT_MEMORY_KERNEL_RW);
+    
+    SATA_GENERIC_HOST_CONTROL *hba = (SATA_GENERIC_HOST_CONTROL*)((UINT64)pci->header.h0.bar5);
+    hba->globalHostControl.interruptEnable = TRUE;
+    SATA_PORT_REGISTER *port = NULL;
+    UINT32 portIndex = 0;
+    status = SATA_FIND_PORT(hba, &port, &portIndex);
+    SATA_START_DMA_ENGINE(port);
+    
+    status = SATA_READ_DMA_EXT(port, 2, 1, &firstSector);
+    status = SATA_SAFE_PORT_RUN(port, 0);    
+    return (PHYSICAL_ADDRESS)firstSector;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

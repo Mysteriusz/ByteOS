@@ -1,0 +1,46 @@
+#include "fat32.h"
+
+BT_STATUS FAT32_GET_BOOT_SECTOR(IN OUT FAT32_BOOT_SECTOR *buffer){
+    BT_STATUS status;
+
+    status = CopyPhysicalMemory((UINT8[]){FAT32_BASE_JUMP_CODE}, 3, buffer->jumpCode);
+    if (BT_ERROR(status)){
+        return status;
+    }
+    status = CopyPhysicalMemory((CHAR8[]){FAT32_BASE_OEM}, 8, buffer->oemName);
+    if (BT_ERROR(status)){
+        return status;
+    }
+    buffer->bytesPerSector = FAT32_BASE_BYTES_PER_SECTOR;
+    buffer->sectorsPerCluster = FAT32_BASE_SECTORS_PER_CLUSTER;
+    buffer->reservedSectors = FAT32_BASE_RESERVED_SECTORS;
+    buffer->numberOfCopies = FAT32_BASE_NUMBER_OF_COPIES;
+    buffer->maxRootEntries = FAT32_BASE_MAX_ROOT_ENTRIES;
+    buffer->numberOfSmallerThan32 = FAT32_BASE_NUMBER_OF_SMALLER_SECTORS;
+    buffer->mediaDescriptor = FAT32_BASE_MEDIA_DESCRIPTOR;
+    buffer->sectorsPerFat = FAT32_BASE_SECTORS_PER_FAT;
+    buffer->sectorsPerTrack = FAT32_BASE_SECTORS_PER_TRACK;
+    buffer->numberOfHeads = FAT32_BASE_NUMBER_OF_HEADS;
+    buffer->numberOfHiddenSectorsInPartition = 0x00;
+    buffer->numberOfSectorsInPartition = 0x00;
+    buffer->numberOfSectorsPerFatInPartition = 0x00;
+    buffer->flags = FAT32_BASE_FLAGS;
+    buffer->versionOfFatDrive = FAT32_BASE_VERSION;
+    buffer->clusterNumberOfStartof = 0x00;
+    buffer->sectorNumberOfFilesystemInfo = FAT32_BASE_FILESYSTEM_INFO_SECTOR;
+    buffer->sectorNumberOfBackupBoot = FAT32_BASE_BACKUP_BOOT_SECTOR;
+    buffer->logicalDriveNumberOfPartition = FAT32_BASE_DRIVE_NUMBER;
+    buffer->extendedSignature = 0x00;
+    buffer->serialNumberOfPartition = FAT32_BASE_SERIAL_NUMBER;
+    status = CopyPhysicalMemory((CHAR8[]){FAT32_BASE_VOLUME_NAME}, 11, buffer->volumeNameOfPartition);
+    if (BT_ERROR(status)){
+        return status;
+    }
+    status = CopyPhysicalMemory((CHAR8[]){FAT32_BASE_FAT_NAME}, 8, buffer->fatName);
+    if (BT_ERROR(status)){
+        return status;
+    }
+    buffer->bootRecordSignature = FAT32_BASE_BOOT_SIGNATURE;
+
+    return BT_SUCCESS;
+}

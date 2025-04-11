@@ -3,6 +3,7 @@
 #include "byteos.h"
 
 #define FAT32_BASE_OEM "BOSS1.0"
+#define FAT32_BASE_JUMP_CODE 0xEB, 0x58, 0x90
 #define FAT32_BASE_BYTES_PER_SECTOR 0x200 
 #define FAT32_BASE_SECTORS_PER_CLUSTER 0x10 
 #define FAT32_BASE_RESERVED_SECTORS 0x20 
@@ -18,7 +19,7 @@
 #define FAT32_BASE_FILESYSTEM_INFO_SECTOR 0x01 
 #define FAT32_BASE_BACKUP_BOOT_SECTOR 0x06 
 #define FAT32_BASE_DRIVE_NUMBER 0x80 
-#define FAT32_BASE_BOOT_SIGNATURE 0x29 
+#define FAT32_BASE_SERIAL_NUMBER 0x29 
 #define FAT32_BASE_VOLUME_NAME "UNK" 
 #define FAT32_BASE_FAT_NAME "FAT32" 
 #define FAT32_BASE_BOOT_SIGNATURE 0x55aa     
@@ -38,7 +39,7 @@ typedef struct FAT32_BOOT_SECTOR{
     UINT16 numberOfHeads;
     UINT32 numberOfHiddenSectorsInPartition;
     UINT32 numberOfSectorsInPartition;
-    UINT32 numberOfSectorsPerFat;
+    UINT32 numberOfSectorsPerFatInPartition;
     UINT16 flags;
     UINT16 versionOfFatDrive;
     UINT32 clusterNumberOfStartof;
@@ -74,6 +75,4 @@ typedef struct FAT32_LFN_ENTRY{
     CHAR16 nameCharacters2[2];
 } FAT32_LFN_ENTRY;
 
-BT_STATUS FAT32_GET_BOOT_SECTOR(IN OUT FAT32_BOOT_SECTOR *buffer){
-    // buffer->oemName;
-}
+BT_STATUS FAT32_GET_BOOT_SECTOR(IN OUT FAT32_BOOT_SECTOR *buffer);

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "byteos.h"
+#include "fat32.h"
+#include "../protocols/sata.h"
 #include "../pci.h"
 
 typedef enum FS_TYPE{

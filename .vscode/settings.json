@@ -32,6 +32,8 @@
         "ata.h": "c",
         "sata.h": "c",
         "charconv": "c",
-        "xmemory": "c"
+        "xmemory": "c",
+        "gpt.h": "c",
+        "mbr.h": "c"
     }
 }

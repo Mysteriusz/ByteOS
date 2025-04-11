@@ -167,15 +167,6 @@ BT_STATUS ByteAPI FreePhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size){
     UINTN i = pageIndex;  // Current page index
 
     if (freePageCount > pageCount) return BT_NOT_ENOUGH_MEMORY; // If amount of pages to free is bigger than overall page count
-    
-    // PERMISSION CHECK
-    UINTN pi = i; // Permission check current index
-    while (pi < freePageCount){
-        // If page is not writable
-        if ((flagMap[pi++] & BT_MEMORY_WRITE) == FALSE){
-            return BT_MEMORY_NOT_READABLE;
-        }
-    }
 
     while (i < pageCount){
         freed++;
@@ -195,7 +186,7 @@ BT_STATUS ByteAPI FreePhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size){
                     closestPageIndex = pageIndex;
                     closestPageAddress = pageAddress;
                 }
-                
+
                 return BT_SUCCESS;
             }
         }
@@ -353,9 +344,6 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
                 // If there is a previous pool assign it`s next to current next
                 if (prev != NULL){
                     (*prev)->next = (*pPool)->next; 
-                }
-                else {
-                    *pPool = (*pPool)->next; 
                 }
                 
                 // Free current pool`s page
