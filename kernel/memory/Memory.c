@@ -341,14 +341,18 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
             
             // If pool has no blocks after removing the block
             if ((*pPool)->used == 0){
+                MEMORY_PAGE_POOL_HEADER *toFree = *pPool;
                 // If there is a previous pool assign it`s next to current next
                 if (prev != NULL){
                     (*prev)->next = (*pPool)->next; 
                 }
+                else{
+                    *pPool = (*pPool)->next;
+                }
                 
                 // Free current pool`s page
                 UINTN s = PAGE_SIZE;
-                BT_STATUS status = FreePhysicalPages((VOID**)pPool, &s);
+                BT_STATUS status = FreePhysicalPages((VOID**)&toFree, &s);
                 if (BT_ERROR(status)){
                     return status;
                 }

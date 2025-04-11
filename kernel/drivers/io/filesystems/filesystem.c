@@ -121,7 +121,7 @@ BT_STATUS SetupSataFilesystemAhci(IN PCI *diskDevice, IN UINT8 partitionIndex, I
     }
 
     // TODO: FAT32 BOOT SECTOR INFORMATION WRITING TO FIRST SECTOR
-    
+
     CLEANUP:
     if (fsBootSector) FreePhysicalPool((VOID**)&fsBootSector, &fsBootSectorSize);
     if (partitionBuffer) FreePhysicalPool((VOID**)&partitionBuffer, &partitionBufferSize);

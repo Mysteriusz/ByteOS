@@ -52,6 +52,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.busMaster = TRUE;
 
     status = SetupFilesystem(pci, 0, FAT32);
+    // return (PHYSICAL_ADDRESS)GetPhysicalPool(0, 0x200).used;
+    return (PHYSICAL_ADDRESS)DEBUG_CLOSEST();
 
     VOID *firstSector = NULL;
     UINTN firstSectorSize = SATA_BASE_SECTOR_SIZE;
@@ -66,7 +68,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     status = SATA_READ_DMA_EXT(port, 2, 1, &firstSector);
     status = SATA_SAFE_PORT_RUN(port, 0);    
-    return (PHYSICAL_ADDRESS)firstSector;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {
