@@ -23,17 +23,21 @@ typedef BT_STATUS (ByteAPI *IO_DISK_RESET)(
     IN IO_DISK *disk
 );
 
+#define IO_DISK_SCHEME_UNK 0x00
+#define IO_DISK_SCHEME_MBR 0x01
+#define IO_DISK_SCHEME_GPT 0x02
+
 typedef struct IO_DISK_FUNCTIONS{
     IO_DISK_READ read;
     IO_DISK_WRITE write;
     IO_DISK_RESET reset;
 } IO_DISK_FUNCTIONS;
 typedef struct IO_DISK{
-    UINTN size;
-    CHAR8 symbol;
+    UINT32 size;
     UINT8 filesystem;
+    UINT8 partitionScheme;
+    UINT8 partitionIndex;
     PCI *pci;
-    UINT16 pciPartition;
     IO_DISK_FUNCTIONS functions;
 } IO_DISK;
 
@@ -42,9 +46,9 @@ typedef struct IO_DISK{
 // ==================================== |
 
 BT_STATUS ByteAPI RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count);
-BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, IN CHAR8 *symbol, OUT IO_DISK *disk);
+BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, OUT IO_DISK **disk);
 
-BT_STATUS ByteAPI GetDisk(IN CHAR8 symbol, OUT IO_DISK *disk);
+BT_STATUS ByteAPI GetDisk(IN UINT32 index, OUT IO_DISK **disk);
 
 // ==================================== |
 //         STATIC DISK INTERFACE        |

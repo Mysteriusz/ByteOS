@@ -9,11 +9,11 @@
 
 typedef enum FS_TYPE{
     NONE = 0x00,
-    FAT32 = 0x32,
+    FAT32 = 0x20,
 } FS_TYPE;
 
 // ==================================== |
 //                 GLOBAL               |
 // ==================================== |
 
-BT_STATUS ByteAPI SetupFilesystem(IN IO_DISK *disk, IN UINT16 partitionIndex, IN FS_TYPE type);
+BT_STATUS ByteAPI SetupFilesystem(IN IO_DISK *disk, IN FS_TYPE type);

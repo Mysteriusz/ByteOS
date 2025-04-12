@@ -34,7 +34,6 @@ typedef struct MBR_PARTITION_ENTRY{
     UINT32 firstLba;
     UINT32 numberOfSectors;
 } MBR_PARTITION_ENTRY;
-#pragma pack()
 
 typedef struct MBR_CLASSIC{
     UINT8 bootstrapCode[446];
@@ -61,3 +60,5 @@ typedef struct MBR_MODERN{
     MBR_PARTITION_ENTRY partitionEntry3;
     UINT16 signature;
 } MBR_MODERN;
+
+#pragma pack()

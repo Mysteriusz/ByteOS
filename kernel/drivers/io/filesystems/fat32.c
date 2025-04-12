@@ -61,48 +61,58 @@ BT_STATUS FAT32_Setup(IN IO_DISK *disk){
     status = AllocPhysicalPool(&fsBootSector, &fsBootSectorSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
 
+    status = FAT32_GET_BOOT_SECTOR((FAT32_BOOT_SECTOR*)fsBootSector);
+    if (BT_ERROR(status)) goto CLEANUP;
+
     status = disk->functions.read(disk, 0, 1, (VOID**)&firstSector);
     if (BT_ERROR(status)) goto CLEANUP;    
-    
-    MBR_MODERN* fmbr = (MBR_MODERN*)firstSector;
+
+    MBR_CLASSIC* fmbr = (MBR_CLASSIC*)firstSector;
     if (fmbr->signature != MBR_SIGNATURE){
-        status = BT_IO_INVALID_SYMBOL;
+        status = BT_IO_INVALID_DISK;
         goto CLEANUP;
     }
 
     status = disk->functions.read(disk, fmbr->partitionEntry0.firstLba, 1, (VOID**)&firstSector);
     if (BT_ERROR(status)) goto CLEANUP;    
 
+    UINT64 fat32Lba = 0;
+
     MBR_PARTITION_ENTRY **partition = NULL;
+    switch (disk->partitionScheme)
+    {
+        case IO_DISK_SCHEME_MBR:
+            switch (disk->partitionIndex)
+            {
+                case 0:
+                    *partition = &fmbr->partitionEntry0;
+                    break;
+                case 1:
+                    *partition = &fmbr->partitionEntry1;
+                    break;
+                case 2:
+                    *partition = &fmbr->partitionEntry2;
+                    break;
+                case 3:
+                    *partition = &fmbr->partitionEntry3;
+                    break;
+                default:
+                    status = BT_IO_INVALID_DISK;
+                    goto CLEANUP;
+            }
 
-    GPT_HEADER *gptHeader = (GPT_HEADER*)firstSector;
-    if (gptHeader->signature == GPT_SIGNATURE_LITTLE || gptHeader->signature == GPT_SIGNATURE_BIG){
-        UINT32 entryLba = gptHeader->startingLba + (disk->pciPartition * gptHeader->sizeOfEntry);
-
-        status = FAT32_GET_BOOT_SECTOR((FAT32_BOOT_SECTOR*)fsBootSector);
-        if (BT_ERROR(status)) goto CLEANUP;
-        status = disk->functions.write(disk, entryLba, 1, fsBootSector);
-        if (BT_ERROR(status)) goto CLEANUP;
+            fat32Lba = (*partition)->firstLba;
+            break;
+        case IO_DISK_SCHEME_GPT:
+            fat32Lba = ((GPT_HEADER*)firstSector)->startingLba + (disk->partitionIndex * ((GPT_HEADER*)firstSector)->sizeOfEntry);
+            break;
+        default:
+            status = BT_IO_INVALID_DISK;
+            goto CLEANUP;
     }
-    else{
-        switch (disk->pciPartition)
-        {
-            case 0:
-                *partition = &fmbr->partitionEntry0;
-                break;
-            case 1:
-                *partition = &fmbr->partitionEntry1;
-                break;
-            case 2:
-                *partition = &fmbr->partitionEntry2;
-                break;
-            case 3:
-                *partition = &fmbr->partitionEntry3;
-                break;
-            default:
-                break;
-        }
-    }
+    
+    status = disk->functions.write(disk, fat32Lba, 1, fsBootSector);
+    if (BT_ERROR(status)) goto CLEANUP;
 
     CLEANUP:
     if (fsBootSector) FreePhysicalPool((VOID**)&fsBootSector, &fsBootSectorSize);
