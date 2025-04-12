@@ -2,7 +2,9 @@
 
 #include "byteos.h"
 #include "fat32.h"
-#include "../protocols/sata.h"
+#include "disk.h"
+#include "mbr.h"
+#include "gpt.h"
 #include "../pci.h"
 
 typedef enum FS_TYPE{
@@ -14,11 +16,4 @@ typedef enum FS_TYPE{
 //                 GLOBAL               |
 // ==================================== |
 
-BT_STATUS SetupFilesystem(IN PCI *diskDevice, IN UINT8 partitionIndex, IN FS_TYPE type);
-
-// ==================================== |
-//             SATA_SPECIFIC            |
-// ==================================== |
-
-BT_STATUS SetupSataFilesystem(IN PCI *diskDevice, IN UINT8 partitionIndex, IN FS_TYPE type);
-BT_STATUS SetupSataFilesystemAhci(IN PCI *diskDevice, IN UINT8 partitionIndex, IN FS_TYPE type);
+BT_STATUS ByteAPI SetupFilesystem(IN IO_DISK *disk, IN UINT16 partitionIndex, IN FS_TYPE type);

@@ -2,6 +2,8 @@
 
 #include "byteos.h"
 
+#define MBR_SIZE 0x200
+
 #define MBR_SIGNATURE 0xaa55
 #define MBR_COPY_PROTECTED 0x5a5a
 

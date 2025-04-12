@@ -1,6 +1,6 @@
 #include "fat32.h"
 
-BT_STATUS FAT32_GET_BOOT_SECTOR(IN OUT FAT32_BOOT_SECTOR *buffer){
+BT_STATUS FAT32_GET_BOOT_SECTOR(IN FAT32_BOOT_SECTOR *buffer){
     BT_STATUS status;
 
     status = CopyPhysicalMemory((UINT8[]){FAT32_BASE_JUMP_CODE}, 3, buffer->jumpCode);
@@ -43,4 +43,71 @@ BT_STATUS FAT32_GET_BOOT_SECTOR(IN OUT FAT32_BOOT_SECTOR *buffer){
     buffer->bootRecordSignature = FAT32_BASE_BOOT_SIGNATURE;
 
     return BT_SUCCESS;
+}
+
+BT_STATUS FAT32_Setup(IN IO_DISK *disk){
+    BT_STATUS status;
+
+    VOID *firstSector = NULL;
+    UINTN firstSectorSize = MBR_SIZE;
+    status = AllocPhysicalPool(&firstSector, &firstSectorSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;    
+    VOID* partitionBuffer = NULL;
+    UINTN partitionBufferSize = MBR_SIZE;
+    status = AllocPhysicalPool((VOID**)&partitionBuffer, &partitionBufferSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;    
+    VOID *fsBootSector = NULL;
+    UINTN fsBootSectorSize = MBR_SIZE;
+    status = AllocPhysicalPool(&fsBootSector, &fsBootSectorSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;
+
+    status = disk->functions.read(disk, 0, 1, (VOID**)&firstSector);
+    if (BT_ERROR(status)) goto CLEANUP;    
+    
+    MBR_MODERN* fmbr = (MBR_MODERN*)firstSector;
+    if (fmbr->signature != MBR_SIGNATURE){
+        status = BT_IO_INVALID_SYMBOL;
+        goto CLEANUP;
+    }
+
+    status = disk->functions.read(disk, fmbr->partitionEntry0.firstLba, 1, (VOID**)&firstSector);
+    if (BT_ERROR(status)) goto CLEANUP;    
+
+    MBR_PARTITION_ENTRY **partition = NULL;
+
+    GPT_HEADER *gptHeader = (GPT_HEADER*)firstSector;
+    if (gptHeader->signature == GPT_SIGNATURE_LITTLE || gptHeader->signature == GPT_SIGNATURE_BIG){
+        UINT32 entryLba = gptHeader->startingLba + (disk->pciPartition * gptHeader->sizeOfEntry);
+
+        status = FAT32_GET_BOOT_SECTOR((FAT32_BOOT_SECTOR*)fsBootSector);
+        if (BT_ERROR(status)) goto CLEANUP;
+        status = disk->functions.write(disk, entryLba, 1, fsBootSector);
+        if (BT_ERROR(status)) goto CLEANUP;
+    }
+    else{
+        switch (disk->pciPartition)
+        {
+            case 0:
+                *partition = &fmbr->partitionEntry0;
+                break;
+            case 1:
+                *partition = &fmbr->partitionEntry1;
+                break;
+            case 2:
+                *partition = &fmbr->partitionEntry2;
+                break;
+            case 3:
+                *partition = &fmbr->partitionEntry3;
+                break;
+            default:
+                break;
+        }
+    }
+
+    CLEANUP:
+    if (fsBootSector) FreePhysicalPool((VOID**)&fsBootSector, &fsBootSectorSize);
+    if (partitionBuffer) FreePhysicalPool((VOID**)&partitionBuffer, &partitionBufferSize);
+    if (firstSector) FreePhysicalPool((VOID**)&firstSector, &firstSectorSize);
+
+    return status;
 }

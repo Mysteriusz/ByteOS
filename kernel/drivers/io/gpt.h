@@ -2,6 +2,8 @@
 
 #include "byteos.h"
 
+#define GPT_SIZE 0x200
+
 #define GPT_SIGNATURE_BIG 0x4546492050415254
 #define GPT_SIGNATURE_LITTLE 0x5452415020494645
 

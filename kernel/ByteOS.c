@@ -51,23 +51,20 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
 
-    status = SetupFilesystem(pci, 0, FAT32);
-    // return (PHYSICAL_ADDRESS)GetPhysicalPool(0, 0x200).used;
-    return (PHYSICAL_ADDRESS)DEBUG_CLOSEST();
+    RegisterDisksFromDevices(devInfo->ioi, &devInfo->ioiCount);
 
+    IO_DISK *disk = NULL;
+    GetDisk('A', disk);
+
+    status = SetupFilesystem(disk, 0, FAT32);
+    
     VOID *firstSector = NULL;
     UINTN firstSectorSize = SATA_BASE_SECTOR_SIZE;
     status = AllocPhysicalPool(&firstSector, &firstSectorSize, BT_MEMORY_KERNEL_RW);
+
+    disk->functions.read(disk, 2, 1, (VOID**)&firstSector);
     
-    SATA_GENERIC_HOST_CONTROL *hba = (SATA_GENERIC_HOST_CONTROL*)((UINT64)pci->header.h0.bar5);
-    hba->globalHostControl.interruptEnable = TRUE;
-    SATA_PORT_REGISTER *port = NULL;
-    UINT32 portIndex = 0;
-    status = SATA_FIND_PORT(hba, &port, &portIndex);
-    SATA_START_DMA_ENGINE(port);
-    
-    status = SATA_READ_DMA_EXT(port, 2, 1, &firstSector);
-    status = SATA_SAFE_PORT_RUN(port, 0);    
+    return (PHYSICAL_ADDRESS)firstSector;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "byteos.h"
+#include "filesystem.h"
+#include "disk.h"
 
 #define FAT32_BASE_OEM "BOSS1.0"
 #define FAT32_BASE_JUMP_CODE 0xEB, 0x58, 0x90
@@ -23,6 +25,9 @@
 #define FAT32_BASE_VOLUME_NAME "UNK" 
 #define FAT32_BASE_FAT_NAME "FAT32" 
 #define FAT32_BASE_BOOT_SIGNATURE 0x55aa     
+
+#define FAT32_BASE_FAT_TABLES_LBA(fat32ptr, fat32lba)((PHYSICAL_ADDRESS)fat32lba + ((FAT32_BOOT_SECTOR*)fat32ptr)->reservedSectors)
+#define FAT32_BASE_DATA_AREA_LBA(fat32ptr, fat32lba)((PHYSICAL_ADDRESS)FAT32_BASE_FAT_TABLES_LBA(fat32ptr, fat32lba) + (((FAT32_BOOT_SECTOR*)fat32ptr)->sectorsPerFat * 2))
 
 typedef struct FAT32_BOOT_SECTOR{
     UINT8 jumpCode[3];
@@ -64,15 +69,32 @@ typedef struct FAT32_INFORMATION_SECTOR{
     BYTE reserved1[12];
     UINT32 signature2;
 } FAT32_INFORMATION_SECTOR;
+typedef struct FAT32_SFN_ENTRY{
+    CHAR8 fileNameMain[8];
+    CHAR8 fileNameExt[3];
+    UINT8 fileAttributes;
+    UINT8 reserved0;
+    UINT8 creationTimeHndr;
+    UINT16 creationTime;
+    UINT16 creationDate;
+    UINT16 lastAccessDate;
+    UINT16 firstClusterHigh;
+    UINT16 writeTime;
+    UINT16 writeDate;
+    UINT16 firstClusterLow;
+    UINT32 fileSize;
+} FAT32_SFN_ENTRY;
 typedef struct FAT32_LFN_ENTRY{
-    BYTE sequenceNumber;
-    CHAR16 nameCharacters0[5];
-    BYTE attributes;
-    BYTE type;
-    BYTE checksum;
-    CHAR16 nameCharacters1[6];
-    UINT16 firstCluster;
-    CHAR16 nameCharacters2[2];
+    UINT8 entryOrder;
+    CHAR16 fileName0[5];
+    UINT8 fileAttributes;
+    UINT8 type;
+    UINT8 checkSum;
+    CHAR16 fileName1[6];
+    UINT16 reserved0;
+    CHAR16 fileName2[2];
 } FAT32_LFN_ENTRY;
 
-BT_STATUS FAT32_GET_BOOT_SECTOR(IN OUT FAT32_BOOT_SECTOR *buffer);
+BT_STATUS FAT32_GetBaseBootSector(IN FAT32_BOOT_SECTOR *buffer);
+
+BT_STATUS FAT32_Setup(IN IO_DISK *disk);

@@ -3,8 +3,8 @@
 #include "byteos.h"
 #include "disk.h"
 #include "ahci.h"
-#include "mbr.h"
-#include "gpt.h"
+
+#define SATA_BASE_SECTOR_SIZE 0x200
 
 typedef volatile struct SATA_HOST_CAPABILITIES{
     UINT32 numberOfPorts : 5;
@@ -449,8 +449,6 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA{
 } SATA_IDENTIFY_DEVICE_DATA;
 
 BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DEVICE_DATA **buffer);
-
-#define SATA_BASE_SECTOR_SIZE 0x200
 
 BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer);
 BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer);
