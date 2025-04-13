@@ -1,6 +1,6 @@
 
 # *.c linguist-language=C
-# *.h linguist-language=C
+*.h linguist-language=Java
 *.mk linguist-language=Java
 *.ps1 linguist-language=Java
 *.s linguist-language=Java
