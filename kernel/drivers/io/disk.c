@@ -7,7 +7,7 @@ UINT32 closestFree;
 IO_DISK *disks[IO_MAX_DISKS];
 
 // ==================================== |
-//                 SETUP                |
+//              MAIN METHODS            |
 // ==================================== |
 
 BT_STATUS ByteAPI RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count){
@@ -50,6 +50,7 @@ BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, OUT IO_DISK **io){
     disks[diskIndex]->partitionIndex = 0;
     disks[diskIndex]->functions.read = IO_DISK_IF_READ;
     disks[diskIndex]->functions.write = IO_DISK_IF_WRITE;
+    disks[diskIndex]->functions.flush = IO_DISK_IF_FLUSH;
     
     VOID *tc0 = NULL;
     UINTN tcs0 = MBR_SIZE;
@@ -60,12 +61,12 @@ BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, OUT IO_DISK **io){
     status = AllocPhysicalPool((VOID**)&tc1, &tcs1, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
 
-    status = disks[diskIndex]->functions.read(disks[diskIndex], 0, 1, (VOID**)&tc0);
+    status = disks[diskIndex]->functions.read(disks[diskIndex], 0, 1, tc0);
     if (BT_ERROR(status)) goto CLEANUP;
     
     MBR_MODERN *mbrHeader = (MBR_MODERN*)tc0;
     
-    status = disks[diskIndex]->functions.read(disks[diskIndex], mbrHeader->partitionEntry0.firstLba, 1, (VOID**)&tc1);
+    status = disks[diskIndex]->functions.read(disks[diskIndex], mbrHeader->partitionEntry0.firstLba, 1, tc1);
     if (BT_ERROR(status)) goto CLEANUP;
     
     GPT_HEADER *gptHeader = (GPT_HEADER*)tc1;
@@ -73,7 +74,7 @@ BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, OUT IO_DISK **io){
     if (gptHeader->signature == GPT_SIGNATURE_LITTLE || gptHeader->signature == GPT_SIGNATURE_BIG){
         disks[diskIndex]->partitionScheme = IO_DISK_SCHEME_GPT;
     }
-    else if (mbrHeader->signature == MBR_SIGNATURE){
+    else if (mbrHeader->signature == MBR_SIGNATURE_LITTLE || mbrHeader->signature == MBR_SIGNATURE_BIG){
         disks[diskIndex]->partitionScheme = IO_DISK_SCHEME_MBR;
     }
     else{
@@ -102,7 +103,11 @@ BT_STATUS ByteAPI GetDisk(IN UINT32 index, OUT IO_DISK **disk){
     return BT_SUCCESS;   
 }
 
-BT_STATUS ByteAPI IO_DISK_IF_READ(IN IO_DISK *disk, IN UINT64 lba, IN UINT32 count, OUT VOID **buffer){
+// ==================================== |
+//         DISK METHODS INTEFACE        |
+// ==================================== |
+
+BT_STATUS ByteAPI IO_DISK_IF_READ(IN IO_DISK *disk, IN UINT64 lba, IN UINT32 count, OUT VOID *buffer){
     if (disk->pci->header.common.bcc != PCI_BCC_MASS_STORAGE_CONTROLLER) return BT_IO_INVALID_PCI;
 
     switch (disk->pci->header.common.scc)
@@ -128,30 +133,53 @@ BT_STATUS ByteAPI IO_DISK_IF_WRITE(IN IO_DISK *disk, IN UINT64 lba, IN UINT32 co
 
     return BT_SUCCESS;
 }
+BT_STATUS ByteAPI IO_DISK_IF_FLUSH(IN IO_DISK *disk){
+    if (disk->pci->header.common.bcc != PCI_BCC_MASS_STORAGE_CONTROLLER) return BT_IO_INVALID_PCI;
 
-BT_STATUS ByteAPI IO_DISK_IF_SATA(IN IO_DISK *disk, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer, IN UINT16 commandType){
+    switch (disk->pci->header.common.scc)
+    {
+        case PCI_SCC_0x01_SATA:
+            return IO_DISK_IF_SATA(disk, 0, 0, NULL, IO_DISK_COMMAND_FLUSH);    
+        default:
+            return BT_IO_INVALID_PCI;
+    }
+
+    return BT_SUCCESS;
+}
+
+BT_STATUS ByteAPI IO_DISK_IF_SATA(IN IO_DISK *disk, IN UINT64 lba, IN UINT32 count, IN OUT VOID *buffer, IN UINT16 commandType){
     SATA_GENERIC_HOST_CONTROL *hba = (SATA_GENERIC_HOST_CONTROL*)((UINT64)disk->pci->header.h0.bar5);
     SATA_PORT_REGISTER *port = NULL;
     UINT32 portIndex = 0;
 
     BT_STATUS status = SATA_FIND_PORT(hba, &port, &portIndex);
     if (BT_ERROR(status)) return status;
-
-    SATA_START_DMA_ENGINE(port);
-
+    
+    status = SATA_START_DMA_ENGINE(port);
+    if (BT_ERROR(status)) return status;
+    
     switch (commandType)
     {
         // READ
-        case 0:
-            SATA_READ_DMA_EXT(port, lba, count, buffer);
+        case IO_DISK_COMMAND_READ:
+            SATA_READ_DMA_EXT(port, lba, count, &buffer);
             break;
         // WRITE
-        case 1:        
-            SATA_WRITE_DMA_EXT(port, lba, count, *buffer);
+        case IO_DISK_COMMAND_WRITE:        
+            SATA_WRITE_DMA_EXT(port, lba, count, buffer);
+            break;
+        case IO_DISK_COMMAND_FLUSH:
+            SATA_FLUSH_CACHE_EXT(port);
             break;
         default:
             break;
     }
     
-    return SATA_SAFE_PORT_RUN(port, portIndex);
+    status = SATA_SAFE_PORT_RUN(port, portIndex);
+    if (BT_ERROR(status)) return status;
+
+    status = SATA_STOP_DMA_ENGINE(port);
+    if (BT_ERROR(status)) return status;
+
+    return status;
 }

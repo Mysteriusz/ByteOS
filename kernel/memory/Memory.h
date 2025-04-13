@@ -76,6 +76,8 @@ typedef struct MEMORY_PAGE_POOL_HEADER{
 //               PHYSICAL               |
 // ==================================== |
 
+#define PAGE_PAD_ADDRESS(address)(((PHYSICAL_ADDRESS)address & ~(PAGE_SIZE - 1)))
+
 BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap);
 BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap);
 BT_STATUS ByteAPI InitializePhysicalPool();

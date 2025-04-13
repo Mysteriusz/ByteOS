@@ -34,6 +34,7 @@
         "charconv": "c",
         "xmemory": "c",
         "gpt.h": "c",
-        "mbr.h": "c"
+        "mbr.h": "c",
+        "dif.h": "c"
     }
 }

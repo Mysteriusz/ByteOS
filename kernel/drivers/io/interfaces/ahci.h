@@ -16,8 +16,8 @@ typedef enum AHCI_FIS_COMMAND{
     DOWNLOAD_MICROCODE_DMA = 0x93,
     EXECUTE_DEVICE_DIAGNOSTICS = 0x90,
     FLUSH_CACHE = 0xe7,
-    FLUSH_CACHE_EXT = 0xea,
-    IDENTIFY_DEVICE = 0xec, // SATA to finish
+    FLUSH_CACHE_EXT = 0xea, // SATA implemented
+    IDENTIFY_DEVICE = 0xec, // SATA implemented
     IDENTIFY_PACKET_DEVICE = 0xa1,
     IDLE = 0xe3,
     IDLE_IMMEDIATE = 0xe1,

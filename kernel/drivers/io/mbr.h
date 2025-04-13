@@ -4,7 +4,9 @@
 
 #define MBR_SIZE 0x200
 
-#define MBR_SIGNATURE 0xaa55
+#define MBR_SIGNATURE_LITTLE 0xaa55
+#define MBR_SIGNATURE_BIG 0x55aa
+
 #define MBR_COPY_PROTECTED 0x5a5a
 
 typedef enum MBR_PARTITION_TYPES{
@@ -19,6 +21,7 @@ typedef enum MBR_PARTITION_TYPES{
 
 // Prevent compiler from padding MBR_CHS_ADDRESS to 4 bytes 
 #pragma pack(1)
+
 typedef struct MBR_CHS_ADDRESS{
     UINT8 chsHead;
     UINT8 sector : 6;

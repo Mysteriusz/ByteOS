@@ -55,16 +55,17 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     IO_DISK *disk = NULL;
     status = GetDisk(0, &disk);
+
+    VOID *t1 = NULL;
+    UINTN ts1 = 0x200;    
+    status = AllocPhysicalPool((VOID**)&t1, &ts1, 0);
+    status = FAT32_GetBootSectorBlock(disk, t1);
     
-    status = SetupFilesystem(disk, FAT32);
-    
-    VOID *firstSector = NULL;
-    UINTN firstSectorSize = SATA_BASE_SECTOR_SIZE;
-    AllocPhysicalPool(&firstSector, &firstSectorSize, BT_MEMORY_KERNEL_RW);
-    
-    disk->functions.read(disk, 2, 1, (VOID**)&firstSector);
-    
-    return (PHYSICAL_ADDRESS)status;
+    VOID *t2 = NULL;
+    UINTN ts2 = 0x200;    
+    status = AllocPhysicalPool((VOID**)&t2, &ts2, 0);
+    status = FAT32_GetBootSectorBlock(disk, t2);
+    return status;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

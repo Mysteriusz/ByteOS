@@ -29,6 +29,8 @@
 #define FAT32_BASE_FAT_TABLES_LBA(fat32ptr, fat32lba)((PHYSICAL_ADDRESS)fat32lba + ((FAT32_BOOT_SECTOR*)fat32ptr)->reservedSectors)
 #define FAT32_BASE_DATA_AREA_LBA(fat32ptr, fat32lba)((PHYSICAL_ADDRESS)FAT32_BASE_FAT_TABLES_LBA(fat32ptr, fat32lba) + (((FAT32_BOOT_SECTOR*)fat32ptr)->sectorsPerFat * 2))
 
+#pragma pack(1)
+
 typedef struct FAT32_BOOT_SECTOR{
     UINT8 jumpCode[3];
     CHAR8 oemName[8];
@@ -69,6 +71,17 @@ typedef struct FAT32_INFORMATION_SECTOR{
     BYTE reserved1[12];
     UINT32 signature2;
 } FAT32_INFORMATION_SECTOR;
+
+#pragma pack()
+
+#define FAT32_SFN_DELETED 0xe5
+
+#define FAT32_SFN_READ_ONLY 0x01
+#define FAT32_SFN_HIDDEN 0x02
+#define FAT32_SFN_SYSTEM 0x04
+#define FAT32_SFN_VOLUME 0x08
+#define FAT32_SFN_DIRECTORY 0x10
+#define FAT32_SFN_ARCHIVE 0x20
 typedef struct FAT32_SFN_ENTRY{
     CHAR8 fileNameMain[8];
     CHAR8 fileNameExt[3];
@@ -95,6 +108,5 @@ typedef struct FAT32_LFN_ENTRY{
     CHAR16 fileName2[2];
 } FAT32_LFN_ENTRY;
 
-BT_STATUS FAT32_GetBaseBootSector(IN FAT32_BOOT_SECTOR *buffer);
-
-BT_STATUS FAT32_Setup(IN IO_DISK *disk);
+BT_STATUS FAT32_CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer);
+BT_STATUS FAT32_GetBootSectorBlock(IN IO_DISK *disk, IN OUT FAT32_BOOT_SECTOR *buffer);

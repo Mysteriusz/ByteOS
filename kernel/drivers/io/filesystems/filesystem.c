@@ -9,11 +9,11 @@ BT_STATUS ByteAPI SetupFilesystem(IN IO_DISK *disk, IN FS_TYPE type){
         return BT_IO_INVALID_PCI;
     }
 
-    BT_STATUS status;
+    BT_STATUS status = 0;
     switch (type)
     {
         case FAT32:
-            status = FAT32_Setup(disk);
+            // status = FAT32_Setup(disk);
             if (BT_ERROR(status)) return status;
             break;
         default:

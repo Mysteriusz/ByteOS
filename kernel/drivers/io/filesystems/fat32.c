@@ -1,16 +1,14 @@
 #include "fat32.h"
+#include "x86.h"
 
-BT_STATUS FAT32_GET_BOOT_SECTOR(IN FAT32_BOOT_SECTOR *buffer){
+BT_STATUS FAT32_CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer){
     BT_STATUS status;
 
     status = CopyPhysicalMemory((UINT8[]){FAT32_BASE_JUMP_CODE}, 3, buffer->jumpCode);
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
     status = CopyPhysicalMemory((CHAR8[]){FAT32_BASE_OEM}, 8, buffer->oemName);
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
+
     buffer->bytesPerSector = FAT32_BASE_BYTES_PER_SECTOR;
     buffer->sectorsPerCluster = FAT32_BASE_SECTORS_PER_CLUSTER;
     buffer->reservedSectors = FAT32_BASE_RESERVED_SECTORS;
@@ -32,92 +30,20 @@ BT_STATUS FAT32_GET_BOOT_SECTOR(IN FAT32_BOOT_SECTOR *buffer){
     buffer->logicalDriveNumberOfPartition = FAT32_BASE_DRIVE_NUMBER;
     buffer->extendedSignature = 0x00;
     buffer->serialNumberOfPartition = FAT32_BASE_SERIAL_NUMBER;
+
     status = CopyPhysicalMemory((CHAR8[]){FAT32_BASE_VOLUME_NAME}, 11, buffer->volumeNameOfPartition);
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
     status = CopyPhysicalMemory((CHAR8[]){FAT32_BASE_FAT_NAME}, 8, buffer->fatName);
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
+
     buffer->bootRecordSignature = FAT32_BASE_BOOT_SIGNATURE;
 
     return BT_SUCCESS;
 }
-
-BT_STATUS FAT32_Setup(IN IO_DISK *disk){
-    BT_STATUS status;
-
-    VOID *firstSector = NULL;
-    UINTN firstSectorSize = MBR_SIZE;
-    status = AllocPhysicalPool(&firstSector, &firstSectorSize, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) goto CLEANUP;    
-    VOID* partitionBuffer = NULL;
-    UINTN partitionBufferSize = MBR_SIZE;
-    status = AllocPhysicalPool((VOID**)&partitionBuffer, &partitionBufferSize, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) goto CLEANUP;    
-    VOID *fsBootSector = NULL;
-    UINTN fsBootSectorSize = MBR_SIZE;
-    status = AllocPhysicalPool(&fsBootSector, &fsBootSectorSize, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) goto CLEANUP;
-
-    status = FAT32_GET_BOOT_SECTOR((FAT32_BOOT_SECTOR*)fsBootSector);
-    if (BT_ERROR(status)) goto CLEANUP;
-
-    status = disk->functions.read(disk, 0, 1, (VOID**)&firstSector);
-    if (BT_ERROR(status)) goto CLEANUP;    
-
-    MBR_CLASSIC* fmbr = (MBR_CLASSIC*)firstSector;
-    if (fmbr->signature != MBR_SIGNATURE){
-        status = BT_IO_INVALID_DISK;
-        goto CLEANUP;
-    }
-
-    status = disk->functions.read(disk, fmbr->partitionEntry0.firstLba, 1, (VOID**)&firstSector);
-    if (BT_ERROR(status)) goto CLEANUP;    
-
-    UINT64 fat32Lba = 0;
-
-    MBR_PARTITION_ENTRY **partition = NULL;
-    switch (disk->partitionScheme)
-    {
-        case IO_DISK_SCHEME_MBR:
-            switch (disk->partitionIndex)
-            {
-                case 0:
-                    *partition = &fmbr->partitionEntry0;
-                    break;
-                case 1:
-                    *partition = &fmbr->partitionEntry1;
-                    break;
-                case 2:
-                    *partition = &fmbr->partitionEntry2;
-                    break;
-                case 3:
-                    *partition = &fmbr->partitionEntry3;
-                    break;
-                default:
-                    status = BT_IO_INVALID_DISK;
-                    goto CLEANUP;
-            }
-
-            fat32Lba = (*partition)->firstLba;
-            break;
-        case IO_DISK_SCHEME_GPT:
-            fat32Lba = ((GPT_HEADER*)firstSector)->startingLba + (disk->partitionIndex * ((GPT_HEADER*)firstSector)->sizeOfEntry);
-            break;
-        default:
-            status = BT_IO_INVALID_DISK;
-            goto CLEANUP;
-    }
+BT_STATUS FAT32_GetBootSectorBlock(IN IO_DISK *disk, IN OUT FAT32_BOOT_SECTOR *buffer){
+    BT_STATUS status = 0;
     
-    status = disk->functions.write(disk, fat32Lba, 1, fsBootSector);
-    if (BT_ERROR(status)) goto CLEANUP;
+    status = disk->functions.read(disk, 0, 1, (VOID*)buffer);
 
-    CLEANUP:
-    if (fsBootSector) FreePhysicalPool((VOID**)&fsBootSector, &fsBootSectorSize);
-    if (partitionBuffer) FreePhysicalPool((VOID**)&partitionBuffer, &partitionBufferSize);
-    if (firstSector) FreePhysicalPool((VOID**)&firstSector, &firstSectorSize);
-
-    return status;
+    return ((MBR_CLASSIC*)buffer)->signature;
 }

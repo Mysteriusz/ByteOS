@@ -16,9 +16,6 @@ MEMORY_PAGE_POOL_HEADER *hugePool;
 MEMORY_PAGE_POOL_HEADER *customPool;
 UINT32 poolCount = 0;
 
-// Used for padding address to it`s page address
-#define PAGE_PAD_ADDRESS(address)(((PHYSICAL_ADDRESS)address & ~(PAGE_SIZE - 1)))
-
 // Used for allocating page using page bit map
 #define PAGE_ALLOC(index)(pageGroups[((UINT32)index / PAGES_PER_GROUP)] |= (PAGE_ALLOCATED << ((UINT32)index % PAGES_PER_GROUP)))
 // Used for deallocating page using page bit map

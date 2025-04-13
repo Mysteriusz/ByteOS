@@ -10,11 +10,12 @@ efimake:
 KERNELFLAGS= -mno-red-zone -ffreestanding -nostdlib -e Kernel_Main
 KERNELH=$(shell find /mnt/d/byteos/kernel -type d | sed 's/^/-I /')
 KERNELC=$(shell find /mnt/d/byteos/kernel -type f -name "*.c")
+KERNELS=$(shell find /mnt/d/byteos/kernel -type f -name "*.s")
 
 kernelmake:
-	$(CC) $(KERNELFLAGS) $(KERNELH) $(KERNELC) -o /mnt/d/byteos/kernel/byteos.bin
+	$(CC) $(KERNELFLAGS) $(KERNELH) $(KERNELC) $(KERNELS) -o /mnt/d/byteos/kernel/byteos.bin
 
 fullmake:
-	$(CC) $(BOOTX64FLAGS) $(BOOTX64H) $(BOOTX64C) -o /mnt/d/byteos/boot/BOOTX64.EFI
-	$(CC) $(KERNELFLAGS) $(KERNELH) $(KERNELC) -o /mnt/d/byteos/kernel/byteos.bin
+	$(CC) $(BOOTX64FLAGS) $(BOOTX64H) $(BOOTX64C) $(KERNELS) -o /mnt/d/byteos/boot/BOOTX64.EFI
+	$(CC) $(KERNELFLAGS) $(KERNELS) $(KERNELH) $(KERNELC) -o /mnt/d/byteos/kernel/byteos.bin
 	/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -file D:/byteos/run.ps1
