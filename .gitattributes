@@ -1,6 +1,6 @@
 
-# *.c linguist-language=C
-*.h linguist-language=Java
-*.mk linguist-language=ASM
-*.ps1 linguist-language=Java
-*.s linguist-language=Java
+*.c linguist-language=C
+*.h linguist-language=C
+*.mk linguist-language=Makefile
+*.ps1 linguist-language=Powershell
+*.s linguist-language=ASM
