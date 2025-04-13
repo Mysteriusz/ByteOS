@@ -1,5 +1,5 @@
-*.c linguist-language=C
-*.h linguist-language=C
-*.mk linguist-language=Makefile
-*.ps1 linguist-language=PowerShell
-*.s linguist-language=ASM
+# *.c linguist-language=C
+# *.h linguist-language=C
+# *.mk linguist-language=Makefile
+# *.ps1 linguist-language=PowerShell
+# *.s linguist-language=ASM
