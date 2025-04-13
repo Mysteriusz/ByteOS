@@ -2,3 +2,4 @@
 *.h linguist-language=C
 *.mk linguist-language=Makefile
 *.ps1 linguist-language=PowerShell
+*.s linguist-language=ASM
