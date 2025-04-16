@@ -411,6 +411,10 @@ MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolS
 }
 
 BT_STATUS ByteAPI ForceSetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
+    if (buffer == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+
     BYTE *ptr = (BYTE*)buffer;
 
     for (UINTN i = 0; i < size; i++) {
@@ -419,6 +423,10 @@ BT_STATUS ByteAPI ForceSetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINT
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size){
+    if (buffer == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+
     BYTE *ptr = (BYTE*)buffer;
 
     UINT32 index = 0;
@@ -437,13 +445,37 @@ BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN siz
     }
     return BT_SUCCESS;
 }
+BT_STATUS ByteAPI GetPhysicalFlags(IN VOID *buffer, OUT BT_MEMORY_PAGE_FLAGS *flags){
+    if (buffer == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    if (flags == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    
+    UINT32 pageIndex = 0;
+    BT_STATUS status = PhysicalPageToIndex(PAGE_PAD_ADDRESS((PHYSICAL_ADDRESS)buffer), &pageIndex);
+    if (BT_ERROR(status)) return status;
+    
+    *flags = flagMap[pageIndex];
+
+    return BT_SUCCESS;
+}
 
 BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *to){
+    if (from == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    if (to == NULL){
+        return BT_INVALID_BUFFER;
+    }
+
     BYTE *fptr = (BYTE*)from;
     BYTE *tptr = (BYTE*)to;
 
     UINT32 index = 0;
-    PhysicalPageToIndex((PHYSICAL_ADDRESS)fptr, &index);
+    BT_STATUS status = PhysicalPageToIndex((PHYSICAL_ADDRESS)fptr, &index);
+    if (BT_ERROR(status)) return status;
 
     // PERMISSION CHECK
     UINTN pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -464,6 +496,9 @@ BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *
 // ==================================== |
 
 BT_STATUS ByteAPI PhysicalIndexToPage(IN UINT32 pageIndex, OUT PHYSICAL_ADDRESS *address){
+    if (address == NULL){
+        return BT_INVALID_BUFFER;
+    }
     if (pageIndex > pageCount){
         return BT_INVALID_PAGE_INDEX;
     }
@@ -476,6 +511,9 @@ BT_STATUS ByteAPI PhysicalIndexToPage(IN UINT32 pageIndex, OUT PHYSICAL_ADDRESS 
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI PhysicalPageToIndex(IN PHYSICAL_ADDRESS pageAddress, OUT UINT32 *index){
+    if (index == NULL){
+        return BT_INVALID_BUFFER;
+    }
     if (*index > pageCount){
         return BT_INVALID_PAGE_INDEX;
     }
@@ -484,6 +522,13 @@ BT_STATUS ByteAPI PhysicalPageToIndex(IN PHYSICAL_ADDRESS pageAddress, OUT UINT3
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI PhysicalGetClosest(IN UINT32 fromIndex, OUT UINT32 *index, OUT PHYSICAL_ADDRESS *address){
+    if (index == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    if (address == NULL){
+        return BT_INVALID_BUFFER;
+    }    
+
     UINT32 i = fromIndex;
     while (PAGE_CHECK(i) == PAGE_ALLOCATED){
         i++;

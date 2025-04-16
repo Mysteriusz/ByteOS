@@ -108,5 +108,6 @@ typedef struct FAT32_LFN_ENTRY{
     CHAR16 fileName2[2];
 } FAT32_LFN_ENTRY;
 
+BT_STATUS FAT32_Setup(IN IO_DISK *disk);
 BT_STATUS FAT32_CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer);
-BT_STATUS FAT32_GetBootSectorBlock(IN IO_DISK *disk, IN OUT FAT32_BOOT_SECTOR *buffer);
+BT_STATUS FAT32_GetBootSectorBlock(IN IO_DISK *disk, OUT UINT64 *lba, IN OUT FAT32_BOOT_SECTOR *buffer);

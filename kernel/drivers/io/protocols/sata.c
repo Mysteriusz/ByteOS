@@ -1,6 +1,16 @@
 #include "sata.h"
 
 BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port, OUT UINT32 *index){
+    if (hba == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    if (port == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    if (index == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    
     for (UINT32 i = 0; i < SATA_PORT_BASE_COUNT; i++){
         if ((hba->portsImplemented & (1 << i)) == TRUE){
             SATA_PORT_REGISTER *temp = (SATA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + SATA_PORT_OFFSET(i));
@@ -49,7 +59,17 @@ BT_STATUS SATA_STOP_DMA_ENGINE(IN SATA_PORT_REGISTER *port){
 }
 
 BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_DEVICE_DATA **buffer){
-    BT_STATUS status;
+    if (port == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    if (*buffer == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    
+    BT_MEMORY_PAGE_FLAGS flags = 0;
+    BT_STATUS status = GetPhysicalFlags(*buffer, &flags);
+    if (BT_ERROR(status)) return status;
+    if ((flags & BT_MEMORY_WRITE) == FALSE) return BT_INVALID_BUFFER;
     
     (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
 
@@ -88,7 +108,17 @@ BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY
     return BT_SUCCESS;
 }
 BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer){
-    BT_STATUS status;
+    if (*buffer == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    if (port == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+
+    BT_MEMORY_PAGE_FLAGS flags = 0;
+    BT_STATUS status = GetPhysicalFlags(*buffer, &flags);
+    if (BT_ERROR(status)) return status;
+    if ((flags & BT_MEMORY_WRITE) == FALSE) return BT_INVALID_BUFFER;
     
     (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
 
@@ -147,7 +177,17 @@ BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT3
     return BT_SUCCESS;
 }
 BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer){
-    BT_STATUS status;
+    if (buffer == NULL){
+        return BT_INVALID_BUFFER;
+    }
+    if (port == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+
+    BT_MEMORY_PAGE_FLAGS flags = 0;
+    BT_STATUS status = GetPhysicalFlags(buffer, &flags);
+    if (BT_ERROR(status)) return status;
+    if ((flags & BT_MEMORY_WRITE) == FALSE) return BT_INVALID_BUFFER;
     
     (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
 
@@ -206,6 +246,10 @@ BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT
     return BT_SUCCESS;
 }
 BT_STATUS SATA_FLUSH_CACHE_EXT(IN SATA_PORT_REGISTER *port){
+    if (port == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    
     BT_STATUS status;
     
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
@@ -225,6 +269,10 @@ BT_STATUS SATA_FLUSH_CACHE_EXT(IN SATA_PORT_REGISTER *port){
     return BT_SUCCESS;
 }
 BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port){
+    if (port == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    
     BT_STATUS status;
     
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
@@ -244,6 +292,10 @@ BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port){
     return BT_SUCCESS;
 }
 BT_STATUS SATA_SAFE_PORT_RUN(IN SATA_PORT_REGISTER *port, IN UINT32 portIndex){
+    if (port == NULL){
+        return BT_INVALID_ARGUMENT;
+    }
+    
     SATA_ISSUE_PORT(port->commandIssued, portIndex);
 
     UINT32 sfc = 0x1000000;
