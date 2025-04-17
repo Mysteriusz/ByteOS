@@ -1,9 +1,4 @@
 #include "byteos.h"
-#include "graphics/fonts/bts.h"
-#include "drivers/io/disk.h"
-#include "drivers/io/interfaces/ahci.h"
-#include "drivers/pci.h"
-#include "drivers/io/protocols/sata.h"
 #include "drivers/io/filesystems/filesystem.h"
 
 // ==================================== |
@@ -51,26 +46,31 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
 
-    status = RegisterDisksFromDevices(devInfo->ioi, &devInfo->ioiCount);
+    // status = RegisterDisksFromDevices(devInfo->ioi, &devInfo->ioiCount);
+
     
     IO_DISK *disk = NULL;
-    status = GetDisk(0, &disk);
+    UINTN diskSize = sizeof(IO_DISK);
+    status = AllocPhysicalPool((VOID**)&disk, &diskSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) return status;
 
-    return disk->info.logicalBlockSize;
-    status = SetupFilesystem(disk, FAT32);
+    IO_DISK_PARTITION *partition = NULL;
+    UINTN partitionSize = sizeof(IO_DISK_PARTITION);
+    status = AllocPhysicalPool((VOID**)&partition, &partitionSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) return status;
 
-    VOID *t1 = NULL;
-    UINTN ts1 = 0x200;    
-    status = AllocPhysicalPool(&t1, &ts1, BT_MEMORY_KERNEL_RW);
-    
-    // UINT64 lba1 = 0;    
-    // status = FAT32_GetBootSectorBlock(disk, &lba1, t1);
-    
+    status = RegisterDisk(pci, &disk);
+    status = CreatePartition(disk, 0x100000, partition);
+    return partition;
+
+    // return FAT32_LS(disk, NULL);
     // VOID *t2 = NULL;
     // UINTN ts2 = 0x200;    
     // UINTN lba2 = 0;    
     // status = AllocPhysicalPool((VOID**)&t2, &ts2, BT_MEMORY_KERNEL_RW);
     // status = FAT32_GetBootSectorBlock(disk, &lba2, t2);
+    
+    // return ((FAT32_BOOT_SECTOR*)t2)->bootRecordSignature;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

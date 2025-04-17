@@ -1,6 +1,7 @@
 #include "sata.h"
+#include "x86.h"
 
-BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port, OUT UINT32 *index){
+BT_STATUS SataFindFreePort(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGISTER **port, OUT UINT32 *index){
     if (hba == NULL){
         return BT_INVALID_ARGUMENT;
     }
@@ -31,7 +32,7 @@ BT_STATUS SATA_FIND_PORT(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGIST
 
     return BT_SUCCESS;
 }
-BT_STATUS SATA_START_DMA_ENGINE(IN SATA_PORT_REGISTER *port){
+BT_STATUS SataStartDmaEngine(IN SATA_PORT_REGISTER *port){
     if (port == NULL){
         return BT_INVALID_ARGUMENT;
     }
@@ -44,7 +45,7 @@ BT_STATUS SATA_START_DMA_ENGINE(IN SATA_PORT_REGISTER *port){
     port->command.fisReceiveEnable = 1;
     return BT_SUCCESS;
 }
-BT_STATUS SATA_STOP_DMA_ENGINE(IN SATA_PORT_REGISTER *port){
+BT_STATUS SataStopDmaEngine(IN SATA_PORT_REGISTER *port){
     if (port == NULL){
         return BT_INVALID_ARGUMENT;
     }
@@ -58,13 +59,9 @@ BT_STATUS SATA_STOP_DMA_ENGINE(IN SATA_PORT_REGISTER *port){
     return BT_SUCCESS;
 }
 
-BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_DEVICE_DATA **buffer){
-    if (port == NULL){
-        return BT_INVALID_ARGUMENT;
-    }
-    if (*buffer == NULL){
-        return BT_INVALID_BUFFER;
-    }
+BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_DEVICE_DATA **buffer){
+    if (port == NULL) return BT_INVALID_ARGUMENT;
+    if (*buffer == NULL) return BT_INVALID_BUFFER;
     
     BT_MEMORY_PAGE_FLAGS flags = 0;
     BT_STATUS status = GetPhysicalFlags(*buffer, &flags);
@@ -78,9 +75,7 @@ BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY
     PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
 
     // Setup command`s header
     commandList->commandHeader.commandFisLength = sizeof(AHCI_FIS_H2D) / 4;
@@ -107,13 +102,9 @@ BT_STATUS SATA_IDENTIFY_DEVICE(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY
         
     return BT_SUCCESS;
 }
-BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer){
-    if (*buffer == NULL){
-        return BT_INVALID_BUFFER;
-    }
-    if (port == NULL){
-        return BT_INVALID_ARGUMENT;
-    }
+BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer){
+    if (*buffer == NULL) return BT_INVALID_BUFFER;
+    if (port == NULL) return BT_INVALID_ARGUMENT;
 
     BT_MEMORY_PAGE_FLAGS flags = 0;
     BT_STATUS status = GetPhysicalFlags(*buffer, &flags);
@@ -127,9 +118,7 @@ BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT3
     PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
 
     // Setup command`s header
     commandList->commandHeader.commandFisLength = sizeof(AHCI_FIS_H2D) / 4;
@@ -176,13 +165,9 @@ BT_STATUS SATA_READ_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT3
 
     return BT_SUCCESS;
 }
-BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer){
-    if (buffer == NULL){
-        return BT_INVALID_BUFFER;
-    }
-    if (port == NULL){
-        return BT_INVALID_ARGUMENT;
-    }
+BT_STATUS SataWriteDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer){
+    if (buffer == NULL) return BT_INVALID_BUFFER;
+    if (port == NULL) return BT_INVALID_ARGUMENT;
 
     BT_MEMORY_PAGE_FLAGS flags = 0;
     BT_STATUS status = GetPhysicalFlags(buffer, &flags);
@@ -196,9 +181,7 @@ BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT
     PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
 
     // Setup command`s header
     commandList->commandHeader.commandFisLength = sizeof(AHCI_FIS_H2D) / 4;
@@ -245,10 +228,8 @@ BT_STATUS SATA_WRITE_DMA_EXT(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT
 
     return BT_SUCCESS;
 }
-BT_STATUS SATA_FLUSH_CACHE_EXT(IN SATA_PORT_REGISTER *port){
-    if (port == NULL){
-        return BT_INVALID_ARGUMENT;
-    }
+BT_STATUS SataFlushDmaExt(IN SATA_PORT_REGISTER *port){
+    if (port == NULL) return BT_INVALID_ARGUMENT;
     
     BT_STATUS status;
     
@@ -257,9 +238,7 @@ BT_STATUS SATA_FLUSH_CACHE_EXT(IN SATA_PORT_REGISTER *port){
     PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
-    if (BT_ERROR(status)){
-        return status;
-    }
+    if (BT_ERROR(status)) return status;
 
     AHCI_FIS_H2D* fis = (AHCI_FIS_H2D*)commandTable->commandFis;
     fis->fisType = REG_H2D;
@@ -268,7 +247,7 @@ BT_STATUS SATA_FLUSH_CACHE_EXT(IN SATA_PORT_REGISTER *port){
 
     return BT_SUCCESS;
 }
-BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port){
+BT_STATUS SataDeviceReset(IN SATA_PORT_REGISTER *port){
     if (port == NULL){
         return BT_INVALID_ARGUMENT;
     }
@@ -291,7 +270,7 @@ BT_STATUS SATA_DEVICE_RESET(IN SATA_PORT_REGISTER *port){
 
     return BT_SUCCESS;
 }
-BT_STATUS SATA_SAFE_PORT_RUN(IN SATA_PORT_REGISTER *port, IN UINT32 portIndex){
+BT_STATUS SataSafePortRun(IN SATA_PORT_REGISTER *port, IN UINT32 portIndex){
     if (port == NULL){
         return BT_INVALID_ARGUMENT;
     }

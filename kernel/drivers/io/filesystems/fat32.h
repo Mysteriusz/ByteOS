@@ -1,8 +1,6 @@
 #pragma once
 
-#include "byteos.h"
 #include "filesystem.h"
-#include "disk.h"
 
 #define FAT32_BASE_OEM "BOSS1.0"
 #define FAT32_BASE_JUMP_CODE 0xEB, 0x58, 0x90
@@ -26,8 +24,8 @@
 #define FAT32_BASE_FAT_NAME "FAT32" 
 #define FAT32_BASE_BOOT_SIGNATURE 0x55aa     
 
-#define FAT32_BASE_FAT_TABLES_LBA(fat32ptr, fat32lba)((PHYSICAL_ADDRESS)fat32lba + ((FAT32_BOOT_SECTOR*)fat32ptr)->reservedSectors)
-#define FAT32_BASE_DATA_AREA_LBA(fat32ptr, fat32lba)((PHYSICAL_ADDRESS)FAT32_BASE_FAT_TABLES_LBA(fat32ptr, fat32lba) + (((FAT32_BOOT_SECTOR*)fat32ptr)->sectorsPerFat * 2))
+#define FAT32_FAT_TABLES_LBA(fat32ptr, fat32lba)((UINT64)fat32lba + ((FAT32_BOOT_SECTOR*)fat32ptr)->reservedSectors)
+#define FAT32_DATA_AREA_LBA(fat32ptr, fat32lba)((UINT64)FAT32_FAT_TABLES_LBA(fat32ptr, fat32lba) + (((FAT32_BOOT_SECTOR*)fat32ptr)->sectorsPerFat * 2))
 
 #pragma pack(1)
 
@@ -108,6 +106,6 @@ typedef struct FAT32_LFN_ENTRY{
     CHAR16 fileName2[2];
 } FAT32_LFN_ENTRY;
 
-BT_STATUS FAT32_Setup(IN IO_DISK *disk);
-BT_STATUS FAT32_CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer);
-BT_STATUS FAT32_GetBootSectorBlock(IN IO_DISK *disk, OUT UINT64 *lba, IN OUT FAT32_BOOT_SECTOR *buffer);
+BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition);
+BT_STATUS ByteAPI Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer);
+BT_STATUS ByteAPI Fat32GetBootSectorBlock(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer);

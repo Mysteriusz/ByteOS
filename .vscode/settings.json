@@ -35,6 +35,9 @@
         "xmemory": "c",
         "gpt.h": "c",
         "mbr.h": "c",
-        "dif.h": "c"
+        "dif.h": "c",
+        "x86.h": "c",
+        "stdio.h": "c",
+        "disk_if.h": "c"
     }
 }

@@ -6,7 +6,7 @@
 
 #define IN
 #define OUT
-#define NULL ((VOID*)0)
+#define NULL (VOID*)0
 #define OPTIONAL
 #define CONST const
 #define ByteAPI
