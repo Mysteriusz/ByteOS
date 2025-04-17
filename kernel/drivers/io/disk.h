@@ -62,7 +62,7 @@ typedef struct IO_DISK_PARTITION{
     UINT8 partitionIndex;
     UINTN size;
     IO_DISK* disk;
-    FILE_SYSTEM *filesystem;
+    FILE_SYSTEM filesystem;
     IO_DISK_PARTITION *next;
 } IO_DISK_PARTITION;
 
@@ -71,8 +71,12 @@ typedef struct IO_DISK_PARTITION{
 // ==================================== |
 
 BT_STATUS ByteAPI RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count);
-BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, IN OUT IO_DISK **io);
-BT_STATUS ByteAPI CreatePartition(IN IO_DISK *io, IN UINTN size, IN OUT IO_DISK_PARTITION *partition);
+
+BT_STATUS ByteAPI InjectDisk(IN PCI *pci, IN OUT IO_DISK **io);
+BT_STATUS ByteAPI EjectDisk(UINT32 diskIndex);
+
+BT_STATUS ByteAPI CreatePartition(IN IO_DISK *io, IN UINTN size, OUT IO_DISK_PARTITION **partition);
+BT_STATUS ByteAPI RemovePartition(IN IO_DISK *io, IN UINT32 partitionIndex);
 
 BT_STATUS ByteAPI GetDisk(IN UINT32 index, OUT IO_DISK **disk);
 

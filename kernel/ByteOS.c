@@ -45,9 +45,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.interruptDisable = FALSE;
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
-
-    // status = RegisterDisksFromDevices(devInfo->ioi, &devInfo->ioiCount);
-
     
     IO_DISK *disk = NULL;
     UINTN diskSize = sizeof(IO_DISK);
@@ -55,13 +52,13 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     if (BT_ERROR(status)) return status;
 
     IO_DISK_PARTITION *partition = NULL;
-    UINTN partitionSize = sizeof(IO_DISK_PARTITION);
-    status = AllocPhysicalPool((VOID**)&partition, &partitionSize, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) return status;
+    IO_DISK_PARTITION *partition2 = NULL;
 
-    status = RegisterDisk(pci, &disk);
-    status = CreatePartition(disk, 0x100000, partition);
-    return partition;
+    status = InjectDisk(pci, &disk);
+    status = CreatePartition(disk, 0x100000, &partition);
+    status = CreatePartition(disk, 0x200000, &partition2);
+    status = EjectDisk(0);
+    return status;
 
     // return FAT32_LS(disk, NULL);
     // VOID *t2 = NULL;

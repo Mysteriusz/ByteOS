@@ -1,10 +1,10 @@
 #include "fat32.h"
 
-BT_STATUS Fat32Setup(IN IO_DISK_PARTITION *partition){
+BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition){
     if (partition == NULL){
         return BT_INVALID_ARGUMENT;
     }
-    if (partition->filesystem->type == FAT32){
+    if (partition->filesystem.type == FAT32){
         return BT_IO_INVALID_DISK;
     }
 
@@ -29,7 +29,7 @@ BT_STATUS Fat32Setup(IN IO_DISK_PARTITION *partition){
 
     return status;
 }
-BT_STATUS Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer){
+BT_STATUS ByteAPI Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer){
     BT_STATUS status;
 
     status = CopyPhysicalMemory((UINT8[]){FAT32_BASE_JUMP_CODE}, 3, buffer->jumpCode);
@@ -68,7 +68,7 @@ BT_STATUS Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer){
 
     return BT_SUCCESS;
 }
-BT_STATUS Fat32GetBootSectorBlock(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer){
+BT_STATUS ByteAPI Fat32GetBootSectorBlock(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer){
     BT_STATUS status = 0;
     
     if (buffer == NULL){

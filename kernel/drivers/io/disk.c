@@ -15,7 +15,7 @@ BT_STATUS ByteAPI RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN
     UINT32 msu = 0;
     for (UINT32 i = 0; i < *count; i++){
         IO_DISK *disk = NULL;
-        BT_STATUS status = RegisterDisk((PCI*)devices[i].pciAddress, &disk);
+        BT_STATUS status = InjectDisk((PCI*)devices[i].pciAddress, &disk);
 
         if (status == BT_IO_INVALID_PCI){
             continue;
@@ -31,7 +31,8 @@ BT_STATUS ByteAPI RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN
 
     return BT_SUCCESS;
 }
-BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, IN OUT IO_DISK **io){
+
+BT_STATUS ByteAPI InjectDisk(IN PCI *pci, IN OUT IO_DISK **io){
     if (closestFree >= IO_MAX_DISKS) return BT_IO_DISK_OVERFLOW;
     if (pci == NULL) return BT_INVALID_ARGUMENT;
     if (*io == NULL) return BT_INVALID_BUFFER;
@@ -111,26 +112,111 @@ BT_STATUS ByteAPI RegisterDisk(IN PCI *pci, IN OUT IO_DISK **io){
 
     return status;
 }
-BT_STATUS ByteAPI CreatePartition(IN IO_DISK *io, IN UINTN size, IN OUT IO_DISK_PARTITION *partition){
+BT_STATUS ByteAPI EjectDisk(IN UINT32 diskIndex){
+    if (diskIndex >= IO_MAX_DISKS) return BT_INVALID_ARGUMENT;
+    
+    IO_DISK_PARTITION *curr = disks[diskIndex]->partitions;
+    while (curr != NULL){
+        IO_DISK_PARTITION *next = curr->next;
+
+        UINTN s = sizeof(IO_DISK_PARTITION);
+        FreePhysicalPool((VOID**)&curr, &s);
+
+        curr = next;
+    }
+
+    ForceSetPhysicalMemory((VOID*)disks[diskIndex], 0, sizeof(IO_DISK));
+
+    return BT_SUCCESS;
+}
+
+BT_STATUS ByteAPI CreatePartition(IN IO_DISK *io, IN UINTN size, OUT IO_DISK_PARTITION **partition){
     if (io->scheme == IO_DISK_SCHEME_MBR && io->partitionCount == MBR_MAX_PARTITIONS) return BT_IO_DISK_OVERFLOW;
     if (io->scheme == IO_DISK_SCHEME_GPT && io->partitionCount == GPT_MAX_PARTITIONS) return BT_IO_DISK_OVERFLOW;
     if (io->scheme == IO_DISK_SCHEME_UNK) return BT_IO_INVALID_DISK;
     if (partition == NULL) return BT_INVALID_BUFFER;
+    if (io == NULL) return BT_INVALID_ARGUMENT;
+
+    BT_STATUS status = 0;
+
+    UINTN partitionSize = sizeof(IO_DISK_PARTITION);
+    status = AllocPhysicalPool((VOID**)partition, &partitionSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) return status;
 
     IO_DISK_PARTITION *curr = io->partitions;
-    while (curr != NULL){   
+    IO_DISK_PARTITION *prev = NULL;
+    
+    while (curr != NULL){
+        // [] -> 1 -> 2
+        if (curr->partitionIndex > 0 && prev == NULL){
+            (*partition)->next = curr;
+            (*partition)->partitionIndex = 0;
+            break;
+        }
+        
+        // 0 -> 1 -> []
+        if (curr->next == NULL){
+            curr->next = *partition;
+            (*partition)->partitionIndex = curr->partitionIndex + 1;
+            break;
+        }   
+        
+        // 0 -> [] ->  2
         if (curr->partitionIndex < curr->next->partitionIndex - 1){
-            partition->partitionIndex = curr->partitionIndex + 1;
-            partition->next = curr->next;
-            curr->next = partition;
+            (*partition)->partitionIndex = curr->partitionIndex + 1;
+            (*partition)->next = curr->next;
+            curr->next = *partition;
+            break;
         }
 
         curr = curr->next;
     }
 
-    partition->disk = io;
-    partition->filesystem = NULL;
-    partition->size = size;
+    (*partition)->disk = io;
+    (*partition)->size = size;
+
+    SetPhysicalMemory(&(*partition)->filesystem, 0, sizeof(FILE_SYSTEM));
+
+    io->partitionCount++;
+
+    if (io->partitions == NULL){
+        io->partitions = *partition;
+    }
+
+    return BT_SUCCESS;
+}
+BT_STATUS ByteAPI RemovePartition(IN IO_DISK *io, IN UINT32 partitionIndex){
+    if (io->scheme == IO_DISK_SCHEME_UNK) return BT_IO_INVALID_DISK;
+    if (io == NULL) return BT_INVALID_ARGUMENT;
+
+    BT_STATUS status = 0;
+    UINT32 i = 0;
+
+    IO_DISK_PARTITION *curr = io->partitions;
+    IO_DISK_PARTITION *prev = NULL;
+
+    while (curr->partitionIndex != partitionIndex){   
+        if (i++ == io->partitionCount){
+            return BT_INVALID_ARGUMENT;
+        }
+
+        prev = curr;
+        curr = curr->next;
+    }
+    
+    PHYSICAL_ADDRESS temp = (PHYSICAL_ADDRESS)curr->next;
+    
+    UINTN s = sizeof(IO_DISK_PARTITION);
+    status = FreePhysicalPool((VOID**)&curr, &s);
+    if (BT_ERROR(status)) return status;
+    
+    if (prev != NULL){
+        prev->next = (IO_DISK_PARTITION*)temp;
+    }
+    else{
+        io->partitions = (IO_DISK_PARTITION*)temp;
+    }
+    io->partitionCount--;
 
     return BT_SUCCESS;
 }
