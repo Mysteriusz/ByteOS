@@ -5,6 +5,12 @@
 
 #define SATA_BASE_SECTOR_SIZE 0x200
 
+#define SATA_LOGICAL_SIZE(ptr) \
+    (((((SATA_IDENTIFY_DEVICE_DATA*)ptr)->sectorInfo).logicalLongerThan256W == FALSE) ? SATA_BASE_SECTOR_SIZE : ((SATA_IDENTIFY_DEVICE_DATA*)ptr)->wordsPerLogicalSector * sizeof(WORD))
+
+#define SATA_LOGICAL_COUNT(ptr) \
+    (((SATA_IDENTIFY_DEVICE_DATA*)ptr)->logicalCount)
+
 typedef volatile struct SATA_HOST_CAPABILITIES{
     UINT32 numberOfPorts : 5;
     UINT32 reserved0 : 3;

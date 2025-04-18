@@ -1,5 +1,6 @@
 #include "byteos.h"
 #include "drivers/io/filesystems/filesystem.h"
+#include "drivers/io/filesystems/fat32.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -47,25 +48,21 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.busMaster = TRUE;
     
     IO_DISK *disk = NULL;
-    UINTN diskSize = sizeof(IO_DISK);
-    status = AllocPhysicalPool((VOID**)&disk, &diskSize, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) return status;
-
-    IO_DISK_PARTITION *partition = NULL;
-    IO_DISK_PARTITION *partition2 = NULL;
-
     status = InjectDisk(pci, &disk);
+    
+    IO_DISK_PARTITION *partition = NULL;
     status = CreatePartition(disk, 0x100000, &partition);
-    status = CreatePartition(disk, 0x200000, &partition2);
-    status = EjectDisk(0);
-    return status;
+    
+    status = partition->disk->io.flush(partition->disk);
 
-    // return FAT32_LS(disk, NULL);
-    // VOID *t2 = NULL;
-    // UINTN ts2 = 0x200;    
-    // UINTN lba2 = 0;    
-    // status = AllocPhysicalPool((VOID**)&t2, &ts2, BT_MEMORY_KERNEL_RW);
-    // status = FAT32_GetBootSectorBlock(disk, &lba2, t2);
+    status = FilesystemSetup(partition, FAT32);
+    
+    VOID *t2 = NULL;
+    UINTN ts2 = 0x200;    
+    UINTN lba2 = 0;    
+    status = AllocPhysicalPool((VOID**)&t2, &ts2, BT_MEMORY_KERNEL_RW);
+    status = Fat32GetBootSector(partition, &lba2, t2);
+    return t2;
     
     // return ((FAT32_BOOT_SECTOR*)t2)->bootRecordSignature;
 }

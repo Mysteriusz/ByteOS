@@ -22,7 +22,7 @@
 #define FAT32_BASE_SERIAL_NUMBER 0x29 
 #define FAT32_BASE_VOLUME_NAME "UNK" 
 #define FAT32_BASE_FAT_NAME "FAT32" 
-#define FAT32_BASE_BOOT_SIGNATURE 0x55aa     
+#define FAT32_BASE_BOOT_SIGNATURE 0xaa55     
 
 #define FAT32_FAT_TABLES_LBA(fat32ptr, fat32lba)((UINT64)fat32lba + ((FAT32_BOOT_SECTOR*)fat32ptr)->reservedSectors)
 #define FAT32_DATA_AREA_LBA(fat32ptr, fat32lba)((UINT64)FAT32_FAT_TABLES_LBA(fat32ptr, fat32lba) + (((FAT32_BOOT_SECTOR*)fat32ptr)->sectorsPerFat * 2))
@@ -107,5 +107,5 @@ typedef struct FAT32_LFN_ENTRY{
 } FAT32_LFN_ENTRY;
 
 BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition);
-BT_STATUS ByteAPI Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer);
-BT_STATUS ByteAPI Fat32GetBootSectorBlock(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer);
+BT_STATUS ByteAPI Fat32CreateBootSector(IN FAT32_BOOT_SECTOR *buffer);
+BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer);

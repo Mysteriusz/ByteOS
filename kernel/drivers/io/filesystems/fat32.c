@@ -1,12 +1,8 @@
 #include "fat32.h"
 
 BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition){
-    if (partition == NULL){
-        return BT_INVALID_ARGUMENT;
-    }
-    if (partition->filesystem.type == FAT32){
-        return BT_IO_INVALID_DISK;
-    }
+    if (partition == NULL) return BT_INVALID_ARGUMENT;
+    if (partition->filesystem.type == FAT32) return BT_IO_INVALID_DISK;
 
     BT_STATUS status = 0;
 
@@ -16,20 +12,21 @@ BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition){
     status = AllocPhysicalPool(&bootSectorBlock, &bootSectorBlockSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    status = Fat32GetBootSectorBlock(partition, &lba, (FAT32_BOOT_SECTOR*)bootSectorBlock);
+    status = Fat32GetBootSector(partition, &lba, bootSectorBlock);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    status = Fat32CreateBootSectorBlock((FAT32_BOOT_SECTOR*)bootSectorBlock);
+    status = Fat32CreateBootSector((FAT32_BOOT_SECTOR*)bootSectorBlock);
     if (BT_ERROR(status)) goto CLEANUP;
-
+    
     status = partition->disk->io.write(partition->disk, lba, IO_DISK_SIZE_TO_LB(bootSectorBlockSize, partition->disk->info.logicalBlockSize), bootSectorBlock);
+    if (BT_ERROR(status)) goto CLEANUP;
 
     CLEANUP:
     if (bootSectorBlock) FreePhysicalPool(&bootSectorBlock, &bootSectorBlockSize);
 
     return status;
 }
-BT_STATUS ByteAPI Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer){
+BT_STATUS ByteAPI Fat32CreateBootSector(IN FAT32_BOOT_SECTOR *buffer){
     BT_STATUS status;
 
     status = CopyPhysicalMemory((UINT8[]){FAT32_BASE_JUMP_CODE}, 3, buffer->jumpCode);
@@ -68,7 +65,7 @@ BT_STATUS ByteAPI Fat32CreateBootSectorBlock(IN FAT32_BOOT_SECTOR *buffer){
 
     return BT_SUCCESS;
 }
-BT_STATUS ByteAPI Fat32GetBootSectorBlock(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer){
+BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer){
     BT_STATUS status = 0;
     
     if (buffer == NULL){

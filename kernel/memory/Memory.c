@@ -354,6 +354,7 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
                     return status;
                 }
                 
+                *buffer = NULL;
                 return BT_SUCCESS;
             }
             else{
