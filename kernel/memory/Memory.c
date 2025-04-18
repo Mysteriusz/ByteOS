@@ -176,7 +176,7 @@ BT_STATUS ByteAPI FreePhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size){
             if (freed == freePageCount){
                 *size = freed * PAGE_SIZE;
                 // Clear out all freed pages from start address
-                SetPhysicalMemory((VOID*)pageAddress, 0, *size);
+                ForceSetPhysicalMemory((VOID*)pageAddress, 0, *size);
                 
                 // If closest free index is bigger than initial page index replace it 
                 if (closestPageIndex > pageIndex){
@@ -184,6 +184,7 @@ BT_STATUS ByteAPI FreePhysicalPages(IN OUT VOID **buffer, IN OUT UINTN *size){
                     closestPageAddress = pageAddress;
                 }
 
+                *buffer = NULL;
                 return BT_SUCCESS;
             }
         }
@@ -206,9 +207,14 @@ MEMORY_PAGE ByteAPI GetPhysicalPage(IN UINT32 index){
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
     MEMORY_PAGE_POOL_HEADER **pPool = NULL; // Currently selected pool header
+    
+    if (*size >= PAGE_SIZE - sizeof(MEMORY_PAGE_POOL_HEADER)){
+        return AllocPhysicalPages(buffer, size, flags);
+    }
+
     UINT32 blockSize = POOL_BLOCK_SIZE(*size);
     UINT32 blockCount = POOL_BLOCK_COUNT(blockSize);
-    
+
     // Get the pool size that pPool should point to
     switch (blockSize)
     {
@@ -223,12 +229,7 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
         case POOL_HUGE_BLOCK_SIZE:
             pPool = &hugePool; break;
         default:
-            if (blockSize > PAGE_SIZE){
-                return BT_INVALID_POOL_BLOCK_SIZE;
-            }
-            else{
-                pPool = &customPool; break;
-            }
+            pPool = &customPool; break;
     }
 
     UINT32 pageIndex = 0;
@@ -290,6 +291,11 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
 BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
     MEMORY_PAGE_POOL_HEADER **prev = NULL; // Previously selected pool header
     MEMORY_PAGE_POOL_HEADER **pPool = NULL; // Currently selected pool header
+
+    if (*size >= PAGE_SIZE - sizeof(MEMORY_PAGE_POOL_HEADER)){
+        return FreePhysicalPages(buffer, size);
+    }
+
     UINT32 blockSize = POOL_BLOCK_SIZE(*size);
     UINT32 blockCount = POOL_BLOCK_COUNT(blockSize);
     
@@ -359,7 +365,7 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
             }
             else{
                 // Clear out removed block
-                SetPhysicalMemory(*buffer, 0, blockSize);
+                ForceSetPhysicalMemory(*buffer, 0, blockSize);
             }
             
             *buffer = NULL;

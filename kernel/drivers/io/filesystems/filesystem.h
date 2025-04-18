@@ -1,8 +1,6 @@
 #pragma once
 
 #include "byteos.h"
-#include "mbr.h"
-#include "gpt.h"
 #include "pci.h"
 
 typedef enum FILE_SYSTEM_TYPE{
@@ -14,8 +12,8 @@ typedef enum FILE_SYSTEM_TYPE{
 } FILE_SYSTEM_TYPE;
 
 typedef struct FILE_SYSTEM{
-    UINTN partitionLba;
     UINT8 type;
+    UINTN bootSectorLba;
     UINT32 bootSectorDataSize;
     BYTE *bootSectorData;
 } FILE_SYSTEM;

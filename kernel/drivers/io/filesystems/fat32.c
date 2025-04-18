@@ -7,7 +7,7 @@ BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition){
     BT_STATUS status = 0;
 
     VOID *bootSectorBlock = NULL;
-    UINTN bootSectorBlockSize = sizeof(FAT32_BOOT_SECTOR);
+    UINTN bootSectorBlockSize = FIT_IN_SIZE(sizeof(FAT32_BOOT_SECTOR), partition->disk->info.logicalBlockSize);
     UINT64 lba = 0;
     status = AllocPhysicalPool(&bootSectorBlock, &bootSectorBlockSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
@@ -18,12 +18,20 @@ BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition){
     status = Fat32CreateBootSector((FAT32_BOOT_SECTOR*)bootSectorBlock);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    status = partition->disk->io.write(partition->disk, lba, IO_DISK_SIZE_TO_LB(bootSectorBlockSize, partition->disk->info.logicalBlockSize), bootSectorBlock);
+    status = partition->disk->io.write(partition->disk, lba, FIT_IN(bootSectorBlockSize, partition->disk->info.logicalBlockSize), bootSectorBlock);
     if (BT_ERROR(status)) goto CLEANUP;
-
+        
     CLEANUP:
-    if (bootSectorBlock) FreePhysicalPool(&bootSectorBlock, &bootSectorBlockSize);
-
+    if (BT_ERROR(status) && bootSectorBlock){
+        FreePhysicalPool(&bootSectorBlock, &bootSectorBlockSize);
+    }
+    else{
+        partition->filesystem.bootSectorData = bootSectorBlock;
+        partition->filesystem.bootSectorDataSize = bootSectorBlockSize;
+        partition->filesystem.bootSectorLba = lba;
+        partition->filesystem.type = FAT32;
+    }
+    
     return status;
 }
 BT_STATUS ByteAPI Fat32CreateBootSector(IN FAT32_BOOT_SECTOR *buffer){
@@ -79,10 +87,10 @@ BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64
     }
 
     VOID* firstSector = NULL;
-    UINTN firstSectorSize = MBR_SIZE;
+    UINTN firstSectorSize = FIT_IN_SIZE(MBR_SIZE, partition->disk->info.logicalBlockSize);
     status = AllocPhysicalPool(&firstSector, &firstSectorSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
-    status = partition->disk->io.read(partition->disk, 0, IO_DISK_SIZE_TO_LB(firstSectorSize, partition->disk->info.logicalBlockSize), firstSector);
+    status = partition->disk->io.read(partition->disk, 0, FIT_IN(firstSectorSize, partition->disk->info.logicalBlockSize), firstSector);
     if (BT_ERROR(status)) goto CLEANUP;
 
     MBR_CLASSIC *protectiveMbr = (MBR_CLASSIC*)firstSector;
@@ -93,14 +101,14 @@ BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64
     }
     
     VOID* firstEntry = NULL;
-    UINTN firstEntrySize = MBR_SIZE;
+    UINTN firstEntrySize = FIT_IN_SIZE(GPT_SIZE, partition->disk->info.logicalBlockSize);
     status = AllocPhysicalPool(&firstEntry, &firstEntrySize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
-    status = partition->disk->io.read(partition->disk, protectiveMbr->partitionEntry0.firstLba, IO_DISK_SIZE_TO_LB(firstEntrySize, partition->disk->info.logicalBlockSize), firstEntry);
+    status = partition->disk->io.read(partition->disk, protectiveMbr->partitionEntry0.firstLba, FIT_IN(firstEntrySize, partition->disk->info.logicalBlockSize), firstEntry);
     if (BT_ERROR(status)) goto CLEANUP;
 
     VOID* partitonEntry = NULL;
-    UINTN partitonEntrySize = sizeof(GPT_PARTITON_ENTRY);
+    UINTN partitonEntrySize = FIT_IN_SIZE(sizeof(GPT_PARTITON_ENTRY), partition->disk->info.logicalBlockSize);
 
     GPT_HEADER *gpt = (GPT_HEADER*)firstEntry;
     UINT64 sectorLba = 0;
@@ -118,7 +126,7 @@ BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64
 
         status = AllocPhysicalPool(&partitonEntry, &partitonEntrySize, BT_MEMORY_KERNEL_RW);
         if (BT_ERROR(status)) goto CLEANUP;
-        status = partition->disk->io.read(partition->disk, partitonArrayLba * lbaPerEntry, lbaPerEntry, partitonEntry);
+        status = partition->disk->io.read(partition->disk, partitonArrayLba * lbaPerEntry, FIT_IN(partitonEntrySize, partition->disk->info.logicalBlockSize), partitonEntry);
         if (BT_ERROR(status)) goto CLEANUP;
 
         GPT_PARTITON_ENTRY *entry = (GPT_PARTITON_ENTRY*)partitonEntry;
@@ -147,7 +155,7 @@ BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64
         sectorLba = entry->firstLba;
     }
     
-    status = partition->disk->io.read(partition->disk, sectorLba, IO_DISK_SIZE_TO_LB(sizeof(FAT32_BOOT_SECTOR), partition->disk->info.logicalBlockSize), (VOID*)buffer);
+    status = partition->disk->io.read(partition->disk, sectorLba, 1, (VOID*)buffer);
     if (BT_ERROR(status)) goto CLEANUP;
 
     *lba = sectorLba;
@@ -158,4 +166,12 @@ BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64
     if (partitonEntry) FreePhysicalPool(&partitonEntry, &partitonEntrySize);
     
     return status;
+}
+
+BT_STATUS ByteAPI Fat32Ls(IN IO_DISK_PARTITION *partition, IN CHAR16 *directory){
+    if (partition == NULL) return BT_INVALID_ARGUMENT;
+    if (directory == NULL) return BT_INVALID_ARGUMENT;
+    if (partition->filesystem.type != FAT32) return BT_IO_INVALID_DISK;
+    
+    return BT_SUCCESS;
 }

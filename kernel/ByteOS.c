@@ -53,18 +53,8 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     IO_DISK_PARTITION *partition = NULL;
     status = CreatePartition(disk, 0x100000, &partition);
     
-    status = partition->disk->io.flush(partition->disk);
-
     status = FilesystemSetup(partition, FAT32);
-    
-    VOID *t2 = NULL;
-    UINTN ts2 = 0x200;    
-    UINTN lba2 = 0;    
-    status = AllocPhysicalPool((VOID**)&t2, &ts2, BT_MEMORY_KERNEL_RW);
-    status = Fat32GetBootSector(partition, &lba2, t2);
-    return t2;
-    
-    // return ((FAT32_BOOT_SECTOR*)t2)->bootRecordSignature;
+    return status;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

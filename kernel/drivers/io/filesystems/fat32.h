@@ -1,6 +1,8 @@
 #pragma once
 
 #include "filesystem.h"
+#include "mbr.h"
+#include "gpt.h"
 
 #define FAT32_BASE_OEM "BOSS1.0"
 #define FAT32_BASE_JUMP_CODE 0xEB, 0x58, 0x90
@@ -109,3 +111,5 @@ typedef struct FAT32_LFN_ENTRY{
 BT_STATUS ByteAPI Fat32Setup(IN IO_DISK_PARTITION *partition);
 BT_STATUS ByteAPI Fat32CreateBootSector(IN FAT32_BOOT_SECTOR *buffer);
 BT_STATUS ByteAPI Fat32GetBootSector(IN IO_DISK_PARTITION *partition, OUT UINT64 *lba, IN OUT VOID *buffer);
+
+BT_STATUS ByteAPI Fat32Ls(IN IO_DISK_PARTITION *partition, IN CHAR16 *directory);

@@ -36,9 +36,6 @@ typedef BT_STATUS (ByteAPI *IO_DISK_RESET)(
 #define IO_DISK_SCHEME_MBR 0x01
 #define IO_DISK_SCHEME_GPT 0x02
 
-#define IO_DISK_SIZE_TO_LB(size, diskLbSize)(((UINT32)size + (UINT32)diskLbSize - 1) / (UINT32)diskLbSize)
-#define IO_DISK_SECTORS_TO_LB(sectorSize, lbaSize)(((UINT32)sectorSize + (UINT32)lbaSize - 1) / (UINT32)lbaSize)
-
 typedef struct IO_DISK_FUNCTIONS{
     IO_DISK_INFO info;
     IO_DISK_READ read;
@@ -79,8 +76,6 @@ BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk);
 
 BT_STATUS ByteAPI CreatePartition(IN IO_DISK *disk, IN UINTN size, OUT IO_DISK_PARTITION **partition);
 BT_STATUS ByteAPI RemovePartition(IN IO_DISK *disk, IN UINT32 partitionIndex);
-
-BT_STATUS ByteAPI GetDisk(IN UINT32 index, OUT IO_DISK **disk);
 
 // ==================================== |
 //         DISK METHODS INTEFACE        |

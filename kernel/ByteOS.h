@@ -214,6 +214,9 @@ CHAR16* ByteAPI GetKernelLoadStatus(KERNEL_LOAD_STATUS status);
 typedef UINT32 BT_STATUS;
 #define BT_ERROR(status)(((UINTN)(status)) > 0)
 
+#define FIT_IN(s1, s2)(((s1) + (s2) - 1) / (s2))
+#define FIT_IN_SIZE(s1, s2)((s2) * FIT_IN(s1, s2))
+
 #define BT_SUCCESS 0x00
 #define BT_INVALID_ARGUMENT 0x01
 #define BT_TIMEOUT_ERROR 0x02

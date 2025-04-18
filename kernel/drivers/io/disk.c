@@ -65,17 +65,9 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
     
    // ALLOC NECESSARY POOLS    
     
-    VOID *tc0 = NULL;
-    UINTN tcs0 = MBR_SIZE;
-    status = AllocPhysicalPool(&tc0, &tcs0, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) goto CLEANUP;
-    VOID *tc1 = NULL;
-    UINTN tcs1 = GPT_SIZE;
-    status = AllocPhysicalPool(&tc1, &tcs1, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) goto CLEANUP;
     VOID *idf = NULL;
     UINTN idfs = PAGE_SIZE;
-    status = AllocPhysicalPages(&idf, &idfs, BT_MEMORY_KERNEL_RW);
+    status = AllocPhysicalPool(&idf, &idfs, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
 
     // READ DEVICE INFO
@@ -94,17 +86,26 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
             break;
     }
     
+    VOID *mbr = NULL;
+    UINTN mbrs = FIT_IN_SIZE(MBR_SIZE, disks[diskIndex]->info.logicalBlockSize);
+    status = AllocPhysicalPool(&mbr, &mbrs, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;
+    VOID *gpt = NULL;
+    UINTN gpts = FIT_IN_SIZE(GPT_SIZE, disks[diskIndex]->info.logicalBlockSize);
+    status = AllocPhysicalPool(&gpt, &gpts, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;
+
     // READ PROTECTIVE MBR AND TEMP GPT
 
-    status = disks[diskIndex]->io.read(disks[diskIndex], 0, 1, tc0);
+    status = disks[diskIndex]->io.read(disks[diskIndex], 0, 1, mbr);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    MBR_MODERN *mbrHeader = (MBR_MODERN*)tc0;
+    MBR_MODERN *mbrHeader = (MBR_MODERN*)mbr;
     
-    status = disks[diskIndex]->io.read(disks[diskIndex], mbrHeader->partitionEntry0.firstLba, 1, tc1);
+    status = disks[diskIndex]->io.read(disks[diskIndex], mbrHeader->partitionEntry0.firstLba, 1, gpt);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    GPT_HEADER *gptHeader = (GPT_HEADER*)tc1;
+    GPT_HEADER *gptHeader = (GPT_HEADER*)mbr;
 
     // SET CORRECT PARTITION SCHEME    
 
@@ -129,8 +130,8 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
 
     CLEANUP:
     if (idf) FreePhysicalPool((VOID**)&idf, &idfs);
-    if (tc0) FreePhysicalPool((VOID**)&tc0, &tcs0);
-    if (tc1) FreePhysicalPool((VOID**)&tc1, &tcs1);
+    if (mbr) FreePhysicalPool((VOID**)&mbr, &mbrs);
+    if (gpt) FreePhysicalPool((VOID**)&gpt, &gpts);
 
     return status;
 }
@@ -244,14 +245,6 @@ BT_STATUS ByteAPI RemovePartition(IN IO_DISK *disk, IN UINT32 partitionIndex){
     disk->partitionCount--;
 
     return BT_SUCCESS;
-}
-
-BT_STATUS ByteAPI GetDisk(IN UINT32 index, OUT IO_DISK **disk){
-    if (index >= IO_MAX_DISKS) return BT_INVALID_ARGUMENT;
-
-    *disk = disks[index];
-
-    return BT_SUCCESS;   
 }
 
 // ==================================== |

@@ -19,6 +19,5 @@ BT_STATUS ByteAPI FilesystemSetup(IN IO_DISK_PARTITION *partition, IN FILE_SYSTE
             return BT_INVALID_ARGUMENT;
     } 
 
-    partition->filesystem.type = type;
     return BT_SUCCESS;
 }
