@@ -1,6 +1,7 @@
 #include "byteos.h"
-#include "drivers/io/filesystems/filesystem.h"
-#include "drivers/io/filesystems/fat32.h"
+#include "filesystem.h"
+#include "fat32.h"
+#include "crc.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -50,11 +51,42 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
     
-    IO_DISK_PARTITION *partition = NULL;
-    status = CreatePartition(disk, 0x100000, &partition);
+    status = GptIdentifyPartitions(disk);
     
-    status = FilesystemSetup(partition, FAT32);
-    return status;
+    GPT_PARTITON_ENTRY *gptPartition = NULL;
+    UINTN s = sizeof(GPT_PARTITON_ENTRY);
+    AllocPhysicalPool((VOID**)&gptPartition, &s, BT_MEMORY_KERNEL_RW);
+    
+    BYTE *arr = NULL;
+    UINTN ss = 2;
+    status = AllocPhysicalPool((VOID**)&arr, &ss, BT_MEMORY_KERNEL_RW);
+    
+    arr[0] = 0x01;
+    arr[1] = 0x02;
+    
+    UINT32 crc32 = 0;
+    Crc32(arr, 2, &crc32);
+    return crc32;
+
+    // #define TEST \
+    // { 0x188E4B13, 0xBE54, 0x40BD, { 0xB3, 0x1E, 0xA9, 0x75, 0x05, 0x87, 0x6E, 0xB2 } }
+        
+    // #define TEST2 \
+    // { 0xEBD0A0A2, 0xB9E5, 0x4433, { 0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7 } }
+
+    // gptPartition->typeGuid = (GUID)TEST2;
+    // gptPartition->uniqueGuid = (GUID)TEST;
+    // gptPartition->firstLba = 323223;
+    // gptPartition->lastLba = 0xfffffff;
+    // gptPartition->attributeFlags = 0;
+    // CopyPhysicalMemory((VOID*)L"TEST", 16, gptPartition->partitionName);
+    
+    // status = GptWritePartitonEntry(disk, 2, gptPartition);
+    
+    // GPT_PARTITON_ENTRY *gptPartition1 = NULL;
+    // status = GptReadPartitonEntry(disk, 2, &gptPartition1);
+
+    // return gptPartition1->lastLba;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

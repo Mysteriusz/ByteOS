@@ -470,31 +470,44 @@ BT_STATUS ByteAPI GetPhysicalFlags(IN VOID *buffer, OUT BT_MEMORY_PAGE_FLAGS *fl
 }
 
 BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *to){
-    if (from == NULL){
-        return BT_INVALID_ARGUMENT;
-    }
-    if (to == NULL){
-        return BT_INVALID_BUFFER;
-    }
+    if (from == NULL) return BT_INVALID_ARGUMENT;
+    if (to == NULL) return BT_INVALID_BUFFER;
 
     BYTE *fptr = (BYTE*)from;
     BYTE *tptr = (BYTE*)to;
 
-    UINT32 index = 0;
-    BT_STATUS status = PhysicalPageToIndex((PHYSICAL_ADDRESS)fptr, &index);
-    if (BT_ERROR(status)) return status;
+    BT_STATUS status = 0;
 
-    // PERMISSION CHECK
-    UINTN pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    for (UINTN i = index; i < pageCount; i++){
-        if ((flagMap[i] & BT_MEMORY_READ) == FALSE){
-            return BT_MEMORY_NOT_READABLE;
-        }
-    }
+    status = PhysicalCheckPermission(from, BT_MEMORY_READ, size);
+    if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_READABLE;
+
+    status = PhysicalCheckPermission(to, BT_MEMORY_WRITE, size);
+    if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_WRITABLE;
     
     for (UINTN i = 0; i < size; i++){
         tptr[i] = fptr[i];
     }
+    return BT_SUCCESS;
+}
+BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *to){
+    if (from == NULL) return BT_INVALID_ARGUMENT;
+    if (to == NULL) return BT_INVALID_ARGUMENT;
+
+    BYTE *fptr = (BYTE*)from;
+    BYTE *tptr = (BYTE*)to;
+    
+    BT_STATUS status = 0;
+
+    status = PhysicalCheckPermission(to, BT_MEMORY_WRITE, size);
+    if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_WRITABLE;
+    
+    status = PhysicalCheckPermission(from, BT_MEMORY_READ, size);
+    if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_READABLE;
+    
+    for (UINTN i = 0; i < size; i++){
+        if (fptr[i] != tptr[i]) return BT_INVALID_MEMORY;
+    }
+
     return BT_SUCCESS;
 }
 
@@ -545,6 +558,20 @@ BT_STATUS ByteAPI PhysicalGetClosest(IN UINT32 fromIndex, OUT UINT32 *index, OUT
     }
     *index = i;
     *address = PAGE_SIZE * i;
+
+    return BT_SUCCESS;
+}
+BT_STATUS ByteAPI PhysicalCheckPermission(IN VOID *buffer, IN BT_MEMORY_PAGE_FLAGS permission, IN UINTN size){
+    if (buffer == NULL) return BT_INVALID_ARGUMENT;
+
+    UINT32 index = 0;
+    BT_STATUS status = PhysicalPageToIndex((PHYSICAL_ADDRESS)buffer, &index);
+    if (BT_ERROR(status)) return status;
+    
+    UINTN pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    for (UINTN i = index; i < pageCount; i++){
+        if ((flagMap[i] & permission) == FALSE) return BT_INVALID_MEMORY;
+    }
 
     return BT_SUCCESS;
 }

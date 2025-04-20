@@ -1,6 +1,7 @@
 #pragma once
 
 #include "byteos.h"
+#include "disk.h"
 
 #define MBR_SIZE 0x200
 
@@ -67,3 +68,5 @@ typedef struct MBR_MODERN{
 } MBR_MODERN;
 
 #pragma pack()
+
+BT_STATUS ByteAPI MbrReadPartitonEntry(IN IO_DISK_PARTITION *partition, IN VOID *buffer);

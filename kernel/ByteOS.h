@@ -189,7 +189,7 @@ typedef struct KERNEL_MEMORY_MAP{
     KERNEL_MEMORY_DESCRIPTOR entries[];
 } KERNEL_MEMORY_MAP;
 
-typedef VOID (*KERNEL_ENTRY_POINT)(KERNEL_DEVICE_INFO devInfo);
+typedef VOID (*KERNEL_ENTRY_POINT)(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP *memMap);
 typedef UINTN KERNEL_LOAD_STATUS;
 
 #define KERNEL_LOAD_SUCCESS 0
@@ -214,17 +214,19 @@ CHAR16* ByteAPI GetKernelLoadStatus(KERNEL_LOAD_STATUS status);
 typedef UINT32 BT_STATUS;
 #define BT_ERROR(status)(((UINTN)(status)) > 0)
 
-#define FIT_IN(s1, s2)(((s1) + (s2) - 1) / (s2))
-#define FIT_IN_SIZE(s1, s2)((s2) * FIT_IN(s1, s2))
+#define FIT_IN(s1, s2)(((s2) + (s1) - 1) / (s1))
+#define FIT_IN_SIZE(s1, s2)((s1) * FIT_IN(s1, s2))
 
 #define BT_SUCCESS 0x00
 #define BT_INVALID_ARGUMENT 0x01
 #define BT_TIMEOUT_ERROR 0x02
 #define BT_NOT_FOUND 0x03
+#define BT_UNINITIALIZED 0x04
 
 #define BT_MEMORY_OVERFLOW 0x100
 #define BT_NOT_ENOUGH_MEMORY 0x101
 #define BT_UNKNOWN_MEMORY 0x102
+#define BT_INVALID_MEMORY 0x103
 
 #define BT_ACCESS_VIOLATION 0x1000
 #define BT_MEMORY_NOT_WRITABLE 0x1001
@@ -251,3 +253,28 @@ typedef UINT32 BT_STATUS;
 #include "nums.h"
 #include "char.h"
 #include "memory/memory.h"
+
+#pragma region DEPENDANT
+
+#define GUID_MIN \
+    { 0x00000000, 0x0000, 0x0000, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } }
+#define GUID_MAX \
+    { 0xffffffff, 0xffff, 0xffff, { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } }
+
+typedef struct UUID{
+    UINT32 timeLow;
+    UINT16 timeMid;
+    UINT16 version : 4; 
+    UINT16 timeHigh : 12; 
+    UINT16 variant : 2; 
+    UINT16 clockSequence : 14; 
+    UINT8 reseved[6]; 
+} UUID;
+typedef struct GUID{
+    UINT32 data1;
+    UINT16 data2;
+    UINT16 data3;
+    UINT8 data4[8];
+} GUID;
+
+#pragma endregion DEPENDANT

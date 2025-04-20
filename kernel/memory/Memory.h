@@ -95,6 +95,7 @@ BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN siz
 BT_STATUS ByteAPI GetPhysicalFlags(IN VOID *buffer, OUT UINT8 *flags);
 
 BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *to);
+BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *to);
 
 // ==================================== |
 //           PHYSICAL HELPERS           |
@@ -103,6 +104,7 @@ BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *
 BT_STATUS ByteAPI PhysicalIndexToPage(IN UINT32 pageIndex, OUT PHYSICAL_ADDRESS *address);
 BT_STATUS ByteAPI PhysicalPageToIndex(IN PHYSICAL_ADDRESS pageAddress, OUT UINT32 *index);
 BT_STATUS ByteAPI PhysicalGetClosest(IN UINT32 fromIndex, OUT UINT32 *index, OUT PHYSICAL_ADDRESS *address);
+BT_STATUS ByteAPI PhysicalCheckPermission(IN VOID *buffer, IN BT_MEMORY_PAGE_FLAGS permission, IN UINTN size);
 
 // ==================================== |
 //            PHYSICAL DEBUG            |

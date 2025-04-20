@@ -49,33 +49,30 @@ typedef struct IO_DISK_INFO_DATA{
 } IO_DISK_INFO_DATA;
 typedef struct IO_DISK{
     UINT8 scheme;
+    UINTN gptLba; // 0x00 if disk is not GPT
     UINT8 index;
     IO_DISK_FUNCTIONS io;
     IO_DISK_INFO_DATA info;
-    UINT16 partitionCount;
-    IO_DISK_PARTITION *partitions;
+    UINT32 initializedPartitions[4];
     PCI *pci;
 } IO_DISK;
 typedef struct IO_DISK_PARTITION{
     CHAR8 name[16];
     UINT8 partitionIndex;
-    UINTN size;
     IO_DISK* disk;
     FILE_SYSTEM filesystem;
-    IO_DISK_PARTITION *next;
 } IO_DISK_PARTITION;
+
+#define IO_DISK_PARTITION_BIT_SET(diskptr, partitionIndex)((diskptr)->initializedPartitions[(partitionIndex) / 32] |= (1 << ((partitionIndex) % 32)))
+#define IO_DISK_PARTITION_BIT_UNSET(diskptr, partitionIndex)((diskptr)->initializedPartitions[(partitionIndex) / 32] &= ~(1 << ((partitionIndex) % 32)))
+#define IO_DISK_PARTITION_BIT_CHECK(diskptr, partitionIndex)((diskptr)->initializedPartitions[(partitionIndex) / 32] & (1 << ((partitionIndex) % 32)))
 
 // ==================================== |
 //                 SETUP                |
 // ==================================== |
 
-BT_STATUS ByteAPI RegisterDisksFromDevices(IN KERNEL_IO_DEVICE_INFO *devices, IN OUT UINT32 *count);
-
 BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk);
 BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk);
-
-BT_STATUS ByteAPI CreatePartition(IN IO_DISK *disk, IN UINTN size, OUT IO_DISK_PARTITION **partition);
-BT_STATUS ByteAPI RemovePartition(IN IO_DISK *disk, IN UINT32 partitionIndex);
 
 // ==================================== |
 //         DISK METHODS INTEFACE        |

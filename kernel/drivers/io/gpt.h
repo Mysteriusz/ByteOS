@@ -1,6 +1,7 @@
 #pragma once
 
 #include "byteos.h"
+#include "disk.h"
 
 #define GPT_SIZE 0x200
 
@@ -25,10 +26,14 @@ typedef struct GPT_HEADER{
     UINT32 crc32Entry;
 } GPT_HEADER;
 typedef struct GPT_PARTITON_ENTRY{
-    UINT8 partitionTypeGuid[16];
-    UINT8 uniquePartitionGuid[16];
+    GUID typeGuid;
+    GUID uniqueGuid;
     UINT64 firstLba;
     UINT64 lastLba;
     UINT64 attributeFlags;
     CHAR16 partitionName[36];
 } GPT_PARTITON_ENTRY;
+
+BT_STATUS ByteAPI GptIdentifyPartitions(IN IO_DISK *disk);
+BT_STATUS ByteAPI GptWritePartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer);
+BT_STATUS ByteAPI GptReadPartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, OUT GPT_PARTITON_ENTRY **buffer);
