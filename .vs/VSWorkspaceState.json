@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\kernel",
+    "\\kernel\\drivers",
+    "\\kernel\\drivers\\io",
+    "\\kernel\\drivers\\io\\filesystems",
+    "\\kernel\\drivers\\io\\interfaces",
+    "\\kernel\\drivers\\io\\protocols"
+  ],
+  "SelectedNode": "\\kernel\\byteos.h",
+  "PreviewInSolutionExplorer": false
+}
