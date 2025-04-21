@@ -54,19 +54,13 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     status = GptIdentifyPartitions(disk);
     
     GPT_PARTITON_ENTRY *gptPartition = NULL;
-    UINTN s = sizeof(GPT_PARTITON_ENTRY);
-    AllocPhysicalPool((VOID**)&gptPartition, &s, BT_MEMORY_KERNEL_RW);
     
-    BYTE *arr = NULL;
-    UINTN ss = 2;
-    status = AllocPhysicalPool((VOID**)&arr, &ss, BT_MEMORY_KERNEL_RW);
-    
-    arr[0] = 0x01;
-    arr[1] = 0x02;
-    
-    UINT32 crc32 = 0;
-    Crc32(arr, 2, &crc32);
-    return crc32;
+    GptReadPartitonEntry(disk, 1, &gptPartition);
+
+    gptPartition->lastLba = 0x23324;
+    status = GptWritePartitonEntry(disk, 1, gptPartition);
+
+    return status;
 
     // #define TEST \
     // { 0x188E4B13, 0xBE54, 0x40BD, { 0xB3, 0x1E, 0xA9, 0x75, 0x05, 0x87, 0x6E, 0xB2 } }

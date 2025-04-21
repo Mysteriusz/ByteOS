@@ -34,6 +34,10 @@ typedef struct GPT_PARTITON_ENTRY{
     CHAR16 partitionName[36];
 } GPT_PARTITON_ENTRY;
 
+BOOLEAN ByteAPI IsGpt(IN IO_DISK *disk);
+
 BT_STATUS ByteAPI GptIdentifyPartitions(IN IO_DISK *disk);
 BT_STATUS ByteAPI GptWritePartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer);
 BT_STATUS ByteAPI GptReadPartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, OUT GPT_PARTITON_ENTRY **buffer);
+
+BT_STATUS ByteAPI GptUpdateHeaderCrc(IN IO_DISK *disk);

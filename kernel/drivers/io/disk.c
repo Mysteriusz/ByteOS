@@ -70,37 +70,26 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
     UINTN mbrs = disks[diskIndex]->info.logicalBlockSize;
     status = AllocPhysicalPool(&mbr, &mbrs, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
-    VOID *gpt = NULL;
-    UINTN gpts = disks[diskIndex]->info.logicalBlockSize;
-    status = AllocPhysicalPool(&gpt, &gpts, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) goto CLEANUP;
 
     // READ PROTECTIVE MBR AND TEMP GPT
 
     status = disks[diskIndex]->io.read(disks[diskIndex], 0, 1, mbr);
     if (BT_ERROR(status)) goto CLEANUP;
+    disks[diskIndex]->mbr = mbr;
     
-    MBR_MODERN *mbrHeader = (MBR_MODERN*)mbr;
-    
-    status = disks[diskIndex]->io.read(disks[diskIndex], mbrHeader->partitionEntry0.firstLba, 1, gpt);
-    if (BT_ERROR(status)) goto CLEANUP;
-    
-    GPT_HEADER *gptHeader = (GPT_HEADER*)gpt;
-
     // SET CORRECT PARTITION SCHEME    
 
-    if (gptHeader->signature == GPT_SIGNATURE_LITTLE || gptHeader->signature == GPT_SIGNATURE_BIG){
+    if (IsGpt(disks[diskIndex]) == TRUE){
         disks[diskIndex]->scheme = IO_DISK_SCHEME_GPT;
-        disks[diskIndex]->gptLba = mbrHeader->partitionEntry0.firstLba;
     }
-    else if (mbrHeader->signature == MBR_SIGNATURE_LITTLE || mbrHeader->signature == MBR_SIGNATURE_BIG){
+    else if (((MBR_CLASSIC*)disks[diskIndex]->mbr)->signature == MBR_SIGNATURE_LITTLE || ((MBR_CLASSIC*)disks[diskIndex]->mbr)->signature == MBR_SIGNATURE_BIG){
         disks[diskIndex]->scheme = IO_DISK_SCHEME_MBR;
     }
     else{
         disks[diskIndex]->scheme = IO_DISK_SCHEME_UNK;
     }
 
-    // UPDATE CLOSESNT FREE DISK ENTRY
+    // UPDATE CLOSEST FREE DISK ENTRY
 
     while (disks[closestFree] != NULL){
         if (closestFree == IO_MAX_DISKS){
@@ -112,10 +101,9 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
     *disk = disks[diskIndex];
 
     CLEANUP:
-    if (BT_ERROR(status) && disks[diskIndex]) FreePhysicalPool((VOID**)&disks[diskIndex], &diskSize);
     if (idf) FreePhysicalPool((VOID**)&idf, &idfs);
-    if (mbr) FreePhysicalPool((VOID**)&mbr, &mbrs);
-    if (gpt) FreePhysicalPool((VOID**)&gpt, &gpts);
+    if (BT_ERROR(status) && disks[diskIndex]) FreePhysicalPool((VOID**)&disks[diskIndex], &diskSize);
+    if (BT_ERROR(status) && mbr) FreePhysicalPool((VOID**)&mbr, &mbrs);
 
     return status;
 }

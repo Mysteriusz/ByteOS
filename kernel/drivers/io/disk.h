@@ -49,7 +49,7 @@ typedef struct IO_DISK_INFO_DATA{
 } IO_DISK_INFO_DATA;
 typedef struct IO_DISK{
     UINT8 scheme;
-    UINTN gptLba; // 0x00 if disk is not GPT
+    VOID *mbr;
     UINT8 index;
     IO_DISK_FUNCTIONS io;
     IO_DISK_INFO_DATA info;
