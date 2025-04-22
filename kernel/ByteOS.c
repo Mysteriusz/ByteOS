@@ -53,18 +53,27 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     status = GptIdentifyPartitions(disk);
     
-    GPT_PARTITON_ENTRY *gptPartition = NULL;
+    GPT_PARTITON_ENTRY *entryArray;
+    status = GptReadPartitonEntry(disk, 0, 1, &entryArray);
     
-    GptReadPartitonEntry(disk, 1, &gptPartition);
+    entryArray->firstLba = 32;
 
-    gptPartition->lastLba = 0x23324;
-    status = GptWritePartitonEntry(disk, 1, gptPartition);
-
+    status = GptWritePartitonEntry(disk, 0, 1, entryArray);
     return status;
 
-    // #define TEST \
-    // { 0x188E4B13, 0xBE54, 0x40BD, { 0xB3, 0x1E, 0xA9, 0x75, 0x05, 0x87, 0x6E, 0xB2 } }
-        
+    // entryArray->typeGuid = (GUID)TEST;
+    // return ((MEMORY_PAGE_POOL_HEADER*)0x2000)->blockSize;
+
+    // status = GptIdentifyPartitions(disk);
+    
+    // GPT_PARTITON_ENTRY *gptPartition = NULL;
+    
+    // GptReadPartitonEntry(disk, 1, &gptPartition);
+
+    // gptPartition->lastLba = 0x23324;
+    // status = GptWritePartitonEntry(disk, 1, gptPartition);
+
+
     // #define TEST2 \
     // { 0xEBD0A0A2, 0xB9E5, 0x4433, { 0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7 } }
 

@@ -8,7 +8,6 @@ UINT32 pageGroupCount = 0;
 UINT8 flagMap[MAX_PAGES]; // BYTE PER PAGE
 UINT32 pageCount = 0;
 
-MEMORY_PAGE_POOL_HEADER *tinyPool;
 MEMORY_PAGE_POOL_HEADER *smallPool;
 MEMORY_PAGE_POOL_HEADER *mediumPool;
 MEMORY_PAGE_POOL_HEADER *bigPool;
@@ -85,7 +84,6 @@ BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap){
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI InitializePhysicalPool(){
-    tinyPool = NULL;
     smallPool = NULL;
     mediumPool = NULL;
     bigPool = NULL;
@@ -218,8 +216,6 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     // Get the pool size that pPool should point to
     switch (blockSize)
     {
-        case POOL_TINY_BLOCK_SIZE:
-            pPool = &tinyPool; break;
         case POOL_SMALL_BLOCK_SIZE:
             pPool = &smallPool; break;
         case POOL_MEDIUM_BLOCK_SIZE:
@@ -243,6 +239,11 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
             pageIndex++;
             continue;
         }
+        if (*size > (*pPool)->blockSize){
+            pPool = &(*pPool)->next;
+            pageIndex++;
+            continue;
+        }
 
         UINT32 blockIndex = 0; // Index of current block
         UINT32 blockRva = sizeof(MEMORY_PAGE_POOL_HEADER); // Current RVA from pool header
@@ -251,14 +252,14 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
             // If current block is allocated continue
             if (POOL_BLOCK_CHECK((*pPool)->poolMap, blockIndex) == BLOCK_ALLOCATED){
                 blockIndex++;
-                blockRva += blockSize;
+                blockRva += (*pPool)->blockSize;
                 continue;
             }
             
             // Allocate to current block and set buffer to pool and block RVA
             POOL_BLOCK_ALLOC((*pPool)->poolMap, blockIndex);
             *buffer = (VOID*)((PHYSICAL_ADDRESS)*pPool + blockRva);
-            *size = blockSize;
+            *size = (*pPool)->blockSize;
 
             (*pPool)->used++;
 
@@ -302,8 +303,6 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
     // Get the pool size that pPool should point to
     switch (blockSize)
     {
-        case POOL_TINY_BLOCK_SIZE:
-            pPool = &tinyPool; break;
         case POOL_SMALL_BLOCK_SIZE:
             pPool = &smallPool; break;
         case POOL_MEDIUM_BLOCK_SIZE:
@@ -313,12 +312,7 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
         case POOL_HUGE_BLOCK_SIZE:
             pPool = &hugePool; break;
         default:
-            if (blockSize > PAGE_SIZE){
-                return BT_INVALID_POOL_BLOCK_SIZE;
-            }
-            else{
-                pPool = &customPool; break;
-            } 
+            pPool = &customPool; break;
     }
     
     // Get the pool that has the buffer`s address in its range
@@ -339,7 +333,7 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
         // If current block address is equal to buffer
         if ((PHYSICAL_ADDRESS)*buffer == (PHYSICAL_ADDRESS)*pPool + blockRva){
             POOL_BLOCK_DEALLOC((*pPool)->poolMap, blockIndex);
-            *size = blockSize;
+            *size = (*pPool)->blockSize;
             (*pPool)->used--;
             
             // If pool has no blocks after removing the block
@@ -365,7 +359,7 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
             }
             else{
                 // Clear out removed block
-                ForceSetPhysicalMemory(*buffer, 0, blockSize);
+                ForceSetPhysicalMemory(*buffer, 0, (*pPool)->blockSize);
             }
             
             *buffer = NULL;
@@ -374,7 +368,7 @@ BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
         
         // Move to another block
         blockIndex++;
-        blockRva += blockSize;
+        blockRva += (*pPool)->blockSize;
     }
 
     return BT_INVALID_BUFFER;
@@ -385,8 +379,6 @@ MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolS
 
     switch (blockSize)
     {
-        case POOL_TINY_BLOCK_SIZE:
-            pPool = &tinyPool; break;
         case POOL_SMALL_BLOCK_SIZE:
             pPool = &smallPool; break;
         case POOL_MEDIUM_BLOCK_SIZE:

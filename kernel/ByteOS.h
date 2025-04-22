@@ -217,6 +217,9 @@ typedef UINT32 BT_STATUS;
 #define FIT_IN(s1, s2)(((s2) + (s1) - 1) / (s1))
 #define FIT_IN_SIZE(s1, s2)((s1) * FIT_IN(s1, s2))
 
+#define PAD_UP(s1, s2)(((s1) + ((s2) - 1)) & ~((s2) - 1))
+#define PAD_DOWN(s1, s2)((s1) & ~((s2) - 1))     
+
 #define BT_SUCCESS 0x00
 #define BT_INVALID_ARGUMENT 0x01
 #define BT_TIMEOUT_ERROR 0x02

@@ -30,15 +30,15 @@ BT_STATUS ByteAPI GptIdentifyPartitions(IN IO_DISK *disk){
     
     BT_STATUS status = 0;
     
-    VOID *partitionArray = NULL;
-    UINTN partitionArraySize = FIT_IN_SIZE(disk->info.logicalBlockSize, disk->info.logicalBlockSize + (sizeof(GPT_PARTITON_ENTRY) * GPT_MAX_PARTITIONS));    
-    status = AllocPhysicalPool(&partitionArray, &partitionArraySize, BT_MEMORY_KERNEL_RW);
+    VOID *gptSector = NULL;
+    UINTN gptSectorSize = FIT_IN_SIZE(disk->info.logicalBlockSize, disk->info.logicalBlockSize + (sizeof(GPT_PARTITON_ENTRY) * GPT_MAX_PARTITIONS));    
+    status = AllocPhysicalPool(&gptSector, &gptSectorSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    status = disk->io.read(disk, ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba, partitionArraySize / disk->info.logicalBlockSize, partitionArray);
+    status = disk->io.read(disk, ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba, gptSectorSize / disk->info.logicalBlockSize, gptSector);
     if (BT_ERROR(status)) goto CLEANUP;
 
-    GPT_PARTITON_ENTRY *entry = (GPT_PARTITON_ENTRY*)(disk->info.logicalBlockSize + (PHYSICAL_ADDRESS)partitionArray);
+    GPT_PARTITON_ENTRY *entry = (GPT_PARTITON_ENTRY*)(disk->info.logicalBlockSize + (PHYSICAL_ADDRESS)gptSector);
     
     for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++){
         if (ComparePhysicalMemory((VOID*)&entry->uniqueGuid, sizeof(GUID), (VOID*)(&(GUID)GUID_MIN)) != BT_SUCCESS){
@@ -49,75 +49,83 @@ BT_STATUS ByteAPI GptIdentifyPartitions(IN IO_DISK *disk){
     }
 
     CLEANUP:
-    if (partitionArray) FreePhysicalPool(&partitionArray, &partitionArraySize);
+    if (gptSector) FreePhysicalPool(&gptSector, &gptSectorSize);
 
     return status;
 }
-BT_STATUS ByteAPI GptWritePartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer){
+BT_STATUS ByteAPI GptWritePartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN UINT32 count, IN GPT_PARTITON_ENTRY *buffer){
     if (disk == NULL) return BT_INVALID_ARGUMENT;
     if (buffer == NULL) return BT_INVALID_BUFFER;
     
     BT_STATUS status = 0;
 
-    UINTN partitionEntryLba = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba + FIT_IN(disk->info.logicalBlockSize, ((partitionIndex + 1) * sizeof(GPT_PARTITON_ENTRY)));
+    UINTN entriesPerLba = disk->info.logicalBlockSize / sizeof(GPT_PARTITON_ENTRY);
+    UINTN startLba = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba;
+    UINTN endIndex = partitionIndex + count - 1;
+    UINTN endLba = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba + (endIndex / entriesPerLba) + 1;
+    UINTN lbaToRead = (endLba - startLba) + 1;
+    
+    VOID *gptSector = NULL;
+    UINTN gptSectorSize = disk->info.logicalBlockSize * lbaToRead;    
+    status = AllocPhysicalPool(&gptSector, &gptSectorSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;
+    
+    status = disk->io.read(disk, startLba, lbaToRead, gptSector);
+    if (BT_ERROR(status)) goto CLEANUP;
+    
+    PHYSICAL_ADDRESS entryAddress = (PHYSICAL_ADDRESS)gptSector + disk->info.logicalBlockSize + ((partitionIndex % 32) * sizeof(GPT_PARTITON_ENTRY));
 
-    VOID *partitionBlock = NULL;
-    UINTN partitionBlockSize = disk->info.logicalBlockSize;    
-    status = AllocPhysicalPool(&partitionBlock, &partitionBlockSize, BT_MEMORY_KERNEL_RW);
+    status = CopyPhysicalMemory((VOID*)buffer, sizeof(GPT_PARTITON_ENTRY) * count, (VOID*)entryAddress);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    status = disk->io.read(disk, partitionEntryLba, 1, partitionBlock);
+    status = disk->io.write(disk, startLba, lbaToRead, gptSector);
     if (BT_ERROR(status)) goto CLEANUP;
-       
-    PHYSICAL_ADDRESS partitionEntryAddress = (PHYSICAL_ADDRESS)partitionBlock + (partitionIndex % 32) * sizeof(GPT_PARTITON_ENTRY);
-    
-    status = CopyPhysicalMemory((VOID*)buffer, sizeof(GPT_PARTITON_ENTRY), (VOID*)partitionEntryAddress);
+
+    status = GptUpdateHeaderCrc(disk);
     if (BT_ERROR(status)) goto CLEANUP;
-    
-    status = disk->io.write(disk, partitionEntryLba, 1, partitionBlock);
-    if (BT_ERROR(status)) goto CLEANUP;
-    
+
     if (IO_DISK_PARTITION_BIT_CHECK(disk, partitionIndex) == FALSE){
         IO_DISK_PARTITION_BIT_SET(disk, partitionIndex);
     }
-    
-    status = GptUpdateCrc(disk);
-    if (BT_ERROR(status)) goto CLEANUP;
 
     CLEANUP:
-    if (partitionBlock) FreePhysicalPool(&partitionBlock, &partitionBlockSize);
+    if (gptSector) FreePhysicalPool(&gptSector, &gptSectorSize);
 
     return status;
 }
-BT_STATUS ByteAPI GptReadPartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, OUT GPT_PARTITON_ENTRY **buffer){
+BT_STATUS ByteAPI GptReadPartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN UINT32 count, OUT GPT_PARTITON_ENTRY **buffer){
     if (disk == NULL) return BT_INVALID_ARGUMENT;
     if (buffer == NULL) return BT_INVALID_BUFFER;
     if (IO_DISK_PARTITION_BIT_CHECK(disk, partitionIndex) == FALSE) return BT_UNINITIALIZED;
 
     BT_STATUS status = 0;
 
-    UINTN partitionEntryLba = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba + FIT_IN(disk->info.logicalBlockSize, ((partitionIndex + 1) * sizeof(GPT_PARTITON_ENTRY)));
-
-    VOID *partitionBlock = NULL;
-    UINTN partitionBlockSize = disk->info.logicalBlockSize;    
-    status = AllocPhysicalPool(&partitionBlock, &partitionBlockSize, BT_MEMORY_KERNEL_RW);
+    UINTN entriesPerLba = disk->info.logicalBlockSize / sizeof(GPT_PARTITON_ENTRY);
+    UINTN startLba = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba;
+    UINTN endIndex = partitionIndex + count - 1;
+    UINTN endLba = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba + (endIndex / entriesPerLba) + 1;
+    UINTN lbaToRead = (endLba - startLba) + 1;
+    
+    VOID *gptSector = NULL;
+    UINTN gptSectorSize = disk->info.logicalBlockSize * lbaToRead;    
+    status = AllocPhysicalPool(&gptSector, &gptSectorSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    status = disk->io.read(disk, partitionEntryLba, 1, partitionBlock);
+    status = disk->io.read(disk, startLba, lbaToRead, gptSector);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    UINTN partitionEntrySize = sizeof(GPT_PARTITON_ENTRY);
-    status = AllocPhysicalPool((VOID**)buffer, &partitionEntrySize, BT_MEMORY_KERNEL_RW);
+    UINTN entriesSize = sizeof(GPT_PARTITON_ENTRY) * count;
+    status = AllocPhysicalPool((VOID**)buffer, &entriesSize, BT_MEMORY_KERNEL_RW);
     if (BT_ERROR(status)) goto CLEANUP;
     
-    PHYSICAL_ADDRESS partitionEntryAddress = (PHYSICAL_ADDRESS)partitionBlock + (partitionIndex % 32) * sizeof(GPT_PARTITON_ENTRY);
+    PHYSICAL_ADDRESS entryAddress = (PHYSICAL_ADDRESS)gptSector + disk->info.logicalBlockSize + ((partitionIndex % 32) * sizeof(GPT_PARTITON_ENTRY));
     
-    status = CopyPhysicalMemory((VOID*)partitionEntryAddress, sizeof(GPT_PARTITON_ENTRY), (VOID*)*buffer);
+    status = CopyPhysicalMemory((VOID*)entryAddress, sizeof(GPT_PARTITON_ENTRY) * count, (VOID*)*buffer);
     if (BT_ERROR(status)) goto CLEANUP;
-
+    
     CLEANUP:
-    if (partitionBlock) FreePhysicalPool(&partitionBlock, &partitionBlockSize);
-    if (BT_ERROR(status) && *buffer) FreePhysicalPool((VOID**)buffer, &partitionEntrySize);
+    if (gptSector) FreePhysicalPool(&gptSector, &gptSectorSize);
+    if (BT_ERROR(status) && *buffer) FreePhysicalPool((VOID**)buffer, &entriesSize);
     
     return status;
 }
