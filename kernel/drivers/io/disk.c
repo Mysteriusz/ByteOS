@@ -61,6 +61,7 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
         case PCI_SCC_0x01_SATA:
             disks[diskIndex]->info.logicalBlockSize = SATA_LOGICAL_SIZE(idf); 
             disks[diskIndex]->info.logicalBlockCount = SATA_LOGICAL_COUNT(idf); 
+            disks[diskIndex]->info.logicalSize = SATA_LOGICAL_SIZE(idf) * SATA_LOGICAL_COUNT(idf);
             break;
         default:
             break;
@@ -75,12 +76,16 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk){
 
     status = disks[diskIndex]->io.read(disks[diskIndex], 0, 1, mbr);
     if (BT_ERROR(status)) goto CLEANUP;
+    
     disks[diskIndex]->mbr = mbr;
     
     // SET CORRECT PARTITION SCHEME    
-
+    
     if (IsGpt(disks[diskIndex]) == TRUE){
         disks[diskIndex]->scheme = IO_DISK_SCHEME_GPT;
+
+        status = GptIdentifyPartitions(disks[diskIndex]);
+        if (BT_ERROR(status)) goto CLEANUP;
     }
     else if (((MBR_CLASSIC*)disks[diskIndex]->mbr)->signature == MBR_SIGNATURE_LITTLE || ((MBR_CLASSIC*)disks[diskIndex]->mbr)->signature == MBR_SIGNATURE_BIG){
         disks[diskIndex]->scheme = IO_DISK_SCHEME_MBR;
@@ -119,6 +124,80 @@ BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk){
     if (BT_ERROR(status)) return status;
 
     return BT_SUCCESS;
+}
+
+BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
+    if (disk == NULL) return BT_INVALID_ARGUMENT;
+
+    BT_STATUS status = 0;
+
+    IO_DISK_MAP_REGION *mbrRegion = NULL;
+    UINTN mbrRegionSize = sizeof(IO_DISK_MAP_REGION);
+    status = AllocPhysicalPool((VOID**)&mbrRegion, &mbrRegionSize, BT_MEMORY_KERNEL_RW);
+    if (BT_ERROR(status)) goto CLEANUP;
+
+    mbrRegion->startLba = 0;
+    mbrRegion->endLba = 1;
+    mbrRegion->free = FALSE;
+
+    disk->info.map.region = mbrRegion;
+    disk->info.map.regionCount++;
+
+    if (disk->scheme == IO_DISK_SCHEME_GPT){
+        GPT_PARTITON_ENTRY *gptPartitions = NULL;
+        UINTN gptPartitionsSize = sizeof(GPT_PARTITON_ENTRY) * GPT_MAX_PARTITIONS;
+        status = AllocPhysicalPool((VOID**)&gptPartitions, &gptPartitionsSize, BT_MEMORY_KERNEL_RW);
+        if (BT_ERROR(status)) goto CLEANUP;
+
+        status = GptReadPartitonEntry(disk, 0, GPT_MAX_PARTITIONS, gptPartitions);
+        if (BT_ERROR(status)) goto CLEANUP;
+
+        IO_DISK_MAP_REGION *firstRegion = NULL;
+        IO_DISK_MAP_REGION *currentRegion = NULL;
+        IO_DISK_MAP_REGION *prevRegion = NULL;
+        UINTN regionSize = sizeof(IO_DISK_MAP_REGION);
+        
+        UINT32 regions = 0;
+        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++){
+            if (gptPartitions[i].firstLba == 0 || gptPartitions[i].lastLba == 0) {
+                continue;
+            }
+
+            status = AllocPhysicalPool((VOID**)&currentRegion, &regionSize, BT_MEMORY_KERNEL_RW);
+            if (BT_ERROR(status)) goto CLEANUP;
+
+            if (regions == 0){
+                firstRegion = currentRegion;
+            }
+
+            currentRegion->startLba = gptPartitions[i].firstLba;
+            currentRegion->endLba = gptPartitions[i].lastLba;
+            currentRegion->free = FALSE;
+
+            if (prevRegion != NULL){
+                prevRegion->next = currentRegion;
+            }
+
+            prevRegion = currentRegion;
+            regions++;
+        }
+
+        disk->info.map.region->next = firstRegion;
+        disk->info.map.regionCount += regions;
+    }
+    // TODO: MBR DISK MAP PARTITION INITIALIZATION
+    else if (disk->scheme == IO_DISK_SCHEME_MBR){
+        
+    }
+    else{
+        status = BT_IO_INVALID_DISK;
+        goto CLEANUP;
+    }
+
+    CLEANUP:
+    if (BT_ERROR(status) && mbrRegion) FreePhysicalPool((VOID**)mbrRegion, &mbrRegionSize);
+
+    return status;
 }
 
 // ==================================== |

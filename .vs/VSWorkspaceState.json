@@ -3,11 +3,8 @@
     "",
     "\\kernel",
     "\\kernel\\drivers",
-    "\\kernel\\drivers\\io",
-    "\\kernel\\drivers\\io\\filesystems",
-    "\\kernel\\drivers\\io\\interfaces",
-    "\\kernel\\drivers\\io\\protocols"
+    "\\kernel\\drivers\\io"
   ],
-  "SelectedNode": "\\kernel\\byteos.h",
+  "SelectedNode": "\\kernel\\drivers\\io\\disk.c",
   "PreviewInSolutionExplorer": false
 }

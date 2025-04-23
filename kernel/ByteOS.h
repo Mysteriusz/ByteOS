@@ -89,7 +89,7 @@ typedef VOID *VOIDPTR;
 #define TRUE 1
 typedef unsigned char BOOLEAN;
 
-#ifdef _WIN64
+#ifdef __x86_64__ 
     typedef unsigned long long UINTN;
     typedef signed long long INTN;
 #else
@@ -245,6 +245,8 @@ typedef UINT32 BT_STATUS;
 #define BT_IO_INVALID_PCI 0x2002
 #define BT_IO_INVALID_DISK 0x2003
 #define BT_IO_DISK_REGISTERED 0x2004
+#define BT_IO_DISK_INTEGRITY 0x2005
+#define BT_IO_DISK_TOO_SMALL 0x2006
 
 #define BT_DIRECTORY_NOT_FOUND 0x4000
 

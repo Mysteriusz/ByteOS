@@ -11,7 +11,7 @@ BT_STATUS SataFindFreePort(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGI
     if (index == NULL){
         return BT_INVALID_BUFFER;
     }
-    
+
     for (UINT32 i = 0; i < SATA_PORT_BASE_COUNT; i++){
         if ((hba->portsImplemented & (1 << i)) == TRUE){
             SATA_PORT_REGISTER *temp = (SATA_PORT_REGISTER*)((PHYSICAL_ADDRESS)hba + SATA_PORT_OFFSET(i));

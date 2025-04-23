@@ -1,7 +1,5 @@
 #include "byteos.h"
-#include "filesystem.h"
-#include "fat32.h"
-#include "crc.h"
+#include "disk.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -50,16 +48,9 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
-    
-    status = GptIdentifyPartitions(disk);
-    
-    GPT_PARTITON_ENTRY *entryArray;
-    status = GptReadPartitonEntry(disk, 0, 1, &entryArray);
-    
-    entryArray->firstLba = 32;
+    status = MapRegions(disk);
 
-    status = GptWritePartitonEntry(disk, 0, 1, entryArray);
-    return status;
+    return disk->info.map.region->next->startLba;
 
     // entryArray->typeGuid = (GUID)TEST;
     // return ((MEMORY_PAGE_POOL_HEADER*)0x2000)->blockSize;

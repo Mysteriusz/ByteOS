@@ -1,5 +1,7 @@
 #pragma once
 
+typedef struct IO_DISK_MAP_REGION IO_DISK_MAP_REGION;
+typedef struct IO_DISK_MAP IO_DISK_MAP;
 typedef struct IO_DISK_PARTITION IO_DISK_PARTITION;
 typedef struct IO_DISK IO_DISK;
 
@@ -43,9 +45,27 @@ typedef struct IO_DISK_FUNCTIONS{
     IO_DISK_FLUSH flush;
     IO_DISK_RESET reset;
 } IO_DISK_FUNCTIONS;
+typedef struct IO_DISK_MAP_REGION {
+    union {
+        UINTN startLba;
+        UINTN startCha;
+    };
+    union {
+        UINTN endLba;
+        UINTN endCha;
+    };
+    BOOLEAN free;
+    IO_DISK_MAP_REGION* next;
+} IO_DISK_MAP_REGION;
+typedef struct IO_DISK_MAP {
+    IO_DISK_MAP_REGION *region;
+    UINT32 regionCount;
+} IO_DISK_MAP;
 typedef struct IO_DISK_INFO_DATA{
     UINT32 logicalBlockCount;
-    UINT32 logicalBlockSize;
+    UINT32 logicalBlockSize; // Bytes
+    UINTN logicalSize; // Bytes
+    IO_DISK_MAP map;
 } IO_DISK_INFO_DATA;
 typedef struct IO_DISK{
     UINT8 scheme;
@@ -53,7 +73,7 @@ typedef struct IO_DISK{
     UINT8 index;
     IO_DISK_FUNCTIONS io;
     IO_DISK_INFO_DATA info;
-    UINT32 initializedPartitions[4];
+    UINT32 initializedPartitions[4]; // 32 * 4 = 128 bits for patitions
     PCI *pci;
 } IO_DISK;
 typedef struct IO_DISK_PARTITION{
@@ -73,6 +93,8 @@ typedef struct IO_DISK_PARTITION{
 
 BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk);
 BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk);
+
+BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk);
 
 // ==================================== |
 //         DISK METHODS INTEFACE        |

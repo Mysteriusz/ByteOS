@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "D:\\ByteOS\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ByteOS\\kernel\\byteos.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:kernel\\byteos.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ByteOS\\kernel\\byteos.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:kernel\\byteos.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ByteOS\\kernel\\drivers\\io\\gpt.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:kernel\\drivers\\io\\gpt.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ByteOS\\kernel\\drivers\\io\\disk.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:kernel\\drivers\\io\\disk.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ByteOS\\kernel\\drivers\\io\\disk.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -18,8 +26,22 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 7,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "disk.c",
+              "DocumentMoniker": "D:\\ByteOS\\kernel\\drivers\\io\\disk.c",
+              "RelativeDocumentMoniker": "kernel\\drivers\\io\\disk.c",
+              "ToolTip": "D:\\ByteOS\\kernel\\drivers\\io\\disk.c",
+              "RelativeToolTip": "kernel\\drivers\\io\\disk.c",
+              "ViewState": "AgIAAI8AAAAAAAAAAAAYwKIAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2025-04-23T19:19:53.607Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
@@ -42,28 +64,41 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "byteos.h",
-              "DocumentMoniker": "D:\\ByteOS\\kernel\\byteos.h",
-              "RelativeDocumentMoniker": "kernel\\byteos.h",
-              "ToolTip": "D:\\ByteOS\\kernel\\byteos.h",
-              "RelativeToolTip": "kernel\\byteos.h",
-              "ViewState": "AgIAAGIAAAAAAAAAAAAAAHsAAAAHAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-04-20T08:25:29.745Z",
+              "DocumentIndex": 1,
+              "Title": "gpt.c",
+              "DocumentMoniker": "D:\\ByteOS\\kernel\\drivers\\io\\gpt.c",
+              "RelativeDocumentMoniker": "kernel\\drivers\\io\\gpt.c",
+              "ToolTip": "D:\\ByteOS\\kernel\\drivers\\io\\gpt.c",
+              "RelativeToolTip": "kernel\\drivers\\io\\gpt.c",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2025-04-23T21:07:09.696Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "byteos.c",
+              "DocumentMoniker": "D:\\ByteOS\\kernel\\byteos.c",
+              "RelativeDocumentMoniker": "kernel\\byteos.c",
+              "ToolTip": "D:\\ByteOS\\kernel\\byteos.c",
+              "RelativeToolTip": "kernel\\byteos.c",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAAD0AAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2025-04-23T21:05:00.045Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "disk.h",
               "DocumentMoniker": "D:\\ByteOS\\kernel\\drivers\\io\\disk.h",
               "RelativeDocumentMoniker": "kernel\\drivers\\io\\disk.h",
               "ToolTip": "D:\\ByteOS\\kernel\\drivers\\io\\disk.h",
               "RelativeToolTip": "kernel\\drivers\\io\\disk.h",
-              "ViewState": "AgIAADAAAAAAAAAAAAAAAAMAAAAeAAAAAAAAAA==",
+              "ViewState": "AgIAACUAAAAAAAAAAAAAADgAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-04-20T08:24:40.382Z",
+              "WhenOpened": "2025-04-23T19:19:55.413Z",
               "EditorCaption": ""
             }
           ]

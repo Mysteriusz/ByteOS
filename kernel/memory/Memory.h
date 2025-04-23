@@ -89,7 +89,7 @@ MEMORY_PAGE_POOL_HEADER ByteAPI GetPhysicalPool(IN UINT32 index, IN UINT32 poolS
 
 BT_STATUS ByteAPI ForceSetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size);
 BT_STATUS ByteAPI SetPhysicalMemory(IN VOID *buffer, IN BYTE value, IN UINTN size);
-BT_STATUS ByteAPI GetPhysicalFlags(IN VOID *buffer, OUT UINT8 *flags);
+BT_STATUS ByteAPI GetPhysicalFlags(IN VOID *buffer, OUT BT_MEMORY_PAGE_FLAGS *flags);
 
 BT_STATUS ByteAPI CopyPhysicalMemory(IN VOID *from, IN UINTN size, IN OUT VOID *to);
 BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *to);
