@@ -9,8 +9,8 @@
 - Current Kernel state
   - Physical memory allocation  :heavy_check_mark:
   - SATA/AHCI storage driver    :heavy_minus_sign:       (In progress | Working basic commands) (To extend)
-  - Disk management             :heavy_minus_sign:       (In progress) (Main focus | day/two)
-  - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver) (1 week)
+  - Disk management             :heavy_minus_sign:       (In progress) (Main focus | Extending GPT disk management layer)
+  - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver) (Currently focusing on GPT scheme disk management)
   - Framebuffer writing (CPU)   :heavy_multiplication_x: (Awaiting Filesystem)
   - Simple debugger             :heavy_multiplication_x: (Awaiting Filesystem)
   - Virtual memory allocation   :heavy_multiplication_x: (Awaiting Debugger)
