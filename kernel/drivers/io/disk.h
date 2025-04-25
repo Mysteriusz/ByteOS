@@ -93,6 +93,7 @@ BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk);
 BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk);
 
 BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk);
+BT_STATUS ByteAPI UnMapRegions(IN IO_DISK *disk);
 BT_STATUS ByteAPI AddRegion(IN IO_DISK* disk, IN UINTN startLba, IN UINTN endLba, IN UINT32 startCha, IN UINT32 endCha, IN BOOLEAN free, IN IO_DISK_MAP_REGION *next, OUT IO_DISK_MAP_REGION **region);
 
 // ==================================== |

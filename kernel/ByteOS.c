@@ -46,13 +46,14 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
     
+    //return (disk->info.map.region->next->next->next->next->endLba - disk->info.map.region->next->next->next->next->startLba) * disk->info.logicalBlockSize;
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
     status = MapRegions(disk);
+    return disk->info.map.regionCount;
+    //return status;
     //return status;
 
-    return (disk->info.map.region->next->next->next->next->endLba - disk->info.map.region->next->next->next->next->startLba) * disk->info.logicalBlockSize;
-    //return disk->info.map.regionCount;
     //return disk->info.map.regionCount;
 
     // entryArray->typeGuid = (GUID)TEST;
