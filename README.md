@@ -1,28 +1,28 @@
 ## BTM State
 
-| Feature                     | Status          | Notes             |
-|----------------------------|------------------|--------------------|
-| Memory map gathering       | ✅               |                    |
-| Framebuffer info gathering | ✅               |                    |
-| PCI device info gathering  | ✅               |                    |
-| Other device info gathering| ❌               | To do              |
-| PE32+ header run support   | ✅               |                    |
-| PE32 header run support    | ➖               | To finish          |
-| ELF header run support     | ❌               | To do              |
+| Feature                     | Status          | Notes             | Timeline        |
+|----------------------------|------------------|--------------------|------------------|
+| Memory map gathering       | ✅               |                    | Done             |
+| Framebuffer info gathering | ✅               |                    | Done             |
+| PCI device info gathering  | ✅               |                    | Done             |
+| Other device info gathering| ❌               | To do              | Future           |
+| PE32+ header run support   | ✅               |                    | Done             |
+| PE32 header run support    | ➖               | To finish          | Future           |
+| ELF header run support     | ❌               | To do              | Future           |
 
 ## Kernel State
 
-| Feature                     | Status | Notes                           |
-|----------------------------|--------|----------------------------------|
-| Physical memory allocation | ✅     |                                  |
-| SATA/AHCI storage driver   | ➖     | Working basic commands, to extend|
-| Disk HAL                   | ➖     | In progress                      |
-| GPT handler                | ➖     | In progress (Main focus)         |
-| MBR handler                | ➖     | To do                            |
-| File system                | ❌     | Awaiting Disk management         |
-| Framebuffer writing (CPU)  | ❌     | Awaiting Filesystem              |
-| Simple debugger            | ❌     | Awaiting Filesystem              |
-| Virtual memory allocation  | ❌     | Awaiting Debugger                |
-| Multitasking               | ❌     | Awaiting Virtual memory          |
-| Other necessary drivers    | ❌     | Awaiting all above               |
-| Basic UI                   | ❌     | Awaiting all above               |
+| Feature                     | Status | Notes                           | Timeline        |
+|----------------------------|--------|----------------------------------|------------------|
+| Physical memory allocation | ✅     |                                  | Done             |
+| SATA/AHCI storage driver   | ➖     | Working basic commands           | Future           |
+| Disk HAL                   | ➖     | In progress                      | ~ 2-3 Weeks      |
+| GPT handler                | ➖     | In progress (Main focus)         | ~ 1-2 Weeks      |
+| MBR handler                | ➖     | To do                            | Future           |
+| File system                | ❌     | Awaiting Disk management         | ~ 1 Month        |  
+| Framebuffer writing (CPU)  | ❌     | Awaiting Filesystem              | ~ 1 Month        |
+| Simple debugger            | ❌     | Awaiting Filesystem              | ~ 1-2 Months     |
+| Virtual memory allocation  | ❌     | Awaiting Debugger                | ~ 2 Months       |
+| Multitasking               | ❌     | Awaiting Virtual memory          | ~ 3 Months       |
+| Other necessary drivers    | ❌     | Awaiting all above               | ~ 3-4 Months       |
+| Basic UI                   | ❌     | Awaiting all above               | ~ >3 Months   |
