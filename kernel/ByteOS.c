@@ -49,8 +49,11 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
     status = MapRegions(disk);
+    //return status;
 
-    return disk->info.map.region->next->startLba;
+    return (disk->info.map.region->next->next->next->next->endLba - disk->info.map.region->next->next->next->next->startLba) * disk->info.logicalBlockSize;
+    //return disk->info.map.regionCount;
+    //return disk->info.map.regionCount;
 
     // entryArray->typeGuid = (GUID)TEST;
     // return ((MEMORY_PAGE_POOL_HEADER*)0x2000)->blockSize;

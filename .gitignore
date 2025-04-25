@@ -1,6 +1,12 @@
 # CUSTOM
 *.vhdx
 *.img
+*.ipch
+*.db
+*.db-shm
+*.db-wal
+*.json
+*.wsuo
 
 # Prerequisites
 *.d
@@ -54,3 +60,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+/.vs
+/.vsc

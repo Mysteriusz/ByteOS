@@ -34,9 +34,9 @@ typedef struct MBR_CHS_ADDRESS{
 
 typedef struct MBR_PARTITION_ENTRY{
     UINT8 status;
-    MBR_CHS_ADDRESS chsFirst;
+    MBR_CHS_ADDRESS firstCha;
     UINT8 partitionType;
-    MBR_CHS_ADDRESS chsLast;
+    MBR_CHS_ADDRESS lastCha;
     UINT32 firstLba;
     UINT32 numberOfSectors;
 } MBR_PARTITION_ENTRY;
