@@ -1,19 +1,28 @@
-- Current BTM state
-  - Memory map gathering        :heavy_check_mark:
-  - Framebuffer info gathering  :heavy_check_mark:
-  - PCI device info gathering   :heavy_check_mark:
-  - Other device info gathering :heavy_multiplication_x: (To do)
-  - PE32+ header run support    :heavy_check_mark:
-  - PE32 header run support     :heavy_minus_sign:       (To finish)
-  - ELF header run support      :heavy_multiplication_x: (To do)
-- Current Kernel state
-  - Physical memory allocation  :heavy_check_mark:
-  - SATA/AHCI storage driver    :heavy_minus_sign:       (In progress | Working basic commands) (To extend)
-  - Disk management             :heavy_minus_sign:       (In progress) (Main focus | Extending GPT disk management layer)
-  - File system                 :heavy_minus_sign:       (In progress | Awaiting disk driver) (Currently focusing on GPT scheme disk management)
-  - Framebuffer writing (CPU)   :heavy_multiplication_x: (Awaiting Filesystem)
-  - Simple debugger             :heavy_multiplication_x: (Awaiting Filesystem)
-  - Virtual memory allocation   :heavy_multiplication_x: (Awaiting Debugger)
-  - Multitasking                :heavy_multiplication_x: (Awaiting Virtual memory)
-  - Other necessary drivers     :heavy_multiplication_x: (Awaiting All above)
-  - Basic UI                    :heavy_multiplication_x: (Awaiting All above)
+## BTM State
+
+| Feature                     | Status          | Notes             |
+|----------------------------|------------------|--------------------|
+| Memory map gathering       | ✅               |                    |
+| Framebuffer info gathering | ✅               |                    |
+| PCI device info gathering  | ✅               |                    |
+| Other device info gathering| ❌               | To do              |
+| PE32+ header run support   | ✅               |                    |
+| PE32 header run support    | ➖               | To finish          |
+| ELF header run support     | ❌               | To do              |
+
+## Kernel State
+
+| Feature                     | Status | Notes                           |
+|----------------------------|--------|----------------------------------|
+| Physical memory allocation | ✅     |                                  |
+| SATA/AHCI storage driver   | ➖     | Working basic commands, to extend|
+| Disk HAL                   | ➖     | In progress                      |
+| GPT handler                | ➖     | In progress (Main focus)         |
+| MBR handler                | ➖     | To do                            |
+| File system                | ❌     | Awaiting Disk management         |
+| Framebuffer writing (CPU)  | ❌     | Awaiting Filesystem              |
+| Simple debugger            | ❌     | Awaiting Filesystem              |
+| Virtual memory allocation  | ❌     | Awaiting Debugger                |
+| Multitasking               | ❌     | Awaiting Virtual memory          |
+| Other necessary drivers    | ❌     | Awaiting all above               |
+| Basic UI                   | ❌     | Awaiting all above               |
