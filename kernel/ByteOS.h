@@ -220,6 +220,8 @@ typedef UINT32 BT_STATUS;
 #define PAD_UP(s1, s2)(((s1) + ((s2) - 1)) & ~((s2) - 1))
 #define PAD_DOWN(s1, s2)((s1) & ~((s2) - 1))     
 
+#define OFFSET_OF(type, member) ((UINTN)&(((type*)0)->member))
+
 #define BT_SUCCESS 0x00
 #define BT_INVALID_ARGUMENT 0x01
 #define BT_TIMEOUT_ERROR 0x02

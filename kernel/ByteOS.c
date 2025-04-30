@@ -1,5 +1,6 @@
 #include "byteos.h"
 #include "disk.h"
+#include "linked_list.h"
 
 // ==================================== |
 //                KERNEL                |
@@ -49,8 +50,24 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     //return (disk->info.map.region->next->next->next->next->endLba - disk->info.map.region->next->next->next->next->startLba) * disk->info.logicalBlockSize;
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
-    status = MapRegions(disk);
-    return disk->info.map.regionCount;
+
+    IO_DISK_MAP_REGION* root = NULL;
+    status = LinkedUnsafeCreate((VOID**)&root, sizeof(IO_DISK_MAP_REGION));
+    
+    IO_DISK_MAP_REGION* t = NULL;
+    UINTN ts = sizeof(IO_DISK_MAP_REGION);
+    AllocPhysicalPool((VOID**)&t, &ts, BT_MEMORY_KERNEL_RW);
+
+    t->endCha = 23;
+
+    //return ((PHYSICAL_ADDRESS)t + OFFSET_OF(IO_DISK_MAP_REGION, endCha));
+    //return ((PHYSICAL_ADDRESS)root + OFFSET_OF(IO_DISK_MAP_REGION, next));
+    status = LinkedUnsafeAdd(root, &t->endCha, sizeof(UINT32), sizeof(IO_DISK_MAP_REGION), OFFSET_OF(IO_DISK_MAP_REGION, endCha), OFFSET_OF(IO_DISK_MAP_REGION, next));
+    return root->next->endCha;
+
+
+    //status = MapRegions(disk);
+    //return disk->info.map.regionCount;
     //return status;
     //return status;
 
