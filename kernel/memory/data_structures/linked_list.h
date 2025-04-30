@@ -30,8 +30,15 @@ typedef struct DOUBLE_LINKED_LIST{
     UINT32 size;
 } DOUBLE_LINKED_LIST;
 
-BT_STATUS ByteAPI LinkedCreate(OUT VOID** root, IN UINT32 sizeOfNode);
-BT_STATUS ByteAPI LinkedAdd(IN LINKED_LIST* list, IN VOID* value, IN UINT32 sizeofValue);
+typedef struct UNSAFE_LINKED_LIST{
+    VOID* root;
+    UINT32 sizeOfNode; 
+    UINT32 nextRva;
+} UNSAFE_LINKED_LIST;
 
-BT_STATUS ByteAPI LinkedUnsafeCreate(OUT VOID** root, IN UINT32 sizeOfNode);
-BT_STATUS ByteAPI LinkedUnsafeAdd(IN VOID* root, IN VOID* value, IN UINT32 sizeOfValue, IN UINT32 sizeOfNode, IN UINT32 valueRva, IN UINT32 nextRva);
+BT_STATUS ByteAPI LinkedUnsafeCreate(OUT UNSAFE_LINKED_LIST** list);
+
+BT_STATUS ByteAPI LinkedUnsafeAdd(IN UNSAFE_LINKED_LIST* list, IN VOID* value, IN UINT32 sizeOfValue, IN UINT32 valueRva);
+BT_STATUS ByteAPI LinkedUnsafeRemove(IN UNSAFE_LINKED_LIST* list, IN VOID* value, IN UINT32 sizeOfValue, IN UINT32 valueRva);
+    
+BT_STATUS ByteAPI LinkedUnsafeSize(IN UNSAFE_LINKED_LIST* list, OUT UINT32* size);
