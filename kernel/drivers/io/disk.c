@@ -127,13 +127,13 @@ BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk){
 }
 
 // TODO: CHA Support for GPT disk mapping
-BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
+BT_STATUS ByteAPI MapRegions(IN IO_DISK* disk) {
     if (disk == NULL) return BT_INVALID_ARGUMENT;
 
     BT_STATUS status = 0;
 
     // (~PROTECTIVE) MBR (MASTER BOOT RECORD) region
-    IO_DISK_MAP_REGION *mbrRegion = NULL;
+    IO_DISK_MAP_REGION* mbrRegion = NULL;
     status = AddRegion(disk, 0, 1, 0, 0, FALSE, NULL, &mbrRegion);
     if (BT_ERROR(status)) goto CLEANUP;
 
@@ -141,10 +141,10 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
     UINTN partitionArraySize = 0;
 
     // If disk scheme is GPT (GUID PARTITION TABLE)
-    if (disk->scheme == IO_DISK_SCHEME_GPT){
+    if (disk->scheme == IO_DISK_SCHEME_GPT) {
         // Alloc GPT header and GPT map region
-        GPT_HEADER *gptHeaderRegion = NULL;
-        IO_DISK_MAP_REGION *gptHeaderMapRegion = NULL;
+        GPT_HEADER* gptHeaderRegion = NULL;
+        IO_DISK_MAP_REGION* gptHeaderMapRegion = NULL;
         UINTN gptHeaderRegionSize = sizeof(GPT_HEADER);
         UINTN gptHeaderMapRegionSize = sizeof(IO_DISK_MAP_REGION);
         status = AllocPhysicalPool((VOID**)&gptHeaderRegion, &gptHeaderRegionSize, BT_MEMORY_KERNEL_RW);
@@ -167,21 +167,27 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
 
         // Setup each GPT partition as map regions 
         // Include all sectors in between partitions: ([] -> partition) | (partiton -> [] -> partition) | (partiton -> [])
-        
+
         partitionArraySize = sizeof(GPT_PARTITON_ENTRY) * GPT_MAX_PARTITIONS;
-        GPT_PARTITON_ENTRY *gptPartitionArray = (GPT_PARTITON_ENTRY*)partitionArray;
+        GPT_PARTITON_ENTRY* gptPartitionArray = (GPT_PARTITON_ENTRY*)partitionArray;
         status = AllocPhysicalPool((VOID**)&gptPartitionArray, &partitionArraySize, BT_MEMORY_KERNEL_RW);
         if (BT_ERROR(status)) goto CLEANUP;
-        
+
         // Read all partitons and iterate through each one validating it`s values
         status = GptReadPartitonEntry(disk, 0, GPT_MAX_PARTITIONS, gptPartitionArray);
         if (BT_ERROR(status)) goto CLEANUP;
 
-        IO_DISK_MAP_REGION *prev = gptHeaderMapRegion;
-        IO_DISK_MAP_REGION *first = NULL;
+        // Before doing mapping sort partititions by their LBA`s
 
-        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++){
-            if (gptPartitionArray[i].firstLba == 0 || gptPartitionArray[i].lastLba == 0){
+        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++) {
+            gptPartitionArray[i];
+        }
+
+        IO_DISK_MAP_REGION* prev = gptHeaderMapRegion;
+        IO_DISK_MAP_REGION* first = NULL;
+
+        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++) {
+            if (gptPartitionArray[i].firstLba == 0 || gptPartitionArray[i].lastLba == 0) {
                 continue;
             }
             if ((ComparePhysicalMemory(&gptPartitionArray[i].uniqueGuid, sizeof(GUID), &(GUID)GUID_MIN)) == BT_SUCCESS) {
@@ -189,41 +195,41 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
             }
 
             // Allocate region and pass partition values to it
-            IO_DISK_MAP_REGION *gptPartitionMapRegion = NULL;
+            IO_DISK_MAP_REGION* gptPartitionMapRegion = NULL;
             status = AddRegion(disk, gptPartitionArray[i].firstLba, gptPartitionArray[i].lastLba, 0, 0, FALSE, NULL, &gptPartitionMapRegion);
             if (BT_ERROR(status)) goto CLEANUP;
 
             // [] -> partition
-            if (first == NULL){
+            if (first == NULL) {
                 UINTN offset = gptPartitionMapRegion->startLba - gptHeaderMapRegion->endLba;
-                if (offset > 1){
-                    IO_DISK_MAP_REGION *unallocated = NULL;
+                if (offset > 1) {
+                    IO_DISK_MAP_REGION* unallocated = NULL;
                     status = AddRegion(disk, gptHeaderMapRegion->endLba + 1, gptPartitionMapRegion->startLba - 1, 0, 0, TRUE, gptPartitionMapRegion, &unallocated);
                     if (BT_ERROR(status)) goto CLEANUP;
-                    
+
                     prev->next = unallocated;
                 }
-                else{
+                else {
                     prev->next = gptPartitionMapRegion;
                 }
 
                 first = gptPartitionMapRegion;
             }
             // partition -> [] -> partition
-            else{
+            else {
                 UINTN offset = gptPartitionMapRegion->startLba - prev->endLba;
                 if (offset > 1) {
                     IO_DISK_MAP_REGION* unallocated = NULL;
                     status = AddRegion(disk, prev->endLba + 1, gptPartitionMapRegion->startLba - 1, 0, 0, TRUE, gptPartitionMapRegion, &unallocated);
                     if (BT_ERROR(status)) goto CLEANUP;
-                    
+
                     prev->next = unallocated;
                 }
-                else{
+                else {
                     prev->next = gptPartitionMapRegion;
                 }
             }
-            
+
             prev = gptPartitionMapRegion;
         }
 
@@ -234,7 +240,7 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
                 IO_DISK_MAP_REGION* unallocated = NULL;
                 status = AddRegion(disk, prev->endLba + 1, disk->info.logicalBlockCount, 0, 0, TRUE, NULL, &unallocated);
                 if (BT_ERROR(status)) goto CLEANUP;
-                
+
                 prev->next = unallocated;
             }
         }
@@ -242,10 +248,10 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
         gptHeaderMapRegion->next = first;
     }
     // TODO: MBR DISK MAP PARTITION INITIALIZATION
-    else if (disk->scheme == IO_DISK_SCHEME_MBR){
-        
+    else if (disk->scheme == IO_DISK_SCHEME_MBR) {
+
     }
-    else{
+    else {
         status = BT_IO_INVALID_DISK;
         goto CLEANUP;
     }
@@ -255,7 +261,7 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk){
     if (BT_ERROR(status)) UnMapRegions(disk);
 
     return status;
-}
+}   
 BT_STATUS ByteAPI UnMapRegions(IN IO_DISK* disk){
     if (disk == NULL) return BT_INVALID_ARGUMENT;
 

@@ -1,12 +1,24 @@
 #include "linked_list.h"
 
-BT_STATUS ByteAPI LinkedUnsafeCreate(OUT UNSAFE_LINKED_LIST** list) {
-	if (list == NULL) return BT_INVALID_BUFFER;
+#define LINKED_UNSAFE_NEXT(list, curr)(*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)(curr) + ((UNSAFE_LINKED_LIST*)list)->nextRva))
 
+BT_STATUS ByteAPI LinkedUnsafeCreate(OUT UNSAFE_LINKED_LIST** list) {
 	BT_STATUS status = 0;
 
 	UINTN size = sizeof(UNSAFE_LINKED_LIST);
 	status = AllocPhysicalPool((VOID**)list, &size, BT_MEMORY_KERNEL_RW);
+
+	return status;
+}
+BT_STATUS ByteAPI LinkedUnsafeDelete(IN UNSAFE_LINKED_LIST** list) {
+	if (list == NULL) return BT_INVALID_ARGUMENT;
+
+	BT_STATUS status = 0;
+
+	UINTN size = sizeof(UNSAFE_LINKED_LIST);
+
+	status = LinkedUnsafeClear(*list);
+	status = FreePhysicalPool((VOID**)list, &size);
 
 	return status;
 }
@@ -18,7 +30,6 @@ BT_STATUS ByteAPI LinkedUnsafeAdd(IN UNSAFE_LINKED_LIST* list, IN VOID* value, I
 	if (value == 0) return BT_INVALID_ARGUMENT;
 
 	BT_STATUS status = 0;
-	UINTN size = (UINTN)list->sizeOfNode;
 
 	VOID* prev = NULL;
 	VOID* curr = list->root;
@@ -27,6 +38,8 @@ BT_STATUS ByteAPI LinkedUnsafeAdd(IN UNSAFE_LINKED_LIST* list, IN VOID* value, I
 		prev = curr;
 		curr = (VOID*)(*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)curr + list->nextRva));
 	}
+
+	UINTN size = (UINTN)list->sizeOfNode;
 
 	VOID* newBlock = curr;
 
@@ -89,6 +102,69 @@ BT_STATUS ByteAPI LinkedUnsafeRemove(IN UNSAFE_LINKED_LIST* list, IN VOID* value
 	CLEANUP:
 
 	return status;
+}
+BT_STATUS ByteAPI LinkedUnsafeFind(IN UNSAFE_LINKED_LIST* list, IN VOID* value, IN UINT32 sizeOfValue, IN UINT32 valueRva, OUT VOID** buffer) {
+	if (value == NULL) return BT_INVALID_ARGUMENT;
+	if (sizeOfValue == 0) return BT_INVALID_ARGUMENT;
+	if (list->sizeOfNode == 0) return BT_INVALID_ARGUMENT;
+	if (value == 0) return BT_INVALID_ARGUMENT;
+	if (buffer == NULL) return BT_INVALID_BUFFER;
+
+	VOID* curr = list->root;
+	VOID* found = NULL;
+
+	while (curr != NULL) {
+		if (ComparePhysicalMemory((VOID*)((PHYSICAL_ADDRESS)curr + valueRva), (UINTN)sizeOfValue, value) == BT_SUCCESS) {
+			found = curr;
+			break;
+		}
+
+		curr = (VOID*)(*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)curr + list->nextRva));
+	}
+
+	if (found == NULL) return BT_NOT_FOUND;
+
+	*buffer = found;
+
+	return BT_SUCCESS;
+}
+BT_STATUS ByteAPI LinkedUnsafeGetAt(IN UNSAFE_LINKED_LIST* list, IN UINT32 index, OUT VOID** buffer) {
+	if (list == NULL) return BT_INVALID_ARGUMENT;
+	if (buffer == NULL) return BT_INVALID_BUFFER;
+
+	VOID* curr = list->root;
+	VOID* found = NULL;
+
+	while (curr != NULL) {
+		if (index-- == 0) {
+			found = curr;
+			break;
+		}
+
+		curr = (VOID*)(*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)curr + list->nextRva));
+	}
+
+	if (found == NULL) return BT_NOT_FOUND;
+
+	*buffer = found;
+
+	return BT_SUCCESS;
+}
+BT_STATUS ByteAPI LinkedUnsafeClear(IN UNSAFE_LINKED_LIST* list) {
+	if (list == NULL) return BT_INVALID_ARGUMENT;
+
+	VOID* curr = list->root;
+	UINTN nodeSize = list->sizeOfNode;
+
+	while (curr != NULL) {
+		VOID* next = (VOID*)LINKED_UNSAFE_NEXT(list, curr);
+		FreePhysicalPool(&curr, &nodeSize);
+		curr = next;
+	}
+
+	list->root = NULL;
+
+	return BT_SUCCESS;
 }
 
 BT_STATUS ByteAPI LinkedUnsafeSize(IN UNSAFE_LINKED_LIST* list, OUT UINT32* size) {

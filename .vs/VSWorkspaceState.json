@@ -3,8 +3,10 @@
     "",
     "\\kernel",
     "\\kernel\\drivers",
-    "\\kernel\\drivers\\io"
+    "\\kernel\\drivers\\io",
+    "\\kernel\\memory",
+    "\\kernel\\memory\\data_structures"
   ],
-  "SelectedNode": "\\kernel\\drivers\\io\\mbr.h",
+  "SelectedNode": "\\kernel\\memory\\data_structures\\linked_list.h",
   "PreviewInSolutionExplorer": false
 }

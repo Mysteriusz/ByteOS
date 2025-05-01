@@ -47,23 +47,39 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     pci->header.common.command.memorySpace = TRUE;
     pci->header.common.command.busMaster = TRUE;
     
-    //return (disk->info.map.region->next->next->next->next->endLba - disk->info.map.region->next->next->next->next->startLba) * disk->info.logicalBlockSize;
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
 
-    IO_DISK_MAP_REGION* root = NULL;
-    status = LinkedUnsafeCreate((VOID**)&root, sizeof(IO_DISK_MAP_REGION));
+    UNSAFE_LINKED_LIST* list = NULL;
+    status = LinkedUnsafeCreate(&list);
+
+    list->nextRva = OFFSET_OF(IO_DISK_MAP_REGION, next);
+    list->sizeOfNode = sizeof(IO_DISK_MAP_REGION);
+
+    UINT32 v0 = 0x3;
+    UINT32 v1 = 0x32;
+    UINT32 v2 = 0x64;
+
+    VOID* value = NULL;
+
+    status = LinkedUnsafeAdd(list, &v2, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
+    status = LinkedUnsafeAdd(list, &v1, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
+    status = LinkedUnsafeAdd(list, &v0, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
+    return status;
+
+    //return ((IO_DISK_MAP_REGION*)list->root)->endCha;
+
+
+    //return ((IO_DISK_MAP_REGION*)((IO_DISK_MAP_REGION*)list->root)->next)->endCha;
     
-    IO_DISK_MAP_REGION* t = NULL;
-    UINTN ts = sizeof(IO_DISK_MAP_REGION);
-    AllocPhysicalPool((VOID**)&t, &ts, BT_MEMORY_KERNEL_RW);
+    //status = LinkedUnsafeRemove((VOID**)&root, &v0, sizeof(UINT32), sizeof(IO_DISK_MAP_REGION), OFFSET_OF(IO_DISK_MAP_REGION, endCha), OFFSET_OF(IO_DISK_MAP_REGION, next));
+    
+    //status = LinkedUnsafeAdd(root, &v1, sizeof(UINT32), sizeof(IO_DISK_MAP_REGION), OFFSET_OF(IO_DISK_MAP_REGION, endCha), OFFSET_OF(IO_DISK_MAP_REGION, next));*/
 
-    t->endCha = 23;
+    //UINT32 size = 0;
+    //status = LinkedUnsafeSize(root, OFFSET_OF(IO_DISK_MAP_REGION, next), &size);
 
-    //return ((PHYSICAL_ADDRESS)t + OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    //return ((PHYSICAL_ADDRESS)root + OFFSET_OF(IO_DISK_MAP_REGION, next));
-    status = LinkedUnsafeAdd(root, &t->endCha, sizeof(UINT32), sizeof(IO_DISK_MAP_REGION), OFFSET_OF(IO_DISK_MAP_REGION, endCha), OFFSET_OF(IO_DISK_MAP_REGION, next));
-    return root->next->endCha;
+    //return root->next->endCha;
 
 
     //status = MapRegions(disk);

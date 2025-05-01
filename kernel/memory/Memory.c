@@ -497,7 +497,8 @@ BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *t
     if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_READABLE;
     
     for (UINTN i = 0; i < size; i++){
-        if (fptr[i] != tptr[i]) return BT_INVALID_MEMORY;
+        if (fptr[i] < tptr[i]) return 1;
+        if (fptr[i] > tptr[i]) return 2;
     }
 
     return BT_SUCCESS;
