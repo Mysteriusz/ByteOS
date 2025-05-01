@@ -490,18 +490,30 @@ BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *t
     
     BT_STATUS status = 0;
 
-    status = PhysicalCheckPermission(to, BT_MEMORY_WRITE, size);
-    if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_WRITABLE;
-    
     status = PhysicalCheckPermission(from, BT_MEMORY_READ, size);
     if (status == BT_INVALID_MEMORY) return BT_MEMORY_NOT_READABLE;
     
+    UINT32 fptrZc = 0;
+    UINT32 tptrZc = 0;
+    UINTN i = 0;
+
+    while (i < size && fptr[i++] == 0) fptrZc++;
+    
+    i = 0;
+    while (i < size && tptr[i++] == 0) tptrZc++;
+    
+    // Compare leading zero`s count
+    // The lower zero count is the higher the value is
+    // Ex: 0x0100 (1) > 0x0006 (3)
+    if (fptrZc < tptrZc) return BT_COMPARE_SMALLER;
+    if (fptrZc > tptrZc) return BT_COMPARE_BIGGER;
+        
     for (UINTN i = 0; i < size; i++){
-        if (fptr[i] < tptr[i]) return 1;
-        if (fptr[i] > tptr[i]) return 2;
+        if (fptr[i] > tptr[i]) return BT_COMPARE_SMALLER;
+        if (fptr[i] < tptr[i]) return BT_COMPARE_BIGGER;
     }
 
-    return BT_SUCCESS;
+    return BT_COMPARE_EQUAL;
 }
 
 // ==================================== |
