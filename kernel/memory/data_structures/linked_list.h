@@ -44,5 +44,6 @@ BT_STATUS ByteAPI LinkedUnsafeRemove(IN UNSAFE_LINKED_LIST* list, IN VOID* value
 BT_STATUS ByteAPI LinkedUnsafeFind(IN UNSAFE_LINKED_LIST* list, IN VOID* value, IN UINT32 sizeOfValue, IN UINT32 valueRva, OUT VOID** buffer);
 BT_STATUS ByteAPI LinkedUnsafeGetAt(IN UNSAFE_LINKED_LIST* list, IN UINT32 index, OUT VOID** buffer);
 BT_STATUS ByteAPI LinkedUnsafeClear(IN UNSAFE_LINKED_LIST* list);
+BT_STATUS ByteAPI LinkedUnsafeSort(IN UNSAFE_LINKED_LIST* list, IN UINT32 sizeOfValue, IN UINT32 valueRva);
 
 BT_STATUS ByteAPI LinkedUnsafeSize(IN UNSAFE_LINKED_LIST* list, OUT UINT32* size);

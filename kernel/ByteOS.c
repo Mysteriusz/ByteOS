@@ -63,61 +63,11 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     VOID* value = NULL;
 
     status = LinkedUnsafeAdd(list, &v2, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    status = LinkedUnsafeAdd(list, &v1, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
     status = LinkedUnsafeAdd(list, &v0, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    return status;
-
-    //return ((IO_DISK_MAP_REGION*)list->root)->endCha;
-
-
-    //return ((IO_DISK_MAP_REGION*)((IO_DISK_MAP_REGION*)list->root)->next)->endCha;
-    
-    //status = LinkedUnsafeRemove((VOID**)&root, &v0, sizeof(UINT32), sizeof(IO_DISK_MAP_REGION), OFFSET_OF(IO_DISK_MAP_REGION, endCha), OFFSET_OF(IO_DISK_MAP_REGION, next));
-    
-    //status = LinkedUnsafeAdd(root, &v1, sizeof(UINT32), sizeof(IO_DISK_MAP_REGION), OFFSET_OF(IO_DISK_MAP_REGION, endCha), OFFSET_OF(IO_DISK_MAP_REGION, next));*/
-
-    //UINT32 size = 0;
-    //status = LinkedUnsafeSize(root, OFFSET_OF(IO_DISK_MAP_REGION, next), &size);
-
-    //return root->next->endCha;
-
-
-    //status = MapRegions(disk);
-    //return disk->info.map.regionCount;
+    status = LinkedUnsafeAdd(list, &v1, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
+    status = LinkedUnsafeSort(list, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
+    return ((IO_DISK_MAP_REGION*)(((IO_DISK_MAP_REGION*)((IO_DISK_MAP_REGION*)list->root)->next)->next))->endCha;
     //return status;
-    //return status;
-
-    //return disk->info.map.regionCount;
-
-    // entryArray->typeGuid = (GUID)TEST;
-    // return ((MEMORY_PAGE_POOL_HEADER*)0x2000)->blockSize;
-
-    // status = GptIdentifyPartitions(disk);
-    
-    // GPT_PARTITON_ENTRY *gptPartition = NULL;
-    
-    // GptReadPartitonEntry(disk, 1, &gptPartition);
-
-    // gptPartition->lastLba = 0x23324;
-    // status = GptWritePartitonEntry(disk, 1, gptPartition);
-
-
-    // #define TEST2 \
-    // { 0xEBD0A0A2, 0xB9E5, 0x4433, { 0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7 } }
-
-    // gptPartition->typeGuid = (GUID)TEST2;
-    // gptPartition->uniqueGuid = (GUID)TEST;
-    // gptPartition->firstLba = 323223;
-    // gptPartition->lastLba = 0xfffffff;
-    // gptPartition->attributeFlags = 0;
-    // CopyPhysicalMemory((VOID*)L"TEST", 16, gptPartition->partitionName);
-    
-    // status = GptWritePartitonEntry(disk, 2, gptPartition);
-    
-    // GPT_PARTITON_ENTRY *gptPartition1 = NULL;
-    // status = GptReadPartitonEntry(disk, 2, &gptPartition1);
-
-    // return gptPartition1->lastLba;
 }
 
 CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {

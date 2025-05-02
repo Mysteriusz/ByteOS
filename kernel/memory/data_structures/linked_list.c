@@ -1,6 +1,6 @@
 #include "linked_list.h"
 
-#define LINKED_UNSAFE_NEXT(list, curr)(*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)(curr) + ((UNSAFE_LINKED_LIST*)list)->nextRva))
+#define LINKED_UNSAFE_VALUE_PTR(curr, rva)((VOID*)((PHYSICAL_ADDRESS)curr + (PHYSICAL_ADDRESS)rva))
 
 BT_STATUS ByteAPI LinkedUnsafeCreate(OUT UNSAFE_LINKED_LIST** list) {
 	BT_STATUS status = 0;
@@ -77,7 +77,7 @@ BT_STATUS ByteAPI LinkedUnsafeRemove(IN UNSAFE_LINKED_LIST* list, IN VOID* value
 	VOID* toRemove = NULL;
 	
 	while (curr != NULL) {
-		if (ComparePhysicalMemory((VOID*)((PHYSICAL_ADDRESS)curr + valueRva), (UINTN)sizeOfValue, value) == BT_SUCCESS) {
+		if (ComparePhysicalMemory((VOID*)((PHYSICAL_ADDRESS)curr + valueRva), (UINTN)sizeOfValue, value) == BT_COMPARE_EQUAL) {
 			toRemove = curr;
 			next = (VOID*)(*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)curr + list->nextRva));
 			break;
@@ -114,7 +114,7 @@ BT_STATUS ByteAPI LinkedUnsafeFind(IN UNSAFE_LINKED_LIST* list, IN VOID* value, 
 	VOID* found = NULL;
 
 	while (curr != NULL) {
-		if (ComparePhysicalMemory((VOID*)((PHYSICAL_ADDRESS)curr + valueRva), (UINTN)sizeOfValue, value) == BT_SUCCESS) {
+		if (ComparePhysicalMemory((VOID*)((PHYSICAL_ADDRESS)curr + valueRva), (UINTN)sizeOfValue, value) == BT_COMPARE_EQUAL) {
 			found = curr;
 			break;
 		}
@@ -157,13 +157,36 @@ BT_STATUS ByteAPI LinkedUnsafeClear(IN UNSAFE_LINKED_LIST* list) {
 	UINTN nodeSize = list->sizeOfNode;
 
 	while (curr != NULL) {
-		VOID* next = (VOID*)LINKED_UNSAFE_NEXT(list, curr);
+		VOID* next = (VOID*)*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)curr + list->nextRva);
 		FreePhysicalPool(&curr, &nodeSize);
 		curr = next;
 	}
 
 	list->root = NULL;
 
+	return BT_SUCCESS;
+}
+BT_STATUS ByteAPI LinkedUnsafeSort(IN UNSAFE_LINKED_LIST* list, IN UINT32 sizeOfValue, IN UINT32 valueRva) {
+	if (list == NULL) return BT_INVALID_ARGUMENT;
+	if (sizeOfValue == 0) return BT_INVALID_ARGUMENT;
+	
+	VOID* sorted = NULL;
+
+	while (list->root != NULL) {
+		VOID* head = list->root;
+		VOID** trail = &sorted;
+
+		list->root = (VOID*)*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)list->root + list->nextRva);
+
+		while (*trail != NULL && ComparePhysicalMemory(LINKED_UNSAFE_VALUE_PTR(head, valueRva), sizeOfValue, LINKED_UNSAFE_VALUE_PTR(*trail, valueRva)) != BT_COMPARE_SMALLER) {
+			trail = (VOID**)((PHYSICAL_ADDRESS)*trail + list->nextRva);
+		}
+
+		*(PHYSICAL_ADDRESS*)((PHYSICAL_ADDRESS)head + list->nextRva) = (PHYSICAL_ADDRESS)*trail;
+		*trail = head;
+	}
+
+	list->root = sorted;
 	return BT_SUCCESS;
 }
 

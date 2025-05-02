@@ -509,8 +509,8 @@ BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *t
     if (fptrZc > tptrZc) return BT_COMPARE_BIGGER;
         
     for (UINTN i = 0; i < size; i++){
-        if (fptr[i] > tptr[i]) return BT_COMPARE_SMALLER;
-        if (fptr[i] < tptr[i]) return BT_COMPARE_BIGGER;
+        if (fptr[i] < tptr[i]) return BT_COMPARE_SMALLER;
+        if (fptr[i] > tptr[i]) return BT_COMPARE_BIGGER;
     }
 
     return BT_COMPARE_EQUAL;

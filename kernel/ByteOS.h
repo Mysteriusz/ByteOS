@@ -223,10 +223,11 @@ typedef UINT32 BT_STATUS;
 #define OFFSET_OF(type, member) ((UINTN)&(((type*)0)->member))
 
 #define BT_SUCCESS 0x00
-#define BT_INVALID_ARGUMENT 0x01
-#define BT_TIMEOUT_ERROR 0x02
-#define BT_NOT_FOUND 0x03
-#define BT_UNINITIALIZED 0x04
+
+#define BT_INVALID_ARGUMENT 0x10
+#define BT_TIMEOUT_ERROR 0x11
+#define BT_NOT_FOUND 0x12
+#define BT_UNINITIALIZED 0x13
 
 #define BT_MEMORY_OVERFLOW 0x100
 #define BT_NOT_ENOUGH_MEMORY 0x101
