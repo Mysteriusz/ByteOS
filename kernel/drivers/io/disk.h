@@ -1,13 +1,13 @@
 #pragma once
 
 typedef struct IO_DISK_MAP_REGION IO_DISK_MAP_REGION;
-typedef struct IO_DISK_MAP IO_DISK_MAP;
 typedef struct IO_DISK_PARTITION IO_DISK_PARTITION;
 typedef struct IO_DISK IO_DISK;
 
 #include "byteos.h"
 #include "filesystem.h"
 #include "pci.h"
+#include "../../../memory/data_structures/linked_list.h"
 
 #define IO_MAX_DISKS 26
 
@@ -47,23 +47,19 @@ typedef struct IO_DISK_FUNCTIONS{
 } IO_DISK_FUNCTIONS;
 typedef struct IO_DISK_MAP_REGION {
     // LBA
-    UINTN startLba;
-    UINTN endLba;
+    UINT32 startLba;
+    UINT32 endLba;
     // CHA
     UINT32 startCha;
     UINT32 endCha;
     BOOLEAN free;
     IO_DISK_MAP_REGION* next;
 } IO_DISK_MAP_REGION;
-typedef struct IO_DISK_MAP {
-    IO_DISK_MAP_REGION *region;
-    UINT32 regionCount;
-} IO_DISK_MAP;
 typedef struct IO_DISK_INFO_DATA{
     UINT32 logicalBlockCount;
     UINT32 logicalBlockSize; // Bytes
     UINTN logicalSize; // Bytes
-    IO_DISK_MAP map;
+    UNSAFE_LINKED_LIST regionList;
 } IO_DISK_INFO_DATA;
 typedef struct IO_DISK{
     UINT8 scheme;

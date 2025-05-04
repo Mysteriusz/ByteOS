@@ -498,10 +498,12 @@ BT_STATUS ByteAPI ComparePhysicalMemory(IN VOID *from, IN UINTN size, IN VOID *t
     UINTN i = 0;
 
     while (i < size && fptr[i++] == 0) fptrZc++;
-    
     i = 0;
     while (i < size && tptr[i++] == 0) tptrZc++;
     
+    if (fptrZc == size && fptrZc != tptrZc) return BT_COMPARE_SMALLER;
+    if (tptrZc == size && fptrZc != tptrZc) return BT_COMPARE_BIGGER;
+ 
     // Compare leading zero`s count
     // The lower zero count is the higher the value is
     // Ex: 0x0100 (1) > 0x0006 (3)

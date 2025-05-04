@@ -132,13 +132,16 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK* disk) {
 
     BT_STATUS status = 0;
 
+    disk->info.regionList.sizeOfNode = sizeof(IO_DISK_MAP_REGION);
+    disk->info.regionList.nextRva = OFFSET_OF(IO_DISK_MAP_REGION, next);
+
     // (~PROTECTIVE) MBR (MASTER BOOT RECORD) region
     IO_DISK_MAP_REGION* mbrRegion = NULL;
     status = AddRegion(disk, 0, 1, 0, 0, FALSE, NULL, &mbrRegion);
     if (BT_ERROR(status)) goto CLEANUP;
 
-    VOID* partitionArray = NULL;
     UINTN partitionArraySize = 0;
+    VOID* partitionArray = NULL;
 
     // If disk scheme is GPT (GUID PARTITION TABLE)
     if (disk->scheme == IO_DISK_SCHEME_GPT) {
@@ -155,15 +158,12 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK* disk) {
         status = disk->io.read(disk, ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba, 1, (VOID*)gptHeaderRegion);
         if (BT_ERROR(status)) goto CLEANUP;
 
-
         UINTN entriesPerLba = disk->info.logicalBlockSize / sizeof(GPT_PARTITON_ENTRY);
         UINTN endIndex = 0 + GPT_MAX_PARTITIONS - 1;
         UINTN partitonTableLbaCount = ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba + (endIndex / entriesPerLba);
 
         status = AddRegion(disk, ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba, ((MBR_CLASSIC*)disk->mbr)->partitionEntry0.firstLba + partitonTableLbaCount, 0, 0, FALSE, NULL, &gptHeaderMapRegion);
         if (BT_ERROR(status)) goto CLEANUP;
-
-        mbrRegion->next = gptHeaderMapRegion;
 
         // Setup each GPT partition as map regions 
         // Include all sectors in between partitions: ([] -> partition) | (partiton -> [] -> partition) | (partiton -> [])
@@ -173,79 +173,23 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK* disk) {
         status = AllocPhysicalPool((VOID**)&gptPartitionArray, &partitionArraySize, BT_MEMORY_KERNEL_RW);
         if (BT_ERROR(status)) goto CLEANUP;
 
-        // Read all partitons and iterate through each one validating it`s values
         status = GptReadPartitonEntry(disk, 0, GPT_MAX_PARTITIONS, gptPartitionArray);
         if (BT_ERROR(status)) goto CLEANUP;
 
-        // Before doing mapping sort partititions by their LBA`s
-
-        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++) {
-            gptPartitionArray[i];
-        }
-
-        IO_DISK_MAP_REGION* prev = gptHeaderMapRegion;
-        IO_DISK_MAP_REGION* first = NULL;
-
-        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++) {
+        for (UINT32 i = 0; i < GPT_MAX_PARTITIONS; i++){
             if (gptPartitionArray[i].firstLba == 0 || gptPartitionArray[i].lastLba == 0) {
                 continue;
             }
             if ((ComparePhysicalMemory(&gptPartitionArray[i].uniqueGuid, sizeof(GUID), &(GUID)GUID_MIN)) == BT_SUCCESS) {
                 continue;
             }
-
-            // Allocate region and pass partition values to it
             IO_DISK_MAP_REGION* gptPartitionMapRegion = NULL;
             status = AddRegion(disk, gptPartitionArray[i].firstLba, gptPartitionArray[i].lastLba, 0, 0, FALSE, NULL, &gptPartitionMapRegion);
             if (BT_ERROR(status)) goto CLEANUP;
-
-            // [] -> partition
-            if (first == NULL) {
-                UINTN offset = gptPartitionMapRegion->startLba - gptHeaderMapRegion->endLba;
-                if (offset > 1) {
-                    IO_DISK_MAP_REGION* unallocated = NULL;
-                    status = AddRegion(disk, gptHeaderMapRegion->endLba + 1, gptPartitionMapRegion->startLba - 1, 0, 0, TRUE, gptPartitionMapRegion, &unallocated);
-                    if (BT_ERROR(status)) goto CLEANUP;
-
-                    prev->next = unallocated;
-                }
-                else {
-                    prev->next = gptPartitionMapRegion;
-                }
-
-                first = gptPartitionMapRegion;
-            }
-            // partition -> [] -> partition
-            else {
-                UINTN offset = gptPartitionMapRegion->startLba - prev->endLba;
-                if (offset > 1) {
-                    IO_DISK_MAP_REGION* unallocated = NULL;
-                    status = AddRegion(disk, prev->endLba + 1, gptPartitionMapRegion->startLba - 1, 0, 0, TRUE, gptPartitionMapRegion, &unallocated);
-                    if (BT_ERROR(status)) goto CLEANUP;
-
-                    prev->next = unallocated;
-                }
-                else {
-                    prev->next = gptPartitionMapRegion;
-                }
-            }
-
-            prev = gptPartitionMapRegion;
         }
 
-        // partition -> [] 
-        if (prev != NULL) {
-            UINTN offset = prev->endLba - disk->info.logicalBlockCount;
-            if (offset > 1) {
-                IO_DISK_MAP_REGION* unallocated = NULL;
-                status = AddRegion(disk, prev->endLba + 1, disk->info.logicalBlockCount, 0, 0, TRUE, NULL, &unallocated);
-                if (BT_ERROR(status)) goto CLEANUP;
-
-                prev->next = unallocated;
-            }
-        }
-
-        gptHeaderMapRegion->next = first;
+        status = LinkedUnsafeSort(&disk->info.regionList, 4, OFFSET_OF(IO_DISK_MAP_REGION, startLba));
+        if (BT_ERROR(status)) goto CLEANUP;
     }
     // TODO: MBR DISK MAP PARTITION INITIALIZATION
     else if (disk->scheme == IO_DISK_SCHEME_MBR) {
@@ -257,7 +201,6 @@ BT_STATUS ByteAPI MapRegions(IN IO_DISK* disk) {
     }
 
     CLEANUP:
-    if (partitionArray) FreePhysicalPool((VOID**)&partitionArray, &partitionArraySize);
     if (BT_ERROR(status)) UnMapRegions(disk);
 
     return status;
@@ -267,7 +210,7 @@ BT_STATUS ByteAPI UnMapRegions(IN IO_DISK* disk){
 
     BT_STATUS status = 0;
 
-    IO_DISK_MAP_REGION *curr = disk->info.map.region;
+    IO_DISK_MAP_REGION *curr = (IO_DISK_MAP_REGION*)disk->info.regionList.root;
     while (curr != NULL){
         IO_DISK_MAP_REGION *toFree = curr;
         UINTN toFreeSize = sizeof(IO_DISK_MAP_REGION);
@@ -278,8 +221,6 @@ BT_STATUS ByteAPI UnMapRegions(IN IO_DISK* disk){
         curr = curr->next;
     }
 
-    disk->info.map.regionCount = 0;
-
     return BT_SUCCESS;
 }
 BT_STATUS ByteAPI AddRegion(IN IO_DISK* disk, IN UINTN startLba, IN UINTN endLba, IN UINT32 startCha, IN UINT32 endCha, IN BOOLEAN free, IN IO_DISK_MAP_REGION *next, OUT IO_DISK_MAP_REGION **region) {
@@ -289,7 +230,7 @@ BT_STATUS ByteAPI AddRegion(IN IO_DISK* disk, IN UINTN startLba, IN UINTN endLba
     
     UINTN regionSize = sizeof(IO_DISK_MAP_REGION);
     status = AllocPhysicalPool((VOID**)region, &regionSize, BT_MEMORY_KERNEL_RW);
-    if (BT_ERROR(status)) return status;
+    if (BT_ERROR(status)) goto CLEANUP;
 
     (*region)->next = next;
     (*region)->free = free;
@@ -298,23 +239,14 @@ BT_STATUS ByteAPI AddRegion(IN IO_DISK* disk, IN UINTN startLba, IN UINTN endLba
 
     (*region)->startCha = startCha;
     (*region)->endCha = endCha;
-
-    if (disk->info.map.region == NULL){
-        disk->info.map.region = *region;
-        disk->info.map.regionCount++;
-
-        return BT_SUCCESS;
-    }
-
-    IO_DISK_MAP_REGION *last = disk->info.map.region;
-    while (last->next != NULL){
-        last = last->next;
-    }
-
-    last->next = *region;
-    disk->info.map.regionCount++;
     
-    return BT_SUCCESS;
+    status = LinkedUnsafeAdd(&disk->info.regionList, (VOID*)*region, sizeof(IO_DISK_MAP_REGION), 0);
+    if (BT_ERROR(status)) goto CLEANUP;
+
+CLEANUP:
+    if (BT_ERROR(status) && *region) FreePhysicalPool((VOID**)region, &regionSize);
+
+    return status;
 }
     
 // ==================================== |

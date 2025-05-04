@@ -49,24 +49,12 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     
     IO_DISK *disk = NULL;
     status = InjectDisk(pci, &disk);
-
-    UNSAFE_LINKED_LIST* list = NULL;
-    status = LinkedUnsafeCreate(&list);
-
-    list->nextRva = OFFSET_OF(IO_DISK_MAP_REGION, next);
-    list->sizeOfNode = sizeof(IO_DISK_MAP_REGION);
-
-    UINT32 v0 = 0x3;
-    UINT32 v1 = 0x32;
-    UINT32 v2 = 0x64;
-
-    VOID* value = NULL;
-
-    status = LinkedUnsafeAdd(list, &v2, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    status = LinkedUnsafeAdd(list, &v0, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    status = LinkedUnsafeAdd(list, &v1, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    status = LinkedUnsafeSort(list, sizeof(UINT32), OFFSET_OF(IO_DISK_MAP_REGION, endCha));
-    return ((IO_DISK_MAP_REGION*)(((IO_DISK_MAP_REGION*)((IO_DISK_MAP_REGION*)list->root)->next)->next))->endCha;
+    status = MapRegions(disk);
+    
+    IO_DISK_MAP_REGION* root = disk->info.regionList.root;
+    UINT32 s = 0;
+    LinkedUnsafeSize(&disk->info.regionList, &s);
+    return s;
     //return status;
 }
 
