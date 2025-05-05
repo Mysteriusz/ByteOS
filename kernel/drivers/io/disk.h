@@ -1,6 +1,6 @@
 #pragma once
 
-typedef struct IO_DISK_MAP_REGION IO_DISK_MAP_REGION;
+typedef struct IO_DISK_REGION IO_DISK_REGION;
 typedef struct IO_DISK_PARTITION IO_DISK_PARTITION;
 typedef struct IO_DISK IO_DISK;
 
@@ -45,7 +45,7 @@ typedef struct IO_DISK_FUNCTIONS{
     IO_DISK_FLUSH flush;
     IO_DISK_RESET reset;
 } IO_DISK_FUNCTIONS;
-typedef struct IO_DISK_MAP_REGION {
+typedef struct IO_DISK_REGION {
     // LBA
     UINT32 startLba;
     UINT32 endLba;
@@ -53,8 +53,8 @@ typedef struct IO_DISK_MAP_REGION {
     UINT32 startCha;
     UINT32 endCha;
     BOOLEAN free;
-    IO_DISK_MAP_REGION* next;
-} IO_DISK_MAP_REGION;
+    IO_DISK_REGION* next;
+} IO_DISK_REGION;
 typedef struct IO_DISK_INFO_DATA{
     UINT32 logicalBlockCount;
     UINT32 logicalBlockSize; // Bytes
@@ -82,15 +82,23 @@ typedef struct IO_DISK_PARTITION{
 #define IO_DISK_PARTITION_BIT_CHECK(diskptr, partitionIndex)((diskptr)->initializedPartitions[(partitionIndex) / 32] & (1 << ((partitionIndex) % 32)))
 
 // ==================================== |
-//                 SETUP                |
+//              MAIN METHODS            |
 // ==================================== |
 
 BT_STATUS ByteAPI InjectDisk(IN PCI *pci, OUT IO_DISK **disk);
 BT_STATUS ByteAPI EjectDisk(IN IO_DISK **disk);
 
+// ==================================== |
+//                REGIONS               |
+// ==================================== |
+
 BT_STATUS ByteAPI MapRegions(IN IO_DISK *disk);
 BT_STATUS ByteAPI UnMapRegions(IN IO_DISK *disk);
-BT_STATUS ByteAPI AddRegion(IN IO_DISK* disk, IN UINTN startLba, IN UINTN endLba, IN UINT32 startCha, IN UINT32 endCha, IN BOOLEAN free, IN IO_DISK_MAP_REGION *next, OUT IO_DISK_MAP_REGION **region);
+
+BT_STATUS ByteAPI AddRegion(IN IO_DISK* disk, IN UINT32 startLba, IN UINT32 endLba, IN UINT32 startCha, IN UINT32 endCha, IN BOOLEAN free, IN IO_DISK_REGION *next, OUT IO_DISK_REGION **buffer);
+BT_STATUS ByteAPI UpdateRegion(IN IO_DISK* disk, IN UINT32 startLba, IN UINT32 endLba, IN UINT32 startCha, IN UINT32 endCha, IN BOOLEAN free, IN IO_DISK_REGION* next, IN IO_DISK_REGION* buffer);
+BT_STATUS ByteAPI VerifyRegionRange(IN IO_DISK* disk, IN UINT32 startLba, IN UINT32 endLba);
+BT_STATUS ByteAPI GetRegion(IN IO_DISK* disk, IN OPTIONAL UINT32* startLba, IN OPTIONAL UINT32* startCha, OUT IO_DISK_REGION** region);
 
 // ==================================== |
 //         DISK METHODS INTEFACE        |

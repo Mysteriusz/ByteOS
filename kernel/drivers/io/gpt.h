@@ -35,15 +35,12 @@ typedef struct GPT_PARTITON_ENTRY{
 } GPT_PARTITON_ENTRY;
 
 BOOLEAN ByteAPI IsGpt(IN IO_DISK *disk);
+BOOLEAN ByteAPI GptValidPartition(IN GPT_PARTITON_ENTRY* entry);
 
 BT_STATUS ByteAPI GptIdentifyPartitions(IN IO_DISK *disk);
+BT_STATUS ByteAPI GptUpdateHeaderCrc(IN IO_DISK* disk);
 
-BT_STATUS ByteAPI GptWritePartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN UINT32 count, IN GPT_PARTITON_ENTRY *buffer);
-BT_STATUS ByteAPI GptReadPartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN UINT32 count, IN GPT_PARTITON_ENTRY *buffer);
-
-BT_STATUS ByteAPI GptSafeReadPartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer);
-BT_STATUS ByteAPI GptSafeWritePartitonEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer);
-
-BT_STATUS ByteAPI GptFreeSize(IN IO_DISK *disk, OUT UINTN *freeSize);
-
-BT_STATUS ByteAPI GptUpdateHeaderCrc(IN IO_DISK *disk);
+BT_STATUS ByteAPI GptWritePartitionEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN UINT32 count, IN GPT_PARTITON_ENTRY *buffer);
+BT_STATUS ByteAPI GptReadPartitionEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN UINT32 count, IN GPT_PARTITON_ENTRY *buffer);
+BT_STATUS ByteAPI GptSafeReadPartitionEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer);
+BT_STATUS ByteAPI GptSafeWritePartitionEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer);

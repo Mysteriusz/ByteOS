@@ -63,11 +63,10 @@ BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_D
     if (port == NULL) return BT_INVALID_ARGUMENT;
     if (*buffer == NULL) return BT_INVALID_BUFFER;
     
-    BT_MEMORY_PAGE_FLAGS flags = 0;
-    BT_STATUS status = GetPhysicalFlags(*buffer, &flags);
+    BT_STATUS status = 0;
+    status = PhysicalCheckPermission(buffer, BT_MEMORY_WRITE, PAGE_SIZE);
     if (BT_ERROR(status)) return status;
-    if ((flags & BT_MEMORY_WRITE) == FALSE) return BT_INVALID_BUFFER;
-    
+
     (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
 
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
@@ -103,14 +102,14 @@ BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_D
     return BT_SUCCESS;
 }
 BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer){
-    if (*buffer == NULL) return BT_INVALID_BUFFER;
+    if (buffer == NULL) return BT_INVALID_BUFFER;
     if (port == NULL) return BT_INVALID_ARGUMENT;
+    if (count == 0) return BT_INVALID_ARGUMENT;
 
-    BT_MEMORY_PAGE_FLAGS flags = 0;
-    BT_STATUS status = GetPhysicalFlags(*buffer, &flags);
+    BT_STATUS status = 0;
+    status = PhysicalCheckPermission(buffer, BT_MEMORY_WRITE, PAGE_SIZE);
     if (BT_ERROR(status)) return status;
-    if ((flags & BT_MEMORY_WRITE) == FALSE) return BT_INVALID_BUFFER;
-    
+
     (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
 
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
@@ -168,11 +167,11 @@ BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 c
 BT_STATUS SataWriteDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer){
     if (buffer == NULL) return BT_INVALID_BUFFER;
     if (port == NULL) return BT_INVALID_ARGUMENT;
+    if (count == 0) return BT_INVALID_ARGUMENT;
 
-    BT_MEMORY_PAGE_FLAGS flags = 0;
-    BT_STATUS status = GetPhysicalFlags(buffer, &flags);
+    BT_STATUS status = 0;
+    status = PhysicalCheckPermission(buffer, BT_MEMORY_WRITE, PAGE_SIZE);
     if (BT_ERROR(status)) return status;
-    if ((flags & BT_MEMORY_WRITE) == FALSE) return BT_INVALID_BUFFER;
     
     (*(UINT32*)&port->interruptStatus) = (UINT32)-1;
 
