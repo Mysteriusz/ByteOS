@@ -204,6 +204,10 @@ MEMORY_PAGE ByteAPI GetPhysicalPage(IN UINT32 index){
 }
 
 BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN BT_MEMORY_PAGE_FLAGS flags){
+    if (buffer == NULL) return BT_INVALID_BUFFER;
+    if (size == NULL) return BT_INVALID_BUFFER;
+    if (*size == 0) return BT_INVALID_ARGUMENT;
+
     MEMORY_PAGE_POOL_HEADER **pPool = NULL; // Currently selected pool header
     
     if (*size >= PAGE_SIZE - sizeof(MEMORY_PAGE_POOL_HEADER)){
@@ -290,6 +294,11 @@ BT_STATUS ByteAPI AllocPhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size, IN
     goto ALLOC;
 }
 BT_STATUS ByteAPI FreePhysicalPool(IN OUT VOID **buffer, IN OUT UINTN *size){
+    if (buffer == NULL) return BT_INVALID_BUFFER;
+    if (*buffer == NULL) return BT_INVALID_BUFFER;
+    if (size == NULL) return BT_INVALID_BUFFER;
+    if (*size == 0) return BT_INVALID_ARGUMENT;
+
     MEMORY_PAGE_POOL_HEADER **prev = NULL; // Previously selected pool header
     MEMORY_PAGE_POOL_HEADER **pPool = NULL; // Currently selected pool header
 
