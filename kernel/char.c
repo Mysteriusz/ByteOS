@@ -748,10 +748,10 @@ BOOLEAN CompareString16(STRING16 str1, STRING16 str2) {
 
     return FALSE;
 }
-UINT64 GetLengthString16(STRING16* str){
+UINT64 GetLengthString16(CHAR16* str){
     UINT64 len = 0;
 
-    while (*str[len] != '\0'){
+    while (str[len] != L'\0'){
         len++;
     }
 

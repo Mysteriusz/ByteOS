@@ -68,5 +68,3 @@ typedef struct MBR_MODERN{
 } MBR_MODERN;
 
 #pragma pack()
-
-BT_STATUS ByteAPI MbrReadPartitonEntry(IN IO_DISK_PARTITION *partition, IN VOID *buffer);

@@ -71,7 +71,7 @@ BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_D
 
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
     AHCI_COMMAND_LIST *commandList = (AHCI_COMMAND_LIST*)clAddress;
-    PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    PHYSICAL_ADDRESS ctAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
     if (BT_ERROR(status)) return status;
@@ -81,14 +81,14 @@ BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_D
     commandList->commandHeader.write = 0;
     commandList->commandHeader.physicalRegionDescriptorTableLength = 1;
     commandList->commandHeader.commandTableDescriptorBaseAddress = (UINT32)(ctAddress >> 7);
-    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)(ctAddress >> 32);
+    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)((UINT64)ctAddress >> 32);
     
     PHYSICAL_ADDRESS bufferAddress = (PHYSICAL_ADDRESS)*buffer;
     
     // Setup entries
     for (UINT32 i = 0; i < commandList->commandHeader.physicalRegionDescriptorTableLength; i++){
         commandTable->entries[i].dataBaseAddress = (UINT32)(bufferAddress >> 1);
-        commandTable->entries[i].dataBaseAddressUpper = (UINT32)(bufferAddress >> 32);
+        commandTable->entries[i].dataBaseAddressUpper = (UINT32)((UINT64)bufferAddress >> 32);
         commandTable->entries[i].dataByteCount = SATA_FIS_IDENTIFY_DEVICE_SIZE - 1;
         commandTable->entries[i].interruptOnCompletion = 1;
     }
@@ -114,7 +114,7 @@ BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 c
 
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
     AHCI_COMMAND_LIST *commandList = (AHCI_COMMAND_LIST*)clAddress;
-    PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    PHYSICAL_ADDRESS ctAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
     if (BT_ERROR(status)) return status;
@@ -124,7 +124,7 @@ BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 c
     commandList->commandHeader.write = 0;
     commandList->commandHeader.physicalRegionDescriptorTableLength = (count + AHCI_PRDTL_TABLE_ENTRY_SECTORS - 1) / AHCI_PRDTL_TABLE_ENTRY_SECTORS;
     commandList->commandHeader.commandTableDescriptorBaseAddress = (UINT32)(ctAddress >> 7);
-    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)(ctAddress >> 32);
+    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)((UINT64)ctAddress >> 32);
     
     PHYSICAL_ADDRESS bufferAddress = (PHYSICAL_ADDRESS)*buffer;
 
@@ -137,7 +137,7 @@ BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 c
         }
         
         commandTable->entries[i].dataBaseAddress = (UINT32)(bufferAddress >> 1);
-        commandTable->entries[i].dataBaseAddressUpper = (UINT32)(bufferAddress >> 32);
+        commandTable->entries[i].dataBaseAddressUpper = (UINT32)((UINT64)bufferAddress >> 32);
         commandTable->entries[i].dataByteCount = (added * SATA_BASE_SECTOR_SIZE) - 1;
         commandTable->entries[i].interruptOnCompletion = 1;
 
@@ -177,7 +177,7 @@ BT_STATUS SataWriteDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 
 
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
     AHCI_COMMAND_LIST *commandList = (AHCI_COMMAND_LIST*)clAddress;
-    PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    PHYSICAL_ADDRESS ctAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
     if (BT_ERROR(status)) return status;
@@ -187,7 +187,7 @@ BT_STATUS SataWriteDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 
     commandList->commandHeader.write = 1;
     commandList->commandHeader.physicalRegionDescriptorTableLength = (count + AHCI_PRDTL_TABLE_ENTRY_SECTORS - 1) / AHCI_PRDTL_TABLE_ENTRY_SECTORS;
     commandList->commandHeader.commandTableDescriptorBaseAddress = (UINT32)(ctAddress >> 7);
-    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)(ctAddress >> 32);
+    commandList->commandHeader.commandTableDescriptorBaseAddressUpper = (UINT32)((UINT64)ctAddress >> 32);
     
     PHYSICAL_ADDRESS bufferAddress = (PHYSICAL_ADDRESS)buffer;
 
@@ -200,7 +200,7 @@ BT_STATUS SataWriteDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 
         }
         
         commandTable->entries[i].dataBaseAddress = (UINT32)(bufferAddress >> 1);
-        commandTable->entries[i].dataBaseAddressUpper = (UINT32)(bufferAddress >> 32);
+        commandTable->entries[i].dataBaseAddressUpper = (UINT32)((UINT64)bufferAddress >> 32);
         commandTable->entries[i].dataByteCount = (added * SATA_BASE_SECTOR_SIZE) - 1;
         commandTable->entries[i].interruptOnCompletion = 1;
 
@@ -234,7 +234,7 @@ BT_STATUS SataFlushDmaExt(IN SATA_PORT_REGISTER *port){
     
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
     AHCI_COMMAND_LIST *commandList = (AHCI_COMMAND_LIST*)clAddress;
-    PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    PHYSICAL_ADDRESS ctAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
     if (BT_ERROR(status)) return status;
@@ -255,7 +255,7 @@ BT_STATUS SataDeviceReset(IN SATA_PORT_REGISTER *port){
     
     PHYSICAL_ADDRESS clAddress = SATA_PORT_COMMAND_LIST_ADDRESS(port);
     AHCI_COMMAND_LIST *commandList = (AHCI_COMMAND_LIST*)clAddress;
-    PHYSICAL_ADDRESS ctAddress = ((PHYSICAL_ADDRESS)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
+    PHYSICAL_ADDRESS ctAddress = ((UINT64)commandList->commandHeader.commandTableDescriptorBaseAddressUpper << 32) | (commandList->commandHeader.commandTableDescriptorBaseAddress << 7);
     AHCI_COMMAND_TABLE *commandTable = (AHCI_COMMAND_TABLE*)ctAddress;
     status = ForceSetPhysicalMemory((VOID*)commandTable, 0, sizeof(AHCI_COMMAND_TABLE) + (commandList->commandHeader.physicalRegionDescriptorTableLength - 1) * sizeof(AHCI_COMMAND_TABLE_ENTRY));
     if (BT_ERROR(status)){

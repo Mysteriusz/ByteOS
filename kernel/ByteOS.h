@@ -11,6 +11,14 @@
 #define CONST const
 #define ByteAPI
 
+#ifdef __aarch32__
+#define AARCH_32
+#endif
+
+#ifdef __x86_64__
+#define X86_64
+#endif
+
 // ==================================== |
 //                INTIGERS              |
 // ==================================== |
@@ -89,16 +97,21 @@ typedef VOID *VOIDPTR;
 #define TRUE 1
 typedef unsigned char BOOLEAN;
 
-#ifdef __x86_64__ 
-    typedef unsigned long long UINTN;
-    typedef signed long long INTN;
+#ifdef X86_64 
+    typedef UINT64 UINTN;
+    typedef INT64 INTN;
 #else
-    typedef unsigned int UINTN;
-    typedef signed int INTN;
+    typedef UINT32 UINTN;
+    typedef INT32 INTN;
 #endif
 
-typedef UINT64 PHYSICAL_ADDRESS;
-typedef UINT64 VIRTUAL_ADDRESS;
+#ifdef X86_64
+    typedef UINT64 PHYSICAL_ADDRESS;
+    typedef UINT64 VIRTUAL_ADDRESS;
+#else
+    typedef UINT32 PHYSICAL_ADDRESS;
+    typedef UINT32 VIRTUAL_ADDRESS;
+#endif
 
 #pragma endregion INTIGERS
 

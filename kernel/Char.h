@@ -61,7 +61,7 @@ UINT64 ByteAPI GetLengthString8(STRING8* str);
 // =========== STRING16 ===========
 
 BOOLEAN ByteAPI CompareString16(STRING16 str1, STRING16 str2);
-UINT64 ByteAPI GetLengthString16(STRING16* str);
+UINT64 ByteAPI GetLengthString16(CHAR16* str);
 
 // =========== STRING32 ===========
 

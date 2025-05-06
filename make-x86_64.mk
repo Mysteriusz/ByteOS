@@ -13,9 +13,9 @@ KERNELC=$(shell find /mnt/d/byteos/kernel -type f -name "*.c")
 KERNELS=$(shell find /mnt/d/byteos/kernel -type f -name "*.s")
 
 kernelmake:
-	$(CC) $(KERNELFLAGS) $(KERNELH) $(KERNELC) $(KERNELS) -o /mnt/d/byteos/kernel/byteos.bin
+	$(CC) $(KERNELFLAGS) $(KERNELH) $(KERNELC) $(KERNELS) -o /mnt/d/byteos/kernel/byteos-x86_64.bin
 
 fullmake:
 	$(CC) $(BOOTX64FLAGS) $(BOOTX64H) $(BOOTX64C) $(KERNELS) -o /mnt/d/byteos/boot/BOOTX64.EFI
-	$(CC) $(KERNELFLAGS) $(KERNELS) $(KERNELH) $(KERNELC) -o /mnt/d/byteos/kernel/byteos.bin
-	/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -file D:/byteos/run.ps1
+	$(CC) $(KERNELFLAGS) $(KERNELS) $(KERNELH) $(KERNELC) -o /mnt/d/byteos/kernel/byteos-x86_64.bin
+	/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -file D:/byteos/run-x86_64.ps1

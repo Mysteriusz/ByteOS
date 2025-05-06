@@ -165,7 +165,6 @@ BT_STATUS ByteAPI GptReadPartitionEntry(IN IO_DISK* disk, IN UINT32 partitionInd
     
     return status;
 }
-
 BT_STATUS ByteAPI GptSafeReadPartitionEntry(IN IO_DISK *disk, IN UINT32 partitionIndex, IN GPT_PARTITON_ENTRY *buffer){
     if (disk == NULL) return BT_INVALID_ARGUMENT;
     if (partitionIndex >= GPT_MAX_PARTITIONS) return BT_INVALID_ARGUMENT;

@@ -365,7 +365,7 @@ BT_STATUS ByteAPI DiskIfFlush(IN IO_DISK *disk){
 }
 
 BT_STATUS ByteAPI DiskIfSata(IN IO_DISK *disk, IN UINT64 lba, IN UINT32 count, IN OUT VOID *buffer, IN UINT16 commandType){
-    SATA_GENERIC_HOST_CONTROL *hba = (SATA_GENERIC_HOST_CONTROL*)((UINT64)disk->pci->header.h0.bar5);
+    SATA_GENERIC_HOST_CONTROL *hba = (SATA_GENERIC_HOST_CONTROL*)((PHYSICAL_ADDRESS)disk->pci->header.h0.bar5);
     SATA_PORT_REGISTER *port = NULL;
     UINT32 portIndex = 0;
 

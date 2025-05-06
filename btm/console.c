@@ -6,11 +6,19 @@ EFI_STATUS BTM_StartConsole(){
     EFI_Print(L"STARTING BOOTMANAGER CONSOLE");
     
     BTM_TOKENS tokens;
-    CHAR16* bLoadCmd = L"load kernel\\byteos.bin 232000";
-    BTM_Tokenize(bLoadCmd, 30, &tokens);
+    CHAR16* bLoadCmd = NULL;
+#if defined(__x86_64__)
+    bLoadCmd = L"load kernel\\byteos-x86_64.bin 232000";
+#elif defined(__arm__)
+    bLoadCmd = L"load kernel\\byteos-arm.bin 232000";
+#endif
+
+    BTM_Tokenize(bLoadCmd, GetLengthString16(bLoadCmd), &tokens);
     BTM_Execute(&tokens);
+
     CHAR16* bRunCmd = L"run 232000 raw gpui mm ioi";
-    BTM_Tokenize(bRunCmd, 27, &tokens);
+
+    BTM_Tokenize(bRunCmd, GetLengthString16(bRunCmd), &tokens);
     BTM_Execute(&tokens);
     
     BTM_PrintDefaultString(L"\r\nBOOTMANAGER>");
@@ -155,7 +163,7 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
             return execStatus;
         }
     
-        UINTN readSize = 50000;
+        UINTN readSize = 0xffff;
         CHAR16* buffer = (CHAR16*)address;
 
         execStatus = file->read(file, &readSize, buffer);
@@ -164,7 +172,7 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
             EFI_Print(ConcatChar16(L"\r\nERROR READING FILE: ", filePath));
             return execStatus;
         }
-    
+
         EFI_Print(ConcatChar16(L"\r\nLOADED AT: ", UInt64ToChar16Hex(address)));
         EFI_Print(ConcatChar16(L"\r\nSIZE: ", UInt64ToChar16(readSize)));
     
@@ -279,7 +287,7 @@ EFI_STATUS BTM_Execute(IN BTM_TOKENS* btmTokens){
         execStatus = EFI_DeAllocPages(pages, address);
 
         if (EFI_ERROR(execStatus)){
-            EFI_Print(ConcatChar16(L"\r\nERROR OCCURED: ", EFI_GetStatus(execStatus)));
+            EFI_Print(UInt64ToChar16(execStatus));
         }
         else{
             EFI_Print(ConcatChar16(L"\r\nFREED MEMORY AT: ", UInt64ToChar16Hex(address)));

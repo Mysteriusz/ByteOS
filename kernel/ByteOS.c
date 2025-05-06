@@ -32,11 +32,13 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
+    return 1;
+
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
     //     fb[i] = 0x000000;
     // }
     
-    status = InitializePhysicalPages(memMap);
+    /*status = InitializePhysicalPages(memMap);
     status = InitializePhysicalPool();
 
     FIRST_PAGE *f = NULL;
@@ -85,30 +87,6 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
     IO_DISK_REGION* root = disk->info.regionList.root;
     UINT32 s = 0;
     LinkedUnsafeSize(&disk->info.regionList, &s);
-    return s;
-    return s;
+    return s;*/
 
-}
-
-CHAR16* GetKernelLoadStatus(KERNEL_LOAD_STATUS status) {
-    switch (status) {
-        case KERNEL_LOAD_SUCCESS:
-        return L"Kernel loaded successfully.";
-        case KERNEL_LOAD_ERROR_FILE:
-            return L"Failed to open kernel file.";      
-        case KERNEL_LOAD_ERROR_FILE_INFD:
-            return L"Failed to read kernel file information.";
-        case KERNEL_LOAD_ERROR_ALLOC:
-            return L"Memory allocation failed.";
-        case KERNEL_LOAD_ERROR_HANDLE_BUFFER:
-            return L"Failed to retrieve handle buffer.";
-        case KERNEL_LOAD_ERROR_HANDLE_PROTOCOL:
-            return L"Failed to handle protocol.";
-        case KERNEL_LOAD_ERROR_VOLUME:
-            return L"Failed to open file system volume.";
-        case KERNEL_LOAD_ERROR_FILE_READ:
-            return L"Failed to read from kernel file.";
-        default:
-            return L"Unknown error.";
-    }
 }

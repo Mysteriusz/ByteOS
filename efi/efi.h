@@ -930,5 +930,3 @@ EFI_STATUS EFI_AllocPages(IN EFI_ALLOCATE_TYPE allocType, IN EFI_MEMORY_TYPE mem
 EFI_STATUS EFI_DeAllocPool(IN VOID* buffer);
 EFI_STATUS EFI_DeAllocPages(IN UINTN pages, IN EFI_PHYSICAL_ADDRESS buffer);
 EFI_STATUS EFI_FindProtocol(IN EFI_GUID guid, OUT UINTN* count, OUT VOID** buffer);
-
-CHAR16* EFI_GetStatus(IN EFI_STATUS status);
