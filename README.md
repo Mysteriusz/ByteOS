@@ -16,6 +16,7 @@
 |----------------------------|--------|----------------------------------|------------------|
 | Physical memory allocation | ✅     |                                  | Done             |
 | SATA/AHCI storage driver   | ➖     | Working basic commands           | Future           |
+| Multi arch support         | ➖     | In progress (Main focus)         | ~ 1 Week         |
 | Disk HAL                   | ➖     | In progress                      | ~ 2-3 Weeks      |
 | GPT handler                | ➖     | In progress (Main focus)         | ~ 1-2 Weeks      |
 | MBR handler                | ➖     | To do                            | Future           |
