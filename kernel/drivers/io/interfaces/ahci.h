@@ -2,7 +2,6 @@
 
 #include "byteos.h"
 
-#pragma region STRUCTURES
 
 #define AHCI_COMMAND_TABLE_MAX_ENTRY_COUNT 0xffff
 #define AHCI_COMMAND_TABLE_ENTRY_OFFSET 0x80
@@ -225,5 +224,3 @@ typedef volatile struct AHCI_COMMAND_LIST_HEADER{
 typedef volatile struct AHCI_COMMAND_LIST{
     AHCI_COMMAND_LIST_HEADER commandHeader;
 } AHCI_COMMAND_LIST;
-
-#pragma endregion STRUCTURES

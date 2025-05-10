@@ -19,4 +19,4 @@ typedef struct FONT{
     UINT32 characterCount;
 } FONT;
 
-VOID PrintChar(FONT *font, FONT_CHAR *character, UINT32 *frameBufferAddress, UINT32 frameBufferHorizontalSize);
+VOID PrintChar(IN FONT* font, IN FONT_CHAR* character, IN UINT32* frameBufferAddress, IN UINT32 frameBufferHorizontalSize);

@@ -39,7 +39,7 @@ BT_STATUS ByteAPI InitializePhysicalMemory(KERNEL_MEMORY_MAP *memMap){
         return status;
     }
     
-    status = InitializePhysicalPool(memMap);
+    status = InitializePhysicalPool();
     if (BT_ERROR(status)){
         return status;
     }
@@ -83,7 +83,7 @@ BT_STATUS ByteAPI InitializePhysicalPages(KERNEL_MEMORY_MAP *memMap){
 
     return BT_SUCCESS;
 }
-BT_STATUS ByteAPI InitializePhysicalPool(){
+BT_STATUS ByteAPI InitializePhysicalPool(VOID){
     smallPool = NULL;
     mediumPool = NULL;
     bigPool = NULL;
@@ -602,11 +602,10 @@ VOID DEBUG_ALLOC(UINT32 index){
 VOID DEBUG_FREE(UINT32 index){
     PAGE_DEALLOC(index);
 }
-PHYSICAL_ADDRESS DEBUG_CLOSEST(){
+PHYSICAL_ADDRESS DEBUG_CLOSEST(VOID){
     return closestPageAddress;
 }
 
 // ==================================== |
 //                VIRTUAL               |
 // ==================================== |
-

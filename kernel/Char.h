@@ -6,8 +6,6 @@
 //                 CHARS                |
 // ==================================== |
 
-#pragma region CHARS
-
 // =========== CHAR8 ===========
 
 CHAR8* ByteAPI UInt8ToChar8(UINT8 i);
@@ -67,5 +65,3 @@ UINT64 ByteAPI GetLengthString16(CHAR16* str);
 
 BOOLEAN ByteAPI CompareString32(STRING32 str1, STRING32 str2);
 UINT64 ByteAPI GetLengthString32(STRING32* str);
-
-#pragma endregion CHARS

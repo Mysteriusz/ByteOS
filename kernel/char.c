@@ -1,7 +1,5 @@
 #include "char.h"
 
-#pragma region CHAR
-
 // =========== CHAR8 ===========
 
 CHAR8* UInt8ToChar8(UINT8 i) {
@@ -733,20 +731,13 @@ UINT64 GetLengthString8(STRING8* str){
 // =========== STRING16 ===========
 
 BOOLEAN CompareString16(STRING16 str1, STRING16 str2) {
-    while (*str1 == *str2) {
-        if (*str1 == L'\0' && *str2 == L'\0') {
-            return TRUE;
-        }
+    if (str1 == NULL || str2 == NULL) return FALSE;
 
-        else if (*str1 == L'\0' || *str2 == L'\0') {
-            return FALSE;
-        }
-        
-        str1++;
-        str2++;
+    while (*str1 && *str2 && *str1 == *str2) {
+        str1++; str2++;
     }
 
-    return FALSE;
+    return (*str1 == *str2);
 }
 UINT64 GetLengthString16(CHAR16* str){
     UINT64 len = 0;
@@ -785,5 +776,3 @@ UINT64 GetLengthString32(STRING32* str){
 
     return len;
 }
-
-#pragma endregion CHAR

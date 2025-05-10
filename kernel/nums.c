@@ -1,7 +1,5 @@
 #include "nums.h"
 
-#pragma region NUMS
-
 // =========== UINT8 ===========
 
 UINT8 ByteAPI Char8ToUInt8(CHAR8* str){
@@ -361,5 +359,3 @@ UINT64 ByteAPI Char32ToUInt64(CHAR32* str){
 
     return res;
 }
-
-#pragma endregion NUMS

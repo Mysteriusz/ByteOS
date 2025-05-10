@@ -6,8 +6,6 @@
 //               INTIGERS               |
 // ==================================== |
 
-#pragma region INTIGERS
-
 // =========== UINT8 ===========
 
 UINT8 ByteAPI Char8ToUInt8(CHAR8* str);
@@ -31,5 +29,3 @@ UINT32 ByteAPI Char32ToUInt32(CHAR32* str);
 UINT64 ByteAPI Char8ToUInt64(CHAR8* str);
 UINT64 ByteAPI Char16ToUInt64(CHAR16* str);
 UINT64 ByteAPI Char32ToUInt64(CHAR32* str);
-
-#pragma endregion INTIGERS

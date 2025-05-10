@@ -1,0 +1,6 @@
+arch=x86_64				# Can be: (x86_64, arm64, arm32, ...)
+
+command=				# Command to execute on boot
+boot=					# Path to the binary from which to boot
+showBootMenu=			# Enter the boot menu (0, 1)
+entries=				# Paths to all binary entries in the bts separated by :

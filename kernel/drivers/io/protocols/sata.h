@@ -251,9 +251,7 @@ BT_STATUS SataFindFreePort(IN SATA_GENERIC_HOST_CONTROL *hba, OUT SATA_PORT_REGI
 BT_STATUS SataStartDmaEngine(IN SATA_PORT_REGISTER *port);
 BT_STATUS SataStopDmaEngine(IN SATA_PORT_REGISTER *port);
 
-#pragma region COMMANDS
-
-#pragma pack(1)
+#pragma pack(push, 1)
 
 #define SATA_FIS_IDENTIFY_DEVICE_SIZE 0x200
 typedef struct SATA_IDENTIFY_DEVICE_DATA_GENERAL{
@@ -453,7 +451,9 @@ typedef struct SATA_IDENTIFY_DEVICE_DATA{
     // UINT16 unk[0xff - 68];
 } SATA_IDENTIFY_DEVICE_DATA;
 
-BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, OUT SATA_IDENTIFY_DEVICE_DATA **buffer);
+#pragma pack(pop)
+
+BT_STATUS SataIdentifyDevice(IN SATA_PORT_REGISTER *port, IN OUT SATA_IDENTIFY_DEVICE_DATA **buffer);
 
 BT_STATUS SataReadDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN OUT VOID **buffer);
 BT_STATUS SataWriteDmaExt(IN SATA_PORT_REGISTER *port, IN UINT64 lba, IN UINT32 count, IN VOID *buffer);
@@ -461,7 +461,3 @@ BT_STATUS SataFlushDmaExt(IN SATA_PORT_REGISTER *port);
 
 BT_STATUS SataDeviceReset(IN SATA_PORT_REGISTER *port);
 BT_STATUS SataSafePortRun(IN SATA_PORT_REGISTER *port, IN UINT32 portIndex);
-
-#pragma pack(0)
-
-#pragma endregion COMMANDS

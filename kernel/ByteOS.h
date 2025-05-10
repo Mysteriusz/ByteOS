@@ -11,19 +11,33 @@
 #define CONST const
 #define ByteAPI
 
-#ifdef __aarch32__
-#define AARCH_32
+#if defined(__aarch64__)
+#define ARM_64
+#include "arm64.h"
 #endif
 
-#ifdef __x86_64__
-#define X86_64
+#if defined(__aarch32__)
+#define ARM_32
+#include "arm32.h"
 #endif
+
+#if defined(__x86_64__)
+#define X86_64
+#include "x86.h"
+#endif
+
+#if defined(X86_64) || defined(ARM_64)
+#define ARCH_64
+#endif
+#if defined(ARM_32)
+#define ARCH_32
+#endif
+
+#include "arch.h"
 
 // ==================================== |
 //                INTIGERS              |
 // ==================================== |
-
-#pragma region INTIGERS
 
 typedef unsigned long long UINT64;
 typedef UINT64 ULONGLONG;
@@ -97,7 +111,7 @@ typedef VOID *VOIDPTR;
 #define TRUE 1
 typedef unsigned char BOOLEAN;
 
-#ifdef X86_64 
+#if defined(ARCH_64)
     typedef UINT64 UINTN;
     typedef INT64 INTN;
 #else
@@ -105,7 +119,7 @@ typedef unsigned char BOOLEAN;
     typedef INT32 INTN;
 #endif
 
-#ifdef X86_64
+#if defined(ARCH_64)
     typedef UINT64 PHYSICAL_ADDRESS;
     typedef UINT64 VIRTUAL_ADDRESS;
 #else
@@ -113,13 +127,9 @@ typedef unsigned char BOOLEAN;
     typedef UINT32 VIRTUAL_ADDRESS;
 #endif
 
-#pragma endregion INTIGERS
-
 // ==================================== |
 //                 CHARS                |
 // ==================================== |
-
-#pragma region CHARS
 
 typedef unsigned int CHAR32;
 typedef CHAR32 WCHAR32;
@@ -157,13 +167,9 @@ typedef union{
     STRING32 STRING32;
 } STRING;
 
-#pragma endregion CHARS
-
 // ==================================== |
 //                KERNEL                |
 // ==================================== |
-
-#pragma region KERNEL
 
 typedef struct KERNEL_GRAPHICAL_DEVICE_INFO{
     UINTN framebufferAddress;
@@ -202,8 +208,10 @@ typedef struct KERNEL_MEMORY_MAP{
     KERNEL_MEMORY_DESCRIPTOR entries[];
 } KERNEL_MEMORY_MAP;
 
-typedef VOID (*KERNEL_ENTRY_POINT)(KERNEL_DEVICE_INFO devInfo, KERNEL_MEMORY_MAP *memMap);
+typedef UINT32 (*KERNEL_ENTRY_POINT)(KERNEL_DEVICE_INFO* devInfo, KERNEL_MEMORY_MAP* memMap);
 typedef UINTN KERNEL_LOAD_STATUS;
+
+#define KERNEL_LOAD_SIZE 0xffff
 
 #define KERNEL_LOAD_SUCCESS 0
 #define KERNEL_LOAD_ERROR_FILE 1
@@ -214,15 +222,9 @@ typedef UINTN KERNEL_LOAD_STATUS;
 #define KERNEL_LOAD_ERROR_VOLUME 6
 #define KERNEL_LOAD_ERROR_FILE_READ 7
 
-CHAR16* ByteAPI GetKernelLoadStatus(KERNEL_LOAD_STATUS status);
-
-#pragma endregion KERNEL
-
 // ==================================== |
 //               INTERNAL               |
 // ==================================== |
-
-#pragma region INTERNAL
 
 typedef UINT32 BT_STATUS;
 #define BT_ERROR(status)(((UINTN)(status)) > 0)
@@ -269,13 +271,9 @@ typedef UINT32 BT_STATUS;
 #define BT_ENGINE_RUNNING_ERROR 0x100000
 #define BT_ENGINE_NOT_RUNNING_ERROR 0x100001
 
-#pragma endregion INTERNAL
-
 #include "nums.h"
 #include "char.h"
 #include "memory/memory.h"
-
-#pragma region DEPENDANT
 
 #define GUID_MIN \
     { 0x00000000, 0x0000, 0x0000, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } }
@@ -297,5 +295,3 @@ typedef struct GUID{
     UINT16 data3;
     UINT8 data4[8];
 } GUID;
-
-#pragma endregion DEPENDANT

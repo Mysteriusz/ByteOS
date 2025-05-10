@@ -32,18 +32,18 @@ BT_STATUS Kernel_Main(KERNEL_DEVICE_INFO *devInfo, KERNEL_MEMORY_MAP *memMap){
 
     BT_STATUS status;
     UINT32 *fb = (UINT32*)(devInfo->gpui[0].framebufferAddress);
-    return 1;
 
     // for (UINTN i = 0; i < devInfo.gpui[0].horizontalRes * devInfo.gpui[0].verticalRes; i++) {
     //     fb[i] = 0x000000;
     // }
     
-    /*status = InitializePhysicalPages(memMap);
+    return devInfo->gpuiCount;
+    status = InitializePhysicalPages(memMap);
     status = InitializePhysicalPool();
-
     FIRST_PAGE *f = NULL;
     UINTN fs = sizeof(FIRST_PAGE);    
     status = AllocPhysicalPages((VOID**)&f, &fs, 0);
+    /*
 
     PCI *pci = (PCI*)devInfo->ioi[3].pciAddress;
 

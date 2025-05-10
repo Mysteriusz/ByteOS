@@ -1,12 +1,13 @@
 {
   "ExpandedNodes": [
     "",
-    "\\kernel",
-    "\\kernel\\drivers",
-    "\\kernel\\drivers\\io",
-    "\\kernel\\memory",
-    "\\kernel\\memory\\data_structures"
+    "\\boot",
+    "\\boot\\bios",
+    "\\boot\\efi",
+    "\\boot\\headers",
+    "\\builds",
+    "\\kernel\\arch"
   ],
-  "SelectedNode": "\\kernel\\memory\\data_structures\\linked_list.h",
+  "SelectedNode": "\\builds\\run-arm32.ps1",
   "PreviewInSolutionExplorer": false
 }

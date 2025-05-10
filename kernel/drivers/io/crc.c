@@ -3,7 +3,7 @@
 UINT32 crc32Table[0x100];
 BOOLEAN crc32Initialized = FALSE;
 
-BT_STATUS ByteAPI Crc32Initialize(){
+BT_STATUS ByteAPI Crc32Initialize(VOID){
     UINT32 crc32 = 1;
     for (UINT32 i = 128; i; i >>= 1){
         crc32 = (crc32 >> 1) ^ (crc32 & 1 ? 0xedb88320 : 0);

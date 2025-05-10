@@ -2,8 +2,6 @@
 
 #include "byteos.h"
 
-#pragma region PCI_CC_DEFINES
-
 // ==================================== |
 //             UNCALSSIFIED             |
 // ==================================== |
@@ -427,8 +425,6 @@
 
 #define PCI_BCC_UNKNOWN 0xff // Device does not fit in any defined classes
 
-#pragma endregion PCI_CC_DEFINES
-
 #define PCI_SIZE 0x1000
 #define PCI_HEADER_TYPE_STANDARD 0x00
 #define PCI_HEADER_TYPE_PCI2PCI 0x01
@@ -438,8 +434,6 @@
 #define PCI_MSX_ID 0x11
 
 #pragma pack(1)
-
-#pragma region PCI_HEADER
 
 typedef volatile struct PCI_STATUS_REGISTER{
     UINT16 reserved0 : 3;
@@ -583,9 +577,6 @@ typedef union PCI_HEADER{ // Universal Header
     PCI_HEADER_2 h2; // 0x00 - 0x48
 } PCI_HEADER;
 
-#pragma endregion PCI_HEADER
-#pragma region PCI_PM
-
 typedef volatile struct PCI_PM_CAPABILITY_ID{
     UINT8 nextCapability;
     UINT8 cid;
@@ -613,9 +604,6 @@ typedef volatile struct PCI_PM{
     PCI_PM_CAPABILITIES pc;
     PCI_PM_CONTROL_AND_STATUS pmcs;
 } PCI_PM;
-
-#pragma endregion PCI_PM
-#pragma region PCI_MSI
 
 typedef volatile struct PCI_MSI_MESSAGE_CONTROL{
     UINT16 enable : 1;
@@ -660,8 +648,6 @@ typedef union PCI_MS{ // Universal Message Signaling
     PCI_MSIX msix;
 }  PCI_MS;
 
-#pragma endregion PCI_MSI
-#pragma region PCI_CAPABILITY
 typedef volatile struct PCI_CAPABILITY{
     UINT8 capabilitiesId;
     UINT8 nextCapabilityPointer;
@@ -686,7 +672,6 @@ typedef volatile struct PCI_CAPABILITY{
     UINT16 linkControl1;
     UINT16 linkStatus1;
 } PCI_CAPABILITY;
-#pragma endregion PCI_CAPABILITY
 
 typedef struct PCI{ // TODO
     PCI_HEADER header;
