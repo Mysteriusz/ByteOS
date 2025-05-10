@@ -20,4 +20,4 @@ Dismount-VHD -Path $VHDX
 Write-Host "VHDX unmounted!"
 
 qemu-img convert -f vhdx -O raw "$VHDX" "$IMG"
-qemu-system-aarch64 -drive format=raw,unit=0,file="$IMG" -bios "$BIOS" -m 1G -device ramfb -machine virt -cpu cortex-a76 -name BYTEOS-ARM64 -net none -device qemu-xhci -device usb-kbd
+qemu-system-aarch64 -drive format=raw,unit=0,file="$IMG" -bios "$BIOS" -m 1G -device ramfb -machine virt -cpu cortex-a76 -name BYTEOS-ARM64 -net none -device qemu-xhci -device usb-kbd 

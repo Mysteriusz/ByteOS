@@ -1,5 +1,6 @@
 #include "bootSelector.h"
 #include "bootSelectorGraphics.h"
+#include "bootSelectorMath.h"
 
 EFI_STATUS DrawSelector(VOID){
 	EFI_STATUS status = 0;
@@ -15,20 +16,18 @@ EFI_STATUS DrawSelector(VOID){
 	
 	status = EFI_HandleProtocol(gopHandle, (EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
 	if (EFI_ERROR(status)) return EnterPanic();
+	
+	VIDEO_ELEMENT main;
+	VIDEO_ELEMENT* mainBase = &main;
+	CreateElemenent(mainBase);
+	mainBase->lPos.x = 0;
+	mainBase->lPos.y = 0;
+	mainBase->size.x = 200;
+	mainBase->size.y = 200;
+	mainBase->color = COLOR_RED;
+	DrawRect(mainBase, gop);
 
-	COORDS_INFO pos;
-	pos.x = 10;
-	pos.y = 11;
-	COORDS_INFO size;
-	size.x = 10;
-	size.y = 5;
-	COLOR_INFO color;
-	color.r = 0xff;
-	color.g = 0xff;
-	color.b = 0xff;
-	color.a = 0xff;
-
-	DrawRect(&pos, &size, color, gop);
+	EFI_Print(UInt32ToChar16(mainBase->type));
 
 	return 0;
 }

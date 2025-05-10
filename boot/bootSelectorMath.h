@@ -1,0 +1,13 @@
+#pragma once
+
+#include "efi/efi.h"
+
+UINT32 root(IN UINT32 a, IN UINT32 b);
+UINT32 log(IN UINT32 a, IN UINT32 b);
+UINT32 pow(IN UINT32 a, IN UINT32 b);
+UINT32 abs(IN INT32 a);
+
+UINT32 min(IN UINT32 a, IN UINT32 b);
+UINT32 max(IN UINT32 a, IN UINT32 b);
+
+UINT16* UInt32ToChar16(UINT32 i);
