@@ -1,8 +1,6 @@
 #pragma once
 
-#include "efi/efi.h"
-
-#define VIDEO_BUFFER_SIZE	    0xffff
+#include "efi.h"
 
 typedef struct COORDS_INFO {
 	UINT32 x;
@@ -38,9 +36,20 @@ typedef struct VIDEO_ELEMENT {
 
 #define COLOR_READ(colorInfo)(colorInfo.a << 24 | colorInfo.r << 16 | colorInfo.g << 8 | colorInfo.b)
 
-EFI_STATUS SetupVideoBuffer(VOID);
-EFI_STATUS CreateElemenent(IN OUT VIDEO_ELEMENT* template);
+#define VIDEO_BUFFER_SIZE	    0xffff
+#define VIDEO_BUFFER_COUNT	    (VIDEO_BUFFER_SIZE / sizeof(VIDEO_ELEMENT))
 
+EFI_STATUS SetupVideoBuffer(VOID);
+EFI_STATUS GetVideoBuffer(
+	OUT OPTIONAL EFI_PHYSICAL_ADDRESS* base,
+	OUT OPTIONAL EFI_PHYSICAL_ADDRESS* closest
+);
+
+EFI_STATUS CreateElement(IN OUT VIDEO_ELEMENT* template);
+EFI_STATUS DrawElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+);
 EFI_STATUS DrawRect(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop

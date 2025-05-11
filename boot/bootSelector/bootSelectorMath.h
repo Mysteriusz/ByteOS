@@ -1,6 +1,6 @@
 #pragma once
 
-#include "efi/efi.h"
+#include "efi.h"
 
 UINT32 root(IN UINT32 a, IN UINT32 b);
 UINT32 log(IN UINT32 a, IN UINT32 b);
