@@ -1,5 +1,7 @@
 #pragma once
 
+#include "std.h"
+
 #if defined(__x86_64__) || defined(__aarch64__) 
 typedef unsigned long long UINTN;
 #else
