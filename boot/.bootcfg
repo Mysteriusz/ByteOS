@@ -1,4 +1,4 @@
-arch=x86_64				# Can be: (x86_64, arm64, arm32, ...)
+arch=x86_64				# Can be: (x86_64, arm64, arm32, i386, i684, ia32, ia64) (if provided boot binary doesn't support this architecture it will display a failure) 
 
 command=				# Command to execute on boot
 boot=					# Path to the binary from which to boot
