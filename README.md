@@ -9,6 +9,8 @@
 
 ## Kernel State
 
+# CURRENTLY REFACTORING FOR BETTER SAFETY AND LESS BLOAT
+
 | Feature                     | Status | Notes                           | Timeline        |
 |----------------------------|--------|----------------------------------|------------------|
 | Physical memory allocation | ✅     |                                  | Done             |
