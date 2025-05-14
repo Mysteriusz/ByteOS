@@ -18,7 +18,9 @@ typedef struct COLOR_INFO {
 #define VIDEO_ELEMENT_PIXEL		0x01
 #define VIDEO_ELEMENT_RECT		0x02
 #define VIDEO_ELEMENT_LINE		0x03
-#define VIDEO_ELEMENT_AWAIT  	0xff
+#define VIDEO_ELEMENT_AWAIT  	(1 << 6) // 7th bit checked
+#define VIDEO_ELEMENT_HIDDEN	(1 << 7) // 8th bit checked
+
 typedef struct VIDEO_ELEMENT {
 	UINT8 type;
 	COORDS_INFO lPos;
@@ -27,6 +29,12 @@ typedef struct VIDEO_ELEMENT {
 	COLOR_INFO color;
 	UINT16 id;
 } VIDEO_ELEMENT;
+
+#define VIDEO_ELEMENT_DRAWABLE(ptr)( \
+	((ptr)->type != VIDEO_ELEMENT_EMPTY) && \
+	!((ptr)->type & VIDEO_ELEMENT_HIDDEN) && \
+	!((ptr)->type & VIDEO_ELEMENT_AWAIT) \
+)
 
 #define COLOR_WHITE		((COLOR_INFO){0xff,0xff,0xff,0xff})
 #define COLOR_BLACK		((COLOR_INFO){0x00,0x00,0x00,0x00})
@@ -45,7 +53,8 @@ typedef struct VIDEO_ELEMENT {
 EFI_STATUS SetupVideoBuffer(VOID);
 EFI_STATUS GetVideoBuffer(
 	OUT OPTIONAL VIDEO_ELEMENT** base,
-	OUT OPTIONAL VIDEO_ELEMENT** closest
+	OUT OPTIONAL VIDEO_ELEMENT** closest,
+	OUT OPTIONAL UINT32** population
 );
 
 EFI_STATUS CreateElement(
@@ -87,6 +96,9 @@ EFI_STATUS DrawPixel(
 EFI_STATUS RedrawVideoBuffer(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
+EFI_STATUS ClearVideoBuffer(
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+);
 
 EFI_STATUS CreateAndDrawElement(
 	IN VIDEO_ELEMENT template,
@@ -100,5 +112,26 @@ EFI_STATUS DrawElement(
 );
 EFI_STATUS EraseElement(
 	IN OUT VIDEO_ELEMENT** elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+);
+
+EFI_STATUS MoveElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop,
+	IN OPTIONAL COORDS_INFO* newLpos,
+	IN OPTIONAL COORDS_INFO* newRpos
+);
+EFI_STATUS ResizeElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop,
+	IN COORDS_INFO* newSize
+);
+
+EFI_STATUS HideElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+);
+EFI_STATUS ShowElement(
+	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );

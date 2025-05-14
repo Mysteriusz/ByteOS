@@ -27,10 +27,12 @@ EFI_STATUS SetupVideoBuffer(VOID) {
 }
 EFI_STATUS GetVideoBuffer(
 	OUT OPTIONAL VIDEO_ELEMENT** base,
-	OUT OPTIONAL VIDEO_ELEMENT** closest
+	OUT OPTIONAL VIDEO_ELEMENT** closest,
+	OUT OPTIONAL UINT32** population
 ){
 	if (base != NULLPTR) *base = baseVideoBuffer;
 	if (closest != NULLPTR) *closest = closestVideoBuffer;
+	if (population != NULLPTR) *population = &videoBufferPopulation;
 
 	return EFI_SUCCESS;
 }
@@ -100,10 +102,10 @@ EFI_STATUS DrawRect(
 	UINT32 pixelVerticalOffset = 0;
 	UINT32* framebuffer = (UINT32*)(UINTN)gop->mode->frameBufferBase;
 
-	for (UINT32 i = elem->lPos.y; i < elem->lPos.y + elem->size.y; i++) {
+	for (UINT32 i = elem->lPos.y; i < elem->lPos.y + elem->size.y && i < gop->mode->info->verticalResolution; i++) {
 		pixelVerticalOffset = i * gop->mode->info->pixelsPerScanLine;
 		
-		for (UINT32 j = elem->lPos.x; j < elem->lPos.x + elem->size.x; j++) {
+		for (UINT32 j = elem->lPos.x; j < elem->lPos.x + elem->size.x && j < gop->mode->info->horizontalResolution; j++) {
 			framebuffer[pixelVerticalOffset + j] = (UINT32)COLOR_READ(elem->color);
 		}
 	}
@@ -169,13 +171,22 @@ EFI_STATUS RedrawVideoBuffer(
 	systemTable->conOut->clearScreen(systemTable->conOut);
 
 	for (UINT32 i = 0; i < MAX_INDEX; i++) {
-		if (baseVideoBuffer[i].type == VIDEO_ELEMENT_EMPTY) {
+		if (VIDEO_ELEMENT_DRAWABLE(&baseVideoBuffer[i]) == 0) {
 			continue;
 		}
 
 		DrawElement(&baseVideoBuffer[i], gop);
 	}
 	
+	return EFI_SUCCESS;
+}
+EFI_STATUS ClearVideoBuffer(
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+){
+	if (gop == NULLPTR) return EFI_INVALID_PARAMETER;
+
+	memset(baseVideoBuffer, 0, VIDEO_BUFFER_SIZE);
+
 	return EFI_SUCCESS;
 }
 
@@ -233,6 +244,72 @@ EFI_STATUS EraseElement(
 
 	DeleteElement(elem, gop);
 	RedrawVideoBuffer(gop);
+
+	return EFI_SUCCESS;
+}
+
+EFI_STATUS MoveElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop,
+	IN OPTIONAL COORDS_INFO* newLpos,
+	IN OPTIONAL COORDS_INFO* newRpos
+){
+	if (elem == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
+	
+	EFI_STATUS status = 0;
+
+	if (newLpos != NULLPTR) memcpy(&elem->lPos, newLpos, sizeof(COORDS_INFO));
+	if (newRpos != NULLPTR) memcpy(&elem->rPos, newRpos, sizeof(COORDS_INFO));
+
+	status = RedrawVideoBuffer(gop);
+	if (EFI_ERROR(status)) return status;
+
+	return EFI_SUCCESS;
+}
+EFI_STATUS ResizeElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop,
+	IN COORDS_INFO* newSize
+){
+	if (elem == NULLPTR || gop == NULLPTR || newSize == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
+
+	EFI_STATUS status = 0;
+
+	memcpy(&elem->size, newSize, sizeof(COLOR_INFO));
+
+	status = RedrawVideoBuffer(gop);
+	if (EFI_ERROR(status)) return status;
+
+	return EFI_SUCCESS;
+}
+
+EFI_STATUS HideElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+){
+	if (elem == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
+
+	EFI_STATUS status = 0;
+
+	elem->type |= VIDEO_ELEMENT_HIDDEN;
+
+	status = RedrawVideoBuffer(gop);
+	if (EFI_ERROR(status)) return status;
+
+	return EFI_SUCCESS;
+}
+EFI_STATUS ShowElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+){
+	if (elem == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;	
+	
+	EFI_STATUS status = 0;
+
+	elem->type &= ~VIDEO_ELEMENT_HIDDEN;
+
+	status = RedrawVideoBuffer(gop);
+	if (EFI_ERROR(status)) return status;
 
 	return EFI_SUCCESS;
 }

@@ -17,11 +17,21 @@ EFI_STATUS DrawSelector(VOID){
 	CreateAndDrawElement(BOOT_SELECTOR_BIN_RECT, gop, NULLPTR);
 
 	VIDEO_ELEMENT* base = NULLPTR;
-	GetVideoBuffer(&base, NULLPTR);
+	GetVideoBuffer(&base, NULLPTR, NULLPTR);
 
 	UINT8 v = 2;
 	VIDEO_ELEMENT* elem = NULLPTR;
 	status = GetElement(&v, sizeof(UINT8), VIDEO_ELEMENT_TYPE_OFFSET, &elem);
+
+	status = HideElement(&base[1], gop);
+	status = ShowElement(&base[1], gop);
+
+	COORDS_INFO lPos;
+
+	lPos.x = 300;
+	lPos.y = 200;
+
+	MoveElement(elem, gop, &lPos, NULLPTR);
 
 	return 0;
 }
