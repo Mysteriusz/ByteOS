@@ -23,4 +23,4 @@
 }
 
 EFI_STATUS DrawSelector(VOID);
-EFI_STATUS EnterPanic(VOID);
+NORETURN VOID EnterPanic(VOID);
