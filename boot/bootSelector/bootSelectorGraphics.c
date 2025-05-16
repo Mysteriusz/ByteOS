@@ -111,6 +111,119 @@ EFI_STATUS DrawRect(
 	}
 
 	return EFI_SUCCESS;
+}	 
+
+#define PLOT_ELLIPSE(xc, yc, x, y, fb, gop, col) \
+do { \
+	if ((gop)->mode->info->verticalResolution > (yc) - (y) && (gop)->mode->info->horizontalResolution > (xc) - (x)) { \
+		((UINT32*)fb)[((yc) - (y)) * (gop)->mode->info->pixelsPerScanLine + ((xc) - (x))] = COLOR_READ(col); \
+	} \
+	if ((gop)->mode->info->verticalResolution > (yc) + (y) && (gop)->mode->info->horizontalResolution > (xc) + (x)) { \
+		((UINT32*)fb)[((yc) + (y)) * (gop)->mode->info->pixelsPerScanLine + ((xc) + (x))] = COLOR_READ(col); \
+	} \
+	if ((gop)->mode->info->verticalResolution > (yc) - (y) && (gop)->mode->info->horizontalResolution > (xc) + (x)) { \
+		((UINT32*)fb)[((yc) - (y)) * (gop)->mode->info->pixelsPerScanLine + ((xc) + (x))] = COLOR_READ(col); \
+	} \
+	if ((gop)->mode->info->verticalResolution > (yc) + (y) && (gop)->mode->info->horizontalResolution > (xc) - (x)) { \
+		((UINT32*)fb)[((yc) + (y)) * (gop)->mode->info->pixelsPerScanLine + ((xc) - (x))] = COLOR_READ(col); \
+	} \
+} while(0)
+#define FILL_ELLIPSE_R1(xc, yc, x, y, fb, gop, col) \
+do{ \
+	for (UINT32 iy = (yc) - (y); iy <= (yc) + (y); iy++) { \
+		if ((gop)->mode->info->verticalResolution > iy && (gop)->mode->info->horizontalResolution > ((xc) - (x))) { \
+			((UINT32*)fb)[iy * (gop)->mode->info->pixelsPerScanLine + ((xc) - (x))] = COLOR_READ(col); \
+		} \
+	}\
+	for (UINT32 iy = (yc) - (y); iy <= (yc) + (y); iy++) { \
+		if ((gop)->mode->info->verticalResolution > iy && (gop)->mode->info->horizontalResolution > ((xc) + (x))) { \
+			((UINT32*)fb)[iy * (gop)->mode->info->pixelsPerScanLine + ((xc) + (x))] = COLOR_READ(col); \
+		} \
+	}\
+} while(0)
+#define FILL_ELLIPSE_R2(xc, yc, x, y, fb, gop, col) \
+do{ \
+	for (UINT32 ix = (xc) - (x); ix <= (xc) + (x); ix++) { \
+		if ((gop)->mode->info->verticalResolution > ((yc) - (y)) && (gop)->mode->info->horizontalResolution > ix) { \
+			((UINT32*)fb)[((yc) - (y)) * (gop)->mode->info->pixelsPerScanLine + ix] = COLOR_READ(col); \
+		} \
+	}\
+	for (UINT32 ix = (xc) - (x); ix <= (xc) + (x); ix++) { \
+		if ((gop)->mode->info->verticalResolution > ((yc) + (y)) && (gop)->mode->info->horizontalResolution > ix) { \
+			((UINT32*)fb)[((yc) + (y)) * (gop)->mode->info->pixelsPerScanLine + ix] = COLOR_READ(col); \
+		} \
+	}\
+} while(0)
+EFI_STATUS DrawEllipse(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+){
+	UINT32* framebuffer = (UINT32*)(UINTN)gop->mode->frameBufferBase;
+
+	INT32 a = elem->size.x / 2;
+	INT32 b = elem->size.y / 2;
+
+	INT32 xc = elem->lPos.x + a;
+	INT32 yc = elem->lPos.y + b;
+
+	INT32 x = 0;
+	INT32 y = b;
+
+	INT32 a2 = pow(a, 2);
+	INT32 b2 = pow(b, 2);
+
+	INT32 p = b2 + (a2 * (1 - 4 * b) - 2) / 4;
+	
+	INT32 p1e = 3 * b2;
+	INT32 p2e = 2 * b2;
+
+	INT32 p2s = (2 * a2);
+
+	INT32 p1se = p1e - (2 * a2) * (b - 1);
+	INT32 p2se = p2e + (2 * a2);
+
+	PLOT_ELLIPSE(xc, yc, x, y, framebuffer, gop, elem->color);
+	FILL_ELLIPSE_R1(xc, yc, x, y, framebuffer, gop, elem->color);
+
+	while (p1se < (2 * a2) + (3 * b2)) {
+		if (p < 0) {
+			p = p + p1e;
+			p1e = p1e + p2e;
+			p1se = p1se + p2e;
+		}
+		else {
+			p = p + p1se;
+			p1e = p1e + p2e;
+			p1se = p1se + p2se;
+			y--;
+		}
+		x++;
+		FILL_ELLIPSE_R1(xc, yc, x, y, framebuffer, gop, elem->color);
+		PLOT_ELLIPSE(xc, yc, x, y, framebuffer, gop, elem->color);
+	}
+
+	p = p - (a2 * (4 * y - 3) + b2 * (4 * x + 3) + 2) / 4;
+	p1e = a2 * (3 - 2 * y);
+	p1se = (2 * b2) + (3 * a2);
+
+	while (y > 0) {
+		if (p > 0) {
+			p = p + p1e;
+			p1e = p1e + p2s;
+			p1se = p1se + p2s;
+		}
+		else {
+			p = p + p1se;
+			p1e = p1e + p2s;
+			p1se = p1se + p2se;
+			x++;
+		}
+		y--;
+		FILL_ELLIPSE_R2(xc, yc, x, y, framebuffer, gop, elem->color);
+		PLOT_ELLIPSE(xc, yc, x, y, framebuffer, gop, elem->color);
+	}
+
+	return EFI_SUCCESS;
 }
 EFI_STATUS DrawLine(
 	IN VIDEO_ELEMENT* elem,
@@ -224,10 +337,16 @@ EFI_STATUS DrawElement(
 	{
 	case VIDEO_ELEMENT_PIXEL:
 		status = DrawPixel(elem, gop);
+		break;
 	case VIDEO_ELEMENT_RECT:
 		status = DrawRect(elem, gop);
+		break;
 	case VIDEO_ELEMENT_LINE:
 		status = DrawLine(elem, gop);
+		break;
+	case VIDEO_ELEMENT_ELLIPSE:
+		status = DrawEllipse(elem, gop);
+		break;
 	default:
 		return EFI_INVALID_PARAMETER;
 	}
@@ -275,7 +394,23 @@ EFI_STATUS ResizeElement(
 
 	EFI_STATUS status = 0;
 
-	memcpy(&elem->size, newSize, sizeof(COLOR_INFO));
+	memcpy(&elem->size, newSize, sizeof(COORDS_INFO));
+
+	status = RedrawVideoBuffer(gop);
+	if (EFI_ERROR(status)) return status;
+
+	return EFI_SUCCESS;
+}
+EFI_STATUS RepaintElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop,
+	IN COLOR_INFO* newColor
+) {
+	if (elem == NULLPTR || gop == NULLPTR || newColor == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
+
+	EFI_STATUS status = 0;
+
+	memcpy(&elem->color, newColor, sizeof(COLOR_INFO));
 
 	status = RedrawVideoBuffer(gop);
 	if (EFI_ERROR(status)) return status;

@@ -13,29 +13,47 @@ EFI_STATUS DrawSelector(VOID){
 	status = EFI_HandleProtocol(gopHandle, (EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
 	if (EFI_ERROR(status)) EnterPanic();
 	
-	CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, NULLPTR);
+	/*CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, NULLPTR);
 	CreateAndDrawElement(BOOT_SELECTOR_BIN_RECT, gop, NULLPTR);
 
 	VIDEO_ELEMENT* base = NULLPTR;
-	GetVideoBuffer(&base, NULLPTR, NULLPTR);
+	GetVideoBuffer(&base, NULLPTR, NULLPTR);*/
 
-	UINT8 v = 2;
 	VIDEO_ELEMENT* elem = NULLPTR;
-	status = GetElement(&v, sizeof(UINT8), VIDEO_ELEMENT_TYPE_OFFSET, &elem);
+	CreateAndDrawElement(TEST_RECT, gop, &elem);
+	CreateAndDrawElement(TEST_ELLIPSE, gop, NULLPTR);
 
-	status = HideElement(&base[1], gop);
-	status = ShowElement(&base[1], gop);
-
-	COORDS_INFO lPos;
-
-	lPos.x = 300;
-	lPos.y = 200;
-
-	MoveElement(elem, gop, &lPos, NULLPTR);
+	EFI_Print(UInt32ToChar16(elem->type));
 
 	return 0;
 }
 
-NORETURN VOID EnterPanic(VOID) {
+VOID EnterPanic(VOID) {
 	while (1);
+}
+
+UINT16* UInt32ToChar16(UINT32 i) {
+	static UINT16 buffer[11];
+
+	if (i == 0) {
+		buffer[0] = u'0';
+		buffer[1] = u'\0';
+		return buffer;
+	}
+
+	INT32 j = 0;
+	while (i > 0) {
+		buffer[j++] = (i % 10) + u'0';
+		i /= 10;
+	}
+
+	buffer[j] = u'\0';
+
+	for (INT32 k = 0, l = j - 1; k < l; k++, l--) {
+		UINT16 temp = buffer[k];
+		buffer[k] = buffer[l];
+		buffer[l] = temp;
+	}
+
+	return buffer;
 }
