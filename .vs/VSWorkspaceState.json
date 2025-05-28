@@ -2,12 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\boot",
-    "\\boot\\bios",
-    "\\boot\\efi",
-    "\\boot\\headers",
-    "\\builds",
-    "\\kernel\\arch"
+    "\\builds"
   ],
-  "SelectedNode": "\\builds\\run-arm32.ps1",
+  "SelectedNode": "\\builds\\make-x86_64.mk",
   "PreviewInSolutionExplorer": false
 }
