@@ -59,14 +59,14 @@ EFI_STATUS CreateElement(
 		
 		}
 		
-		VIDEO_ELEMENT* next = child->meta.child; // <-- cache this first
+		VIDEO_ELEMENT* next = child->meta.child;
 
 		memcpy(closestVideoBuffer, child, sizeof(VIDEO_ELEMENT));
 		closestVideoBuffer->meta.parent = parent;
 
 		parent->meta.child = closestVideoBuffer;
 		parent = closestVideoBuffer;
-		child = next; // <-- safe to update now
+		child = next;
 
 		videoBufferPopulation++;
 	}
@@ -96,11 +96,16 @@ EFI_STATUS DeleteElement(
 ){
 	if (elem == NULLPTR || *elem == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(*elem)) return EFI_INVALID_PARAMETER;
 
-	memset(*elem, 0, sizeof(VIDEO_ELEMENT));
-	videoBufferPopulation--;
+	VIDEO_ELEMENT* child = *elem;
+	while (child != NULLPTR) {
+		memset(child, 0, sizeof(VIDEO_ELEMENT));
+		videoBufferPopulation--;
 
-	if ((EFI_PHYSICAL_ADDRESS)*elem < (EFI_PHYSICAL_ADDRESS)closestVideoBuffer){
-		closestVideoBuffer = *elem;
+		if ((EFI_PHYSICAL_ADDRESS)elem < (EFI_PHYSICAL_ADDRESS)closestVideoBuffer) {
+			closestVideoBuffer = child;
+		}
+
+		child = child->meta.child;
 	}
 
 	*elem = NULLPTR;
@@ -288,21 +293,44 @@ EFI_STATUS DrawPixel(
 
 	return EFI_SUCCESS;
 }
+EFI_STATUS DrawBorder(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+) {
+	if (elem == NULLPTR || elem->meta.parent == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
 
-EFI_STATUS AddChild(
-	IN VIDEO_ELEMENT* parent, 
-	IN VIDEO_ELEMENT* child
-){
-	if (parent == NULLPTR || child == NULLPTR) return EFI_INVALID_PARAMETER;
+	// TODO: Support for X and Y thickenss
+	UINT8 thickness = elem->size.x;
 
-	VIDEO_ELEMENT* curr = parent->meta.child;
-	while (curr != NULLPTR) {
-		curr = curr->meta.child;
+	VIDEO_ELEMENT* parent = elem->meta.parent;
+	VIDEO_ELEMENT border = (VIDEO_ELEMENT){ .lPos = (COORDS_INFO){.x = parent->lPos.x - thickness, .y = parent->lPos.y - thickness}, .color = elem->color };
+
+	for (UINT32 i = 0; i < thickness; i++) {
+		// LEFT
+		border.lPos.x = parent->lPos.x - i;
+		border.lPos.y = parent->lPos.y - i;
+		border.rPos.x = parent->lPos.x - i;
+		border.rPos.y = parent->lPos.y + (parent->size.y - 1) + i;
+		DrawLine(&border, gop);
+		// BOTTOM 
+		border.lPos.x = parent->lPos.x - i;
+		border.lPos.y = parent->lPos.y + (parent->size.y - 1) + i;
+		border.rPos.x = parent->lPos.x + (parent->size.x - 1) + i;
+		border.rPos.y = parent->lPos.y - i;
+		DrawLine(&border, gop);
+		// RIGHT
+		border.lPos.x = parent->lPos.x + (parent->size.x - 1) + i;
+		border.lPos.y = parent->lPos.y - i;
+		border.rPos.x = parent->lPos.x + (parent->size.x - 1) + i;
+		border.rPos.y = parent->lPos.y + (parent->size.y - 1) + i;
+		DrawLine(&border, gop);
+		// TOP
+		border.lPos.x = parent->lPos.x - i;
+		border.lPos.y = parent->lPos.y - i;
+		border.rPos.x = parent->lPos.x + (parent->size.x - 1) + i;
+		border.rPos.y = parent->lPos.y - i;
+		DrawLine(&border, gop);
 	}
-
-	curr->meta.child = child;
-
-	child->type |= VIDEO_ELEMENT_CHILD;
 
 	return EFI_SUCCESS;
 }
@@ -375,7 +403,7 @@ EFI_STATUS CreateAndDrawElement(
 EFI_STATUS DrawElement(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
-) {
+){
 	if (elem == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
 
 	EFI_STATUS status = 0;
@@ -503,46 +531,20 @@ EFI_STATUS ShowElement(
 	return EFI_SUCCESS;
 }
 
-// ======= CUSTOM =======
+EFI_STATUS AddChild(
+	IN VIDEO_ELEMENT* parent,
+	IN VIDEO_ELEMENT* child
+) {
+	if (parent == NULLPTR || child == NULLPTR) return EFI_INVALID_PARAMETER;
 
-EFI_STATUS DrawBorder(
-	IN VIDEO_ELEMENT* elem,
-	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
-){
-	if (elem == NULLPTR || elem->meta.parent == NULLPTR || gop == NULLPTR || VIDEO_OUT_OF_RANGE(elem)) return EFI_INVALID_PARAMETER;
-	
-	// TODO: Support for X and Y thickenss
-	UINT8 thickness = elem->size.x;
-
-	VIDEO_ELEMENT* parent = elem->meta.parent;
-	VIDEO_ELEMENT border = (VIDEO_ELEMENT){ .lPos = (COORDS_INFO){.x = parent->lPos.x - thickness, .y = parent->lPos.y - thickness}, .color = elem->color };
-
-	for (UINT32 i = 0; i < thickness; i++) {
-		// LEFT
-		border.lPos.x = parent->lPos.x - i;
-		border.lPos.y = parent->lPos.y - i;
-		border.rPos.x = parent->lPos.x - i;
-		border.rPos.y = parent->lPos.y + (parent->size.y - 1) + i;
-		DrawLine(&border, gop);
-		// BOTTOM 
-		border.lPos.x = parent->lPos.x - i;
-		border.lPos.y = parent->lPos.y + (parent->size.y - 1) + i;
-		border.rPos.x = parent->lPos.x + (parent->size.x - 1) + i;
-		border.rPos.y = parent->lPos.y - i;
-		DrawLine(&border, gop);
-		// RIGHT
-		border.lPos.x = parent->lPos.x + (parent->size.x - 1) + i;
-		border.lPos.y = parent->lPos.y - i;
-		border.rPos.x = parent->lPos.x + (parent->size.x - 1) + i;
-		border.rPos.y = parent->lPos.y + (parent->size.y - 1) + i;
-		DrawLine(&border, gop);
-		// TOP
-		border.lPos.x = parent->lPos.x - i;
-		border.lPos.y = parent->lPos.y - i;
-		border.rPos.x = parent->lPos.x + (parent->size.x - 1) + i;
-		border.rPos.y = parent->lPos.y - i;
-		DrawLine(&border, gop);
+	VIDEO_ELEMENT* curr = parent->meta.child;
+	while (curr != NULLPTR) {
+		curr = curr->meta.child;
 	}
+
+	curr->meta.child = child;
+
+	child->type |= VIDEO_ELEMENT_CHILD;
 
 	return EFI_SUCCESS;
 }

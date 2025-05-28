@@ -44,7 +44,7 @@ typedef struct VIDEO_ELEMENT {
 	((ptr)->type != VIDEO_ELEMENT_EMPTY) && \
 	!((ptr)->type & VIDEO_ELEMENT_HIDDEN) && \
 	!((ptr)->type & VIDEO_ELEMENT_AWAIT) && \
-	((ptr)->type != VIDEO_ELEMENT_CHILD) \
+	!((ptr)->type & VIDEO_ELEMENT_CHILD) \
 )
 
 #define COLOR_WHITE		((COLOR_INFO){0xff,0xff,0xff,0xff})
@@ -138,9 +138,18 @@ EFI_STATUS DrawPixel(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 
-EFI_STATUS AddChild(
-	IN VIDEO_ELEMENT* parent, 
-	IN VIDEO_ELEMENT* child
+/// <summary>
+/// Draws a border given elem arguments without type checking.
+/// </summary>
+/// <param name="elem"><para />
+/// as VIDEO_ELEMENT containing:<para />
+/// -- size - Thickness of the border.<para />
+/// -- color - RGB Drawing color.<para />
+/// -- elem->meta.parent - VIDEO_ELEMENT that the border is drawn around.<para />
+/// </param>
+EFI_STATUS DrawBorder(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 
 // ======= HIGH LEVEL API =======
@@ -200,9 +209,7 @@ EFI_STATUS ShowElement(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 
-// ======= CUSTOM =======
-
-EFI_STATUS DrawBorder(
-	IN VIDEO_ELEMENT* elem,
-	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+EFI_STATUS AddChild(
+	IN VIDEO_ELEMENT* parent,
+	IN VIDEO_ELEMENT* child
 );

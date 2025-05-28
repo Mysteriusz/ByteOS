@@ -31,7 +31,7 @@
 		.child = &BOOT_SELECTOR_BORDER, \
 		.parent = NULLPTR \
 	}, \
-	.color = COLOR_RED \
+	.color = COLOR_BLACK \
 }
 
 EFI_STATUS DrawSelector(VOID);
