@@ -2,6 +2,22 @@
 
 #include "bootSelectorGraphics.h"
 
+#define BOOT_SELECTOR_RECT_ID 0x0001
+#define BOOT_SELECTOR_BORDER \
+(VIDEO_ELEMENT) \
+{ \
+	.type = VIDEO_ELEMENT_BORDER | VIDEO_ELEMENT_CHILD, \
+	.lPos = (COORDS_INFO){0x00, 0x00, 0x00}, \
+	.rPos = (COORDS_INFO){0x00, 0x00, 0x00}, \
+	.size = (COORDS_INFO){0x05, 0x05, 0x00}, \
+	.meta = (VIDEO_ELEMENT_META) \
+	{ \
+		.id = BOOT_SELECTOR_RECT_ID, \
+		.child = NULLPTR, \
+		.parent = NULLPTR \
+	}, \
+	.color = COLOR_GRAY \
+}
 #define BOOT_SELECTOR_RECT \
 (VIDEO_ELEMENT) \
 { \
@@ -9,17 +25,13 @@
 	.lPos = (COORDS_INFO){0x50, 0x50, 0x00}, \
 	.rPos = (COORDS_INFO){0x00, 0x00, 0x00}, \
 	.size = (COORDS_INFO){0x200, 0x200, 0x00}, \
+	.meta = (VIDEO_ELEMENT_META) \
+	{ \
+		.id = BOOT_SELECTOR_RECT_ID, \
+		.child = &BOOT_SELECTOR_BORDER, \
+		.parent = NULLPTR \
+	}, \
 	.color = COLOR_RED \
-}
-
-#define BOOT_SELECTOR_BIN_RECT \
-(VIDEO_ELEMENT) \
-{ \
-	.type = VIDEO_ELEMENT_RECT, \
-	.lPos = (COORDS_INFO){0x00, 0x00, 0x00}, \
-	.rPos = (COORDS_INFO){0x00, 0x00, 0x00}, \
-	.size = (COORDS_INFO){0x100, 0x100, 0x00}, \
-	.color = COLOR_WHITE \
 }
 
 EFI_STATUS DrawSelector(VOID);

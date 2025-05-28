@@ -19,6 +19,7 @@ typedef struct COLOR_INFO {
 #define VIDEO_ELEMENT_RECT		0x02
 #define VIDEO_ELEMENT_LINE		0x03
 #define VIDEO_ELEMENT_ELLIPSE	0x04
+#define VIDEO_ELEMENT_BORDER	0x0a
 #define VIDEO_ELEMENT_CHILD  	(1 << 5) // 6th bit checked
 #define VIDEO_ELEMENT_AWAIT  	(1 << 6) // 7th bit checked
 #define VIDEO_ELEMENT_HIDDEN	(1 << 7) // 8th bit checked
@@ -28,6 +29,7 @@ typedef struct VIDEO_ELEMENT VIDEO_ELEMENT;
 typedef struct VIDEO_ELEMENT_META {
 	UINT16 id;
 	VIDEO_ELEMENT* parent;
+	VIDEO_ELEMENT* child;
 } VIDEO_ELEMENT_META;
 typedef struct VIDEO_ELEMENT {
 	UINT8 type;
@@ -41,7 +43,8 @@ typedef struct VIDEO_ELEMENT {
 #define VIDEO_ELEMENT_DRAWABLE(ptr)( \
 	((ptr)->type != VIDEO_ELEMENT_EMPTY) && \
 	!((ptr)->type & VIDEO_ELEMENT_HIDDEN) && \
-	!((ptr)->type & VIDEO_ELEMENT_AWAIT) \
+	!((ptr)->type & VIDEO_ELEMENT_AWAIT) && \
+	((ptr)->type != VIDEO_ELEMENT_CHILD) \
 )
 
 #define COLOR_WHITE		((COLOR_INFO){0xff,0xff,0xff,0xff})
@@ -135,6 +138,11 @@ EFI_STATUS DrawPixel(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 
+EFI_STATUS AddChild(
+	IN VIDEO_ELEMENT* parent, 
+	IN VIDEO_ELEMENT* child
+);
+
 // ======= HIGH LEVEL API =======
 
 #define VIDEO_ELEMENT_OFFSET_TYPE OFFSET_OF(VIDEO_ELEMENT, type)
@@ -159,12 +167,6 @@ EFI_STATUS CreateAndDrawElement(
 
 EFI_STATUS DrawElement(
 	IN VIDEO_ELEMENT* elem,
-	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
-);
-EFI_STATUS DrawBorder(
-	IN VIDEO_ELEMENT* elem,
-	IN UINT8 thickness,
-	IN COLOR_INFO color,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 EFI_STATUS EraseElement(
@@ -194,6 +196,13 @@ EFI_STATUS HideElement(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 EFI_STATUS ShowElement(
+	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+);
+
+// ======= CUSTOM =======
+
+EFI_STATUS DrawBorder(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );

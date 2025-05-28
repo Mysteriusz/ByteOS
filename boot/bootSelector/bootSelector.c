@@ -16,8 +16,6 @@ EFI_STATUS DrawSelector(VOID){
 	VIDEO_ELEMENT* base = NULLPTR;
 	CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, &base);
 
-	DrawBorder(base, 5, COLOR_GRAY, gop);
-
 	return 0;
 }
 
