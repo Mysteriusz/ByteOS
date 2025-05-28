@@ -19,16 +19,23 @@ typedef struct COLOR_INFO {
 #define VIDEO_ELEMENT_RECT		0x02
 #define VIDEO_ELEMENT_LINE		0x03
 #define VIDEO_ELEMENT_ELLIPSE	0x04
+#define VIDEO_ELEMENT_CHILD  	(1 << 5) // 6th bit checked
 #define VIDEO_ELEMENT_AWAIT  	(1 << 6) // 7th bit checked
 #define VIDEO_ELEMENT_HIDDEN	(1 << 7) // 8th bit checked
 
+typedef struct VIDEO_ELEMENT VIDEO_ELEMENT;
+
+typedef struct VIDEO_ELEMENT_META {
+	UINT16 id;
+	VIDEO_ELEMENT* parent;
+} VIDEO_ELEMENT_META;
 typedef struct VIDEO_ELEMENT {
 	UINT8 type;
 	COORDS_INFO lPos;
 	COORDS_INFO rPos;
 	COORDS_INFO size;
 	COLOR_INFO color;
-	UINT16 id;
+	VIDEO_ELEMENT_META meta;
 } VIDEO_ELEMENT;
 
 #define VIDEO_ELEMENT_DRAWABLE(ptr)( \
@@ -46,7 +53,7 @@ typedef struct VIDEO_ELEMENT {
 
 #define COLOR_READ(colorInfo)(colorInfo.a << 24 | colorInfo.r << 16 | colorInfo.g << 8 | colorInfo.b)
 
-#define VIDEO_BUFFER_SIZE	    0xffff
+#define VIDEO_BUFFER_SIZE	    0x10000
 #define VIDEO_BUFFER_COUNT	    (VIDEO_BUFFER_SIZE / sizeof(VIDEO_ELEMENT))
 
 // ======= LOW LEVEL API =======
@@ -73,18 +80,56 @@ EFI_STATUS DeleteElement(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 
+/// <summary>
+/// Draws a rectangle given elem arguments without type checking.
+/// </summary>
+/// <param name="elem"><para />
+/// as VIDEO_ELEMENT containing:<para />
+/// -- lPos - XY Top left position.<para />
+/// -- size - XY Width and height.<para />
+/// -- color - RGB Drawing color.<para />
+/// </param>
 EFI_STATUS DrawRect(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
+
+/// <summary>
+/// Draws an ellipse given elem arguments without type checking.
+/// </summary>
+/// <param name="elem"><para />
+/// as VIDEO_ELEMENT containing:<para />
+/// -- lPos - XY Top left position.<para />
+/// -- size - XY Width and height.<para />
+/// -- color - RGB Drawing color.<para />
+/// </param>
 EFI_STATUS DrawEllipse(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
+
+/// <summary>
+/// Draws a line given elem arguments without type checking.
+/// </summary>
+/// <param name="elem"><para />
+/// as VIDEO_ELEMENT containing:<para />
+/// -- lPos - XY First point position.<para />
+/// -- rPos - XY Second point position.<para />
+/// -- color - RGB Drawing color.<para />
+/// </param>
 EFI_STATUS DrawLine(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
+
+/// <summary>
+/// Draws a pixel given elem arguments without type checking.
+/// </summary>
+/// <param name="elem"><para />
+/// as VIDEO_ELEMENT containing:<para />
+/// -- lPos - XY Exact pixel coordinates.<para />
+/// -- color - RGB Drawing color.<para />
+/// </param>
 EFI_STATUS DrawPixel(
 	IN VIDEO_ELEMENT* elem,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
@@ -97,7 +142,7 @@ EFI_STATUS DrawPixel(
 #define VIDEO_ELEMENT_OFFSET_RPOS OFFSET_OF(VIDEO_ELEMENT, rPos)
 #define VIDEO_ELEMENT_OFFSET_COLOR OFFSET_OF(VIDEO_ELEMENT, color)
 #define VIDEO_ELEMENT_OFFSET_SIZE OFFSET_OF(VIDEO_ELEMENT, size)
-#define VIDEO_ELEMENT_OFFSET_ID OFFSET_OF(VIDEO_ELEMENT, id)
+#define VIDEO_ELEMENT_OFFSET_META OFFSET_OF(VIDEO_ELEMENT, meta)
 
 EFI_STATUS RedrawVideoBuffer(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
@@ -114,6 +159,12 @@ EFI_STATUS CreateAndDrawElement(
 
 EFI_STATUS DrawElement(
 	IN VIDEO_ELEMENT* elem,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+);
+EFI_STATUS DrawBorder(
+	IN VIDEO_ELEMENT* elem,
+	IN UINT8 thickness,
+	IN COLOR_INFO color,
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 );
 EFI_STATUS EraseElement(

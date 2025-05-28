@@ -281,7 +281,10 @@ EFI_STATUS RedrawVideoBuffer(
 ){
 	if (gop == NULLPTR) return EFI_INVALID_PARAMETER;
 
-	systemTable->conOut->clearScreen(systemTable->conOut);
+	EFI_STATUS status = 0;
+
+	status = gop->blt(gop, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL*)&COLOR_BLACK, EfiBltVideoFill, 0, 0, 0, 0, gop->mode->info->horizontalResolution, gop->mode->info->verticalResolution, 0);
+	if (EFI_ERROR(status)) return status;
 
 	for (UINT32 i = 0; i < MAX_INDEX; i++) {
 		if (VIDEO_ELEMENT_DRAWABLE(&baseVideoBuffer[i]) == 0) {
@@ -297,6 +300,11 @@ EFI_STATUS ClearVideoBuffer(
 	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
 ){
 	if (gop == NULLPTR) return EFI_INVALID_PARAMETER;
+
+	EFI_STATUS status = 0;
+
+	status = gop->blt(gop, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL*)&COLOR_BLACK, EfiBltVideoFill, 0, 0, 0, 0, gop->mode->info->horizontalResolution, gop->mode->info->verticalResolution, 0);
+	if (EFI_ERROR(status)) return status;
 
 	memset(baseVideoBuffer, 0, VIDEO_BUFFER_SIZE);
 
@@ -352,6 +360,46 @@ EFI_STATUS DrawElement(
 	}
 
 	if (EFI_ERROR(status)) return status;
+
+	return EFI_SUCCESS;
+}
+EFI_STATUS DrawBorder(
+	IN VIDEO_ELEMENT* elem,
+	IN UINT8 thickness,
+	IN COLOR_INFO color,
+	IN EFI_GRAPHICS_OUTPUT_PROTOCOL* gop
+){
+	if (elem == NULLPTR || gop == NULLPTR) return EFI_INVALID_PARAMETER;
+
+	VIDEO_ELEMENT buffer;
+	buffer.color = color;
+
+	for (UINT32 i = 0; i < thickness; i++) {
+		// LEFT
+		buffer.lPos.x = elem->lPos.x - i;
+		buffer.lPos.y = elem->lPos.y - i;
+		buffer.rPos.x = elem->lPos.x - i;
+		buffer.rPos.y = elem->lPos.y + (elem->size.y - 1) + i;
+		DrawLine(&buffer, gop);		
+		// BOTTOM 
+		buffer.lPos.x = elem->lPos.x - i;
+		buffer.lPos.y = elem->lPos.y + (elem->size.y - 1) + i;
+		buffer.rPos.x = elem->lPos.x + (elem->size.x - 1) + i;
+		buffer.rPos.y = elem->lPos.y - i;
+		DrawLine(&buffer, gop);		
+		// RIGHT
+		buffer.lPos.x = elem->lPos.x + (elem->size.x - 1) + i;
+		buffer.lPos.y = elem->lPos.y - i;
+		buffer.rPos.x = elem->lPos.x + (elem->size.x - 1) + i;
+		buffer.rPos.y = elem->lPos.y + (elem->size.y - 1) + i;
+		DrawLine(&buffer, gop);		
+		// TOP
+		buffer.lPos.x = elem->lPos.x - i;
+		buffer.lPos.y = elem->lPos.y - i;
+		buffer.rPos.x = elem->lPos.x + (elem->size.x - 1) + i;
+		buffer.rPos.y = elem->lPos.y - i;
+		DrawLine(&buffer, gop);
+	}
 
 	return EFI_SUCCESS;
 }

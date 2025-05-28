@@ -13,17 +13,10 @@ EFI_STATUS DrawSelector(VOID){
 	status = EFI_HandleProtocol(gopHandle, (EFI_GUID)EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, (VOID**)&gop);
 	if (EFI_ERROR(status)) EnterPanic();
 	
-	/*CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, NULLPTR);
-	CreateAndDrawElement(BOOT_SELECTOR_BIN_RECT, gop, NULLPTR);
-
 	VIDEO_ELEMENT* base = NULLPTR;
-	GetVideoBuffer(&base, NULLPTR, NULLPTR);*/
+	CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, &base);
 
-	VIDEO_ELEMENT* elem = NULLPTR;
-	CreateAndDrawElement(TEST_RECT, gop, &elem);
-	CreateAndDrawElement(TEST_ELLIPSE, gop, NULLPTR);
-
-	EFI_Print(UInt32ToChar16(elem->type));
+	DrawBorder(base, 5, COLOR_GRAY, gop);
 
 	return 0;
 }
