@@ -7,6 +7,8 @@
 *.db-wal
 *.json
 *.wsuo
+*.mds
+*.iso
 
 # Prerequisites
 *.d
