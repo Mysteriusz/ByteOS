@@ -1,4 +1,5 @@
 #include "bootSelector.h"
+#include "fnt.h"
 
 EFI_STATUS DrawSelector(VOID){
 	EFI_STATUS status = 0;
@@ -16,7 +17,12 @@ EFI_STATUS DrawSelector(VOID){
 	VIDEO_ELEMENT* base = NULLPTR;
 	CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, &base);
 
-	RepaintElement(base, gop, &COLOR_RED);
+	FONT* font;
+	status = LoadFont(L"\\EFI\\BOOT\\terminusbold.fnt", FNT, &font);
+	
+	FNT_HEADER* fnt = (FNT_HEADER*)font->file;
+	EFI_Print(UInt32ToChar16(font->charWidth));
+	//EFI_Print(UInt32ToChar16(fnt->ascent));
 
 	return 0;
 }
@@ -48,5 +54,17 @@ UINT16* UInt32ToChar16(UINT32 i) {
 		buffer[l] = temp;
 	}
 
+	return buffer;
+}
+UINT16* Char8ToChar16(UINT8* str) {
+	static UINT16 buffer[256];
+	INT32 i = 0;
+
+	while (str[i] != '\0' && i < 255) {
+		buffer[i] = (UINT16)str[i];
+		i++;
+	}
+
+	buffer[i] = u'\0';
 	return buffer;
 }

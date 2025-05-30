@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bootSelectorGraphics.h"
+#include "bootSelectorFont.h"
 
 #define BOOT_SELECTOR_RECT_ID 0x0001
 #define BOOT_SELECTOR_BORDER \
@@ -37,3 +38,4 @@
 EFI_STATUS DrawSelector(VOID);
 VOID EnterPanic(VOID);
 UINT16* UInt32ToChar16(UINT32 i);
+UINT16* Char8ToChar16(UINT8* str);

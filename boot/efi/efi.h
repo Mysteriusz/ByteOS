@@ -366,8 +366,8 @@ typedef EFI_STATUS(EFIAPI* EFI_FILE_OPEN)(
     IN EFI_FILE_PROTOCOL* protocol,
     OUT EFI_FILE_PROTOCOL** newProtocol,
     IN UINT16* fileName,
-    IN UINT64* openMode,
-    IN UINT64 *attributes
+    IN UINT64 openMode,
+    IN UINT64 attributes
 );
 
 typedef EFI_STATUS (EFIAPI *EFI_FILE_READ)(

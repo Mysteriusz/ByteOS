@@ -1,3 +1,5 @@
+#pragma once
+
 #include "bootSelectorGraphics.h"
 
 typedef enum CHAR_TYPE {
@@ -8,16 +10,21 @@ typedef enum CHAR_TYPE {
 	CHAR64,
 } CHAR_TYPE;
 
+typedef enum FONT_TYPE {
+	FNT,
+} FONT_TYPE;
+
 typedef struct FONT {
-	CHAR_TYPE charType;
-	UINT16 height;
-	UINT16 width;
-	VOID* bitmap;
+	UINT8 charType;
+	UINT8 fontType;
+	UINT16 charWidth;
+	UINT16 charHeight;
+	VOID* file;
 } FONT;
 typedef struct CHAR_LINE {
 	COORDS_INFO pos;
-	CHAR_LINE* next;
 	FONT font;
+	struct CHAR_LINE* next;
 } CHAR_LINE;
 
-EFI_STATUS Print(IN COORDS_INFO pos, IN FONT font, IN UINT8 text);
+EFI_STATUS LoadFont(IN UINT16* path, IN UINT8 type, OUT FONT** buffer);
