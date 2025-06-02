@@ -13,6 +13,11 @@ typedef struct COLOR_INFO {
 	UINT8 b;
 	UINT8 a;
 } COLOR_INFO;
+typedef struct BITMAP {
+	UINT32 sizeX;
+	UINT32 sizeY;
+	UINT8* data;
+} BITMAP;
 
 #define VIDEO_ELEMENT_EMPTY		0x00
 #define VIDEO_ELEMENT_PIXEL		0x01

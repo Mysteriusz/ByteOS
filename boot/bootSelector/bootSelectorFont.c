@@ -1,8 +1,22 @@
 #include "bootSelectorFont.h"
 #include "fnt.h"
 
-EFI_STATUS LoadFont(IN UINT16* path, IN UINT8 type, OUT FONT** buffer) {
-	if (buffer == NULLPTR || path == NULLPTR) return EFI_INVALID_PARAMETER;
+EFI_STATUS CreateFontBuffer(OUT FONT** buffer){
+	if (buffer == NULLPTR) return EFI_INVALID_PARAMETER;
+
+	EFI_STATUS status = 0;
+
+	status = EFI_AllocPool(EfiLoaderData, sizeof(FONT), (VOID**)buffer);
+	if (EFI_ERROR(status)) return status;
+
+	(*buffer)->con.load = I_LoadFontFile;
+	(*buffer)->con.unload = I_UnloadFontFile;
+
+	return EFI_SUCCESS;
+}
+
+EFI_STATUS I_LoadFontFile(IN FONT* font, IN UINT16* path, IN UINT8 type) {
+	if (font == NULLPTR || path == NULLPTR) return EFI_INVALID_PARAMETER;
 
 	EFI_STATUS status = 0;
 
@@ -43,21 +57,32 @@ EFI_STATUS LoadFont(IN UINT16* path, IN UINT8 type, OUT FONT** buffer) {
 	status = fontFile->read(fontFile, &fontSize, data);
 	if (EFI_ERROR(status)) return status;
 
-	status = EFI_AllocPool(EfiLoaderData, sizeof(FONT), (VOID**)buffer);
+	switch (type) {
+	case FNT:
+		FNT_HEADER* fnt = (FNT_HEADER*)data;
+		font->charWidth = fnt->pixWidth;
+		font->charHeight = fnt->pixHeight;
+		font->con.getChar = FntCharBitmap;
+		break;
+	default:
+		break;
+	}
+
+	font->charType = type;
+	font->file = data;
+
+	return status;
+}
+EFI_STATUS I_UnloadFontFile(IN FONT* font) {
+	if (font == NULLPTR) return EFI_INVALID_PARAMETER;
+
+	EFI_STATUS status = 0;
+
+	status = EFI_DeAllocPool(font->file);
 	if (EFI_ERROR(status)) return status;
 
-	switch (type) {
-		case FNT:
-			FNT_HEADER* fnt = (FNT_HEADER*)data;
-			(*buffer)->charWidth = fnt->pixWidth;
-			(*buffer)->charHeight = fnt->pixHeight;
-			break;
-		default:
-			break;
-	}
-	
-	(*buffer)->charType = type;
-	(*buffer)->file = data;
+	font->con.getChar = NULLPTR;
+	font->con.hasChar = NULLPTR;
 
-	return EFI_SUCCESS;
+	return status;
 }

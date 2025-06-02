@@ -18,11 +18,15 @@ EFI_STATUS DrawSelector(VOID){
 	CreateAndDrawElement(BOOT_SELECTOR_RECT, gop, &base);
 
 	FONT* font;
-	status = LoadFont(L"\\EFI\\BOOT\\terminusbold.fnt", FNT, &font);
+	CreateFontBuffer(&font);
+	status = font->con.load(font, L"\\EFI\\BOOT\\terminusbold.fnt", FNT);
 	
+	BITMAP bitmap;
+	status = font->con.getChar(font, 0x21, &bitmap);
+
 	FNT_HEADER* fnt = (FNT_HEADER*)font->file;
-	EFI_Print(UInt32ToChar16(font->charWidth));
-	//EFI_Print(UInt32ToChar16(fnt->ascent));
+	EFI_Print(UInt32ToChar16(bitmap.data[2]));
+	//EFI_Print(UInt32ToChar16(fnt->charTables[23].byteOffset));
 
 	return 0;
 }
